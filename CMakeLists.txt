@@ -35,7 +35,7 @@ set(Slicer_ORGANIZATION_DOMAIN "ebatinca.com")
 set(Slicer_ORGANIZATION_NAME   "Ebatinca, S.L.")
 
 # Default home and favorite modules
-set(Slicer_DEFAULT_HOME_MODULE "Home")
+set(Slicer_DEFAULT_HOME_MODULE "TrainUS")
 set(Slicer_DEFAULT_FAVORITE_MODULES "Data, Volumes, Models, Transforms, Markups, SegmentEditor")
 
 # Configure SuperBuild
@@ -134,9 +134,13 @@ set(Slicer_QTSCRIPTEDMODULES_DISABLED
 
 # Enable/Disable Slicer custom modules: To create a new module, use the SlicerExtensionWizard.
 set(Slicer_EXTENSION_SOURCE_DIRS
-  #${TrainUS_SOURCE_DIR}/Modules/CLI/MyCLIModule
-  #${TrainUS_SOURCE_DIR}/Modules/Loadable/MyLoadableModule
+  ${TrainUS_SOURCE_DIR}/Modules/TrainUS
   ${TrainUS_SOURCE_DIR}/Modules/Home
+  ${TrainUS_SOURCE_DIR}/Modules/Evaluator
+  ${TrainUS_SOURCE_DIR}/Modules/UltrasoundDisplaySettings
+  ${TrainUS_SOURCE_DIR}/Modules/UltrasoundProbeCalibration
+  ${TrainUS_SOURCE_DIR}/Modules/ToolPivotCalibration
+  ${TrainUS_SOURCE_DIR}/Modules/ToolTrackingStatus
   )
 
 # Add remote extension source directories

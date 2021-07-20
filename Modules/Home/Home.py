@@ -23,9 +23,55 @@ class Home(ScriptedLoadableModule):
     self.parent.categories = ["TrainUS"]
     self.parent.dependencies = []
     self.parent.contributors = ["Csaba Pinter (Ebatinca), David Garcia Mato (Ebatinca)"]
-    self.parent.helpText = """This is the Home module for the custom application"""
+    self.parent.helpText = """The Home screen of the custom application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """...""" # replace with organization, grant and thanks.
+    self.parent.acknowledgementText = """EBATINCA, S.L.""" # replace with organization, grant and thanks.
+
+
+#------------------------------------------------------------------------------
+#
+# Home dialog class
+#
+#------------------------------------------------------------------------------
+class QHomeWidget(qt.QDialog):
+  """
+  QHomeWidget extends QDialog class to have a modified close event for required home screen functionality
+  """
+  def __init__(self):
+    """
+    Initializes required window options for the widget
+
+    :return void:
+    """
+    qt.QDialog.__init__(self)
+    self.setWindowFlags(qt.Qt.Window)
+    self.setWindowTitle('TrainUS')
+
+  def closeEvent(self, event):
+    """
+    Handle closing
+
+    :param QCloseEvent event: The parameters that describe the close event
+
+    :return void:
+    """
+    confirmCloseBox = qt.QMessageBox()
+    confirmCloseBox.setIcon(qt.QMessageBox.Warning)
+    confirmCloseBox.setWindowTitle('Confirm Close')
+    confirmCloseBox.setText(
+      'Are you sure you want to close TrainUS?\n\nAny unsaved changes will be lost.')
+    confirmCloseBox.setStandardButtons(qt.QMessageBox.Ok | qt.QMessageBox.Cancel)
+    confirmCloseBox.setDefaultButton(qt.QMessageBox.Cancel)
+    confirmCloseBox.setModal(True)
+    retval = confirmCloseBox.exec_()
+    if retval == qt.QMessageBox.Ok:
+      self.hide()
+      slicer.mrmlScene.Clear(0)
+      qt.QTimer.singleShot(0, slicer.app, slicer.app.closeAllWindows())
+      #TODO: Use slicer.trainUsWidget.exitApplication()
+    else:
+      event.ignore()
+
 
 #------------------------------------------------------------------------------
 #
@@ -38,8 +84,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   """
 
   def __init__(self, parent):
+    """
+    Initialize the window and main GUI for the TrainUS home screen
+
+    :param QWidget parent: The parent widget for the QHomeWidget class
+
+    :return void:
+    """
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
+
+    self.homeWidget = QHomeWidget()
+    # self.homeWidget.setStyleSheet(self.loadStyleSheet())
 
   #------------------------------------------------------------------------------
   def setup(self):
@@ -50,12 +106,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
-    # Add slicer variable for debugging
-    slicer.trainUsWidget = self
-
-    # Remove unneeded UI elements
-    self.modifyWindowUI()
-
     # Create logic class
     self.logic = HomeLogic(self)
 
@@ -63,10 +113,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupConnections()
 
     # Dark palette does not propagate on its own?
-    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
-
-    # Apply style
-    self.applyApplicationStyle()
+    # self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
@@ -84,8 +131,44 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Runs whenever the module is reopened
     """
-    # Apply singleton parameter node settings to application
-    self.logic.setParameterNode(self.logic.getParameterNode())
+    self.showHome()
+
+  #------------------------------------------------------------------------------
+  def showHome(self):
+    """
+    Open the home screen by setting positioning and raising to modal widget
+
+    :return void:
+    """
+    mainWindow = slicer.util.mainWindow()
+    if mainWindow:
+      self.popupGeometry = mainWindow.geometry
+      self.homeWidget.setGeometry(self.popupGeometry)
+      self.homeWidget.show()
+      if mainWindow.isFullScreen():
+        self.homeWidget.showFullScreen()
+      if mainWindow.isMaximized():
+        self.homeWidget.showMaximized()
+      mainWindow.hide()
+    self.creatingNewStudy = False
+
+  #------------------------------------------------------------------------------
+  def hideHome(self):
+    """
+    Hide the home screen and reveals the main interface after loading a scene
+
+    :return void:
+    """
+    mainWindow = slicer.util.mainWindow()
+    if mainWindow:
+      self.popupGeometry = self.homeWidget.geometry
+      mainWindow.show()
+      mainWindow.setGeometry(self.popupGeometry)
+      if self.homeWidget.isFullScreen():
+        mainWindow.showFullScreen()
+      #if self.homeWidget.isMaximized():
+      #  mainWindow.showMaximized()
+      self.homeWidget.hide()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
@@ -96,85 +179,25 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     pass
 
   #------------------------------------------------------------------------------
-  def hideSlicerUI(self):
-    slicer.util.setDataProbeVisible(False)
-    slicer.util.setMenuBarsVisible(False, ignore=['MainToolBar', 'ViewToolBar'])
-    slicer.util.setModuleHelpSectionVisible(False)
-    slicer.util.setModulePanelTitleVisible(False)
-    slicer.util.setPythonConsoleVisible(False)
-    slicer.util.setToolbarsVisible(True)
-    mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
-    keepToolbars = [
-      slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'ViewToolBar'),
-      slicer.util.findChild(slicer.util.mainWindow(), 'CustomToolBar'),
-      ]
-    slicer.util.setToolbarsVisible(False, keepToolbars)
+  def loadStyleSheet(self):
+    """
+    Loading style sheet for the home screen
 
-  #------------------------------------------------------------------------------
-  def showSlicerUI(self):
-    slicer.util.setDataProbeVisible(True)
-    slicer.util.setMenuBarsVisible(True)
-    slicer.util.setModuleHelpSectionVisible(True)
-    slicer.util.setModulePanelTitleVisible(True)
-    slicer.util.setPythonConsoleVisible(True)
-    slicer.util.setToolbarsVisible(True)
+    :return string: Returns stylesheet as a string to be applied to the home screen
+    """
+    moduleDir = os.path.dirname(__file__)
+    styleFile = os.path.join(moduleDir, 'Resources', 'StyleSheets', 'HomeStyle.qss')
+    f = qt.QFile(styleFile)
 
-  #------------------------------------------------------------------------------
-  def modifyWindowUI(self):
-    slicer.util.setModuleHelpSectionVisible(False)
-
-    mainToolBar = slicer.util.findChild(slicer.util.mainWindow(), 'MainToolBar')
-
-    self.CustomToolBar = qt.QToolBar("CustomToolBar")
-    self.CustomToolBar.name = "CustomToolBar"
-    slicer.util.mainWindow().insertToolBar(mainToolBar, self.CustomToolBar)
-
-    # central = slicer.util.findChild(slicer.util.mainWindow(), name='CentralWidget')
-    # central.setStyleSheet("background-color: #464449")
-
-    gearIcon = qt.QIcon(self.resourcePath('Icons/Gears.png'))
-    self.settingsAction = self.CustomToolBar.addAction(gearIcon, "")
-
-    self.settingsDialog = slicer.util.loadUI(self.resourcePath('UI/Settings.ui'))
-    self.settingsUI = slicer.util.childWidgetVariables(self.settingsDialog)
-
-    self.settingsUI.CustomUICheckBox.toggled.connect(self.toggleUI)
-    self.settingsUI.CustomStyleCheckBox.toggled.connect(self.toggleStyle)
-
-    self.settingsAction.triggered.connect(self.raiseSettings)
-    self.hideSlicerUI()
-
-  #------------------------------------------------------------------------------
-  def toggleStyle(self,visible):
-    if visible:
-      self.applyApplicationStyle()
+    # Adding logging statement for when a particular file does not exist
+    if not f.exists():
+      logging.debug("Unable to load stylesheet, file not found")
+      return ""
     else:
-      slicer.app.styleSheet = ''
-
-  #------------------------------------------------------------------------------
-  def toggleUI(self, visible):
-    if visible:
-      self.hideSlicerUI()
-    else:
-      self.showSlicerUI()
-
-  #------------------------------------------------------------------------------
-  def raiseSettings(self, unused):
-    self.settingsDialog.exec()
-
-  #------------------------------------------------------------------------------
-  def applyApplicationStyle(self):
-    # Style
-    self.applyStyle([slicer.app], 'Home.qss')
-
-  #------------------------------------------------------------------------------
-  def applyStyle(self, widgets, styleSheetName):
-    stylesheetfile = self.resourcePath(styleSheetName)
-    with open(stylesheetfile,"r") as fh:
-      style = fh.read()
-      for widget in widgets:
-        widget.styleSheet = style
+      f.open(qt.QFile.ReadOnly | qt.QFile.Text)
+      ts = qt.QTextStream(f)
+      stylesheet = ts.readAll()
+      return stylesheet
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -184,7 +207,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
     # Get parameter node
-    parameterNode = self.logic.getParameterNode()
+    parameterNode = slicer.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
@@ -238,128 +261,6 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     self.setupKeyboardShortcuts()
 
   #------------------------------------------------------------------------------
-  def setParameterNode(self, inputParameterNode, force=False):
-    """
-    Set parameter node as main parameter node in the application.
-    - When importing a scene the parameter node from the scene is set
-    - When closing the scene, the parameter node is reset
-    - Handle observations of managed nodes (remove from old ones, add to new ones)
-    - Set default parameters if not specified in the given node
-    """
-    if inputParameterNode == self.parameterNode and not force:
-      return
-
-    # Remove observations from nodes referenced in the old parameter node
-    if self.parameterNode is not None:
-      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set parameter node member variable (so that we have access to the old one before setting the new one)
-    self.parameterNode = inputParameterNode
-    if self.parameterNode is None:
-      return
-
-    # Add observations on referenced nodes
-    if self.parameterNode:
-      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set default parameters if missing
-    self.setDefaultParameters()
-
-    # Add observations on referenced nodes
-    #TODO:
-
-    # Update widgets
-    self.moduleWidget.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def setDefaultParameters(self, force=False):
-    """
-    Set default parameters to the parameter node. The default parameters are stored in the map defaultParameters
-
-    :param bool force: Set default parameter even if the parameter is already set. False by default
-    """
-    parameterNode = self.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to set default parameters due to missing parameter node')
-      return
-
-    existingParameterNames = parameterNode.GetParameterNames()
-
-    wasModified = parameterNode.StartModify()  # Modify all properties in a single batch
-
-    for name, value in self.defaultParameters.items():
-      if not force and name in existingParameterNames:
-        continue
-      parameterNode.SetParameter(name, str(value))
-
-    parameterNode.EndModify(wasModified)
-
-  #------------------------------------------------------------------------------
-  def exitApplication(self,status=slicer.util.EXIT_SUCCESS, message=None):
-    """Exit application.
-    If ``status`` is ``slicer.util.EXIT_SUCCESS``, ``message`` is logged using ``logging.info(message)``
-    otherwise it is logged using ``logging.error(message)``.
-    """
-    def _exitApplication():
-      if message:
-        if status == slicer.util.EXIT_SUCCESS:
-          logging.info(message)
-        else:
-          logging.error(message)
-      slicer.util.mainWindow().hide()
-      slicer.util.exit(slicer.util.EXIT_FAILURE)
-    qt.QTimer.singleShot(0, _exitApplication)
-
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-    # Observe scene loaded and closed events. In those cases we need to make sure the scene is set up correctly afterwards
-    # if not self.hasObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndImportEvent, self.onSceneEndImport):
-    #   self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndImportEvent, self.onSceneEndImport)
-    # if not self.hasObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndCloseEvent, self.onSceneEndClose):
-    #   self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndCloseEvent, self.onSceneEndClose)
-
-    # Set up the layout / 3D View
-    self.logic.setup3DView()
-    self.logic.setupSliceViewers()
-
-  #------------------------------------------------------------------------------
-  def setup3DView(self):
-    layoutManager = slicer.app.layoutManager()
-    # layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView)
-    # controller = slicer.app.layoutManager().threeDWidget(0).threeDController()
-    # controller.setBlackBackground()
-    # controller.set3DAxisVisible(False)
-    # controller.set3DAxisLabelVisible(False)
-    # controller.setOrientationMarkerType(3)  #Axis marker
-    # controller.setStyleSheet("background-color: #000000")
-
-  #------------------------------------------------------------------------------
-  def setupSliceViewers(self):
-    for name in slicer.app.layoutManager().sliceViewNames():
-        sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-        self.setupSliceViewer(sliceWidget)
-
-    # Set linked slice views  in all existing slice composite nodes and in the default node
-    sliceCompositeNodes = slicer.util.getNodesByClass('vtkMRMLSliceCompositeNode')
-    defaultSliceCompositeNode = slicer.mrmlScene.GetDefaultNodeByClass('vtkMRMLSliceCompositeNode')
-    if not defaultSliceCompositeNode:
-      defaultSliceCompositeNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLSliceCompositeNode')
-      defaultSliceCompositeNode.UnRegister(None)  # CreateNodeByClass is factory method, need to unregister the result to prevent memory leaks
-      slicer.mrmlScene.AddDefaultNode(defaultSliceCompositeNode)
-    sliceCompositeNodes.append(defaultSliceCompositeNode)
-    for sliceCompositeNode in sliceCompositeNodes:
-      sliceCompositeNode.SetLinkedControl(True)
-
-  #Settings for slice views
-  def setupSliceViewer(self, sliceWidget):
-    controller = sliceWidget.sliceController()
-    # controller.setOrientationMarkerType(3)  #Axis marker
-    # controller.setRulerType(1)  #Thin ruler
-    # controller.setRulerColor(0) #White ruler
-    # controller.setStyleSheet("background-color: #000000")
-    # controller.sliceViewLabel = ''
-
-  #------------------------------------------------------------------------------
   def setupKeyboardShortcuts(self):
     shortcuts = [
         ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
@@ -369,6 +270,7 @@ class HomeLogic(ScriptedLoadableModuleLogic):
         shortcut = qt.QShortcut(slicer.util.mainWindow())
         shortcut.setKey(qt.QKeySequence(shortcutKey))
         shortcut.connect('activated()', callback)
+
 
 #------------------------------------------------------------------------------
 #

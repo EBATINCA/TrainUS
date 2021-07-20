@@ -1,24 +1,21 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME Home)
+set(MODULE_NAME TrainUS)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
-  TabWidgets/Dashboard.py
-  TabWidgets/Participants.py
-  TabWidgets/Recordings.py
-  TabWidgets/Configuration.py
   )
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
   Resources/Icons/Gears.png
   Resources/UI/${MODULE_NAME}.ui
-  Resources/Home.qss  
+  Resources/UI/Settings.ui  
+  Resources/TrainUS.qss  
   )
 
 slicerFunctionAddPythonQtResources(MODULE_PYTHON_QRC_RESOURCES
-  Resources/HomeResources.qrc
+  Resources/TrainUSResources.qrc
   )
 
 #-----------------------------------------------------------------------------
