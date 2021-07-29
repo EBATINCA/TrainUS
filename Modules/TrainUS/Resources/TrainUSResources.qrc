@@ -8,7 +8,7 @@
 
   <qresource prefix="Icons">    
     <file alias="Gears.png">Icons/Gears.png</file>
-    <file alias="Home.png">Icons/Home.png</file> 
+    <file alias="TrainUS.png">Icons/TrainUS.png</file> 
   </qresource>
 
 </RCC>

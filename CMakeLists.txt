@@ -38,6 +38,12 @@ set(Slicer_ORGANIZATION_NAME   "Ebatinca, S.L.")
 set(Slicer_DEFAULT_HOME_MODULE "TrainUS")
 set(Slicer_DEFAULT_FAVORITE_MODULES "Data, Volumes, Models, Transforms, Markups, SegmentEditor")
 
+# Configure dashboard configuration to enable building by CTest
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/DartConfiguration.tcl.in
+  ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
+  )
+
 # Configure SuperBuild
 set(SUPERBUILD_TOPLEVEL_PROJECT Slicer)
 set(EXTERNAL_PROJECT_ADDITIONAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild")
@@ -156,12 +162,6 @@ set(Slicer_EXTENSION_SOURCE_DIRS
 #  QUIET
 #  )
 #list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
-
-# Configure dashboard configuration to enable building by CTest
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/DartConfiguration.tcl.in
-  ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
-  )
 
 # Add Slicer sources
 add_subdirectory(${slicersources_SOURCE_DIR} ${slicersources_BINARY_DIR})
