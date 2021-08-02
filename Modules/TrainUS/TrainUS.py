@@ -7,6 +7,16 @@ from slicer.util import VTKObservationMixin
 
 import logging
 
+try:
+  #TODO: Contribute this to PerkTutor (PerkTutorCouchDB.py, line 8)
+  import couchdb # For PerkTutor
+except: # pylint: disable=w0702
+  qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+  logging.info('Installing couchdb...')
+  slicer.util.pip_install('couchdb')
+  logging.info('Installing couchdb finished')
+  qt.QApplication.restoreOverrideCursor()
+
 #------------------------------------------------------------------------------
 #
 # TrainUS
