@@ -152,16 +152,69 @@ set(Slicer_EXTENSION_SOURCE_DIRS
 # Add remote extension source directories
 
 # SlicerOpenIGTLink
-#set(extension_name "SlicerOpenIGTLink")
-#set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
-#FetchContent_Populate(${extension_name}
-#  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
-#  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/openigtlink/SlicerOpenIGTLink.git
-#  GIT_TAG        2b92f7b1ffe02403109b671f28424e8770e902a0
-#  GIT_PROGRESS   1
-#  QUIET
-#  )
-#list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+set(extension_name "SlicerOpenIGTLink")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/openigtlink/SlicerOpenIGTLink.git
+  GIT_TAG        804e7f659bc50a339ecab44287b971fb11c32fd4 # branch: master
+  GIT_PROGRESS   1
+  QUIET
+  )
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+
+# SlicerIGT
+set(extension_name "SlicerIGT")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerIGT/SlicerIGT.git
+  GIT_TAG        983b9f08efa201df6f44a94d8f6b4a3d220bde86 # branch: master
+  GIT_PROGRESS   1
+  QUIET
+  )
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+
+# SlicerIGSIO
+set(extension_name "SlicerIGSIO")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/IGSIO/SlicerIGSIO.git
+  GIT_TAG        1576200669903b3e118fe431b375cb99bd4ee7c0 # branch: master
+  GIT_PROGRESS   1
+  QUIET
+  )
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+option(SlicerIGSIO_USE_VP9 OFF)
+set(vtkAddon_DIR "${CMAKE_BINARY_DIR}/IGSIO-build/vtkAddon-bin")
+mark_as_superbuild(vtkAddon_DIR:PATH)
+set(vtkAddon_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/bin)
+set(vtkAddon_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/lib/SpineUs-4.11)
+
+# PerkTutor
+set(extension_name "PerkTutor")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkTutor/PerkTutor.git
+  GIT_TAG        f42e863fb929125d4ff8f598c99cfc4de2e75084 # branch: master
+  GIT_PROGRESS   1
+  QUIET
+  )
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
+
+# DebuggingTools
+set(extension_name "DebuggingTools")
+set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
+FetchContent_Populate(${extension_name}
+  SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
+  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerRt/SlicerDebuggingTools.git
+  GIT_TAG        8f5436b8519e10163fd88a86f5641fe70fc6697d # branch: master
+  GIT_PROGRESS   1
+  QUIET
+  )
+list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 # Add Slicer sources
 add_subdirectory(${slicersources_SOURCE_DIR} ${slicersources_BINARY_DIR})
