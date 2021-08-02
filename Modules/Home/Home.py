@@ -47,6 +47,9 @@ class QHomeWidget(qt.QDialog):
     self.setWindowFlags(qt.Qt.Window)
     self.setWindowTitle('TrainUS')
 
+    self.homeLayout = qt.QHBoxLayout(self)
+    self.homeLayout.margin = 0
+
   def closeEvent(self, event):
     """
     Handle closing
@@ -67,7 +70,7 @@ class QHomeWidget(qt.QDialog):
     if retval == qt.QMessageBox.Ok:
       self.hide()
       slicer.mrmlScene.Clear(0)
-      qt.QTimer.singleShot(0, slicer.app, slicer.app.closeAllWindows())
+      # qt.QTimer.singleShot(0, slicer.app, slicer.app.closeAllWindows())
       #TODO: Use slicer.trainUsWidget.exitApplication()
     else:
       event.ignore()
@@ -103,7 +106,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Load widget from .ui file (created by Qt Designer)
     self.uiWidget = slicer.util.loadUI(self.resourcePath('UI/Home.ui'))
-    self.layout.addWidget(self.uiWidget)
+    self.homeWidget.homeLayout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
     # Create logic class
@@ -113,7 +116,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupConnections()
 
     # Dark palette does not propagate on its own?
-    # self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
+    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
@@ -222,7 +225,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
-class HomeLogic(ScriptedLoadableModuleLogic):
+class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   """This class should implement all the actual computation done by your module.  The interface
   should be such that other python code can import this class and make use of the functionality without
   requiring an instance of the Widget.
@@ -241,6 +244,9 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     # Pointer to the parameter node so that we have access to the old one before setting the new one
     self.parameterNode = None
 
+    # Store whether python console was floating so that it is restored when hidden
+    self.pythonConsoleWasFloating = False
+
     # Constants
     #TODO:
 
@@ -254,23 +260,30 @@ class HomeLogic(ScriptedLoadableModuleLogic):
     # Parameter node parameter names
     # self.datasetNameParameterName = 'DatasetName'
 
-    # Setup scene
-    self.setupScene()
-
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
   #------------------------------------------------------------------------------
   def setupKeyboardShortcuts(self):
     shortcuts = [
-        ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
+        ('Ctrl+3', self.showPythonConsoleFromHome)
         ]
 
     for (shortcutKey, callback) in shortcuts:
-        shortcut = qt.QShortcut(slicer.util.mainWindow())
+        shortcut = qt.QShortcut(self.moduleWidget.homeWidget)
         shortcut.setKey(qt.QKeySequence(shortcutKey))
         shortcut.connect('activated()', callback)
 
+  #------------------------------------------------------------------------------
+  def showPythonConsoleFromHome(self):
+    pythonConsoleDockWidget = slicer.util.mainWindow().pythonConsole().parent()
+    wasVisible = pythonConsoleDockWidget.visible
+    pythonConsoleDockWidget.setVisible(not wasVisible)
+    if not wasVisible:
+      self.pythonConsoleWasFloating = pythonConsoleDockWidget.floating
+      pythonConsoleDockWidget.floating = True
+    else:
+      pythonConsoleDockWidget.floating = self.pythonConsoleWasFloating
 
 #------------------------------------------------------------------------------
 #

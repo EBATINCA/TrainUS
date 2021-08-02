@@ -41,6 +41,9 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
 
+    # Create logic class
+    self.logic = TrainUSLogic(self)
+
   #------------------------------------------------------------------------------
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -51,11 +54,11 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.addWidget(launcherCollapsibleButton)
     self.launcherFormLayout = qt.QFormLayout(launcherCollapsibleButton)
 
-    # Show slicelet button
-    self.launchSliceletButton = qt.QPushButton("Switch to TrainUS")
-    self.launchSliceletButton.toolTip = "Switch to the TrainUS application"
-    self.launcherFormLayout.addWidget(self.launchSliceletButton)
-    self.launchSliceletButton.connect('clicked()', self.showSlicelet)
+    # Show Home widget button
+    self.showHomeButton = qt.QPushButton("Switch to Home")
+    self.showHomeButton.toolTip = "Switch to the TrainUS application home dashboard"
+    self.launcherFormLayout.addWidget(self.showHomeButton)
+    self.showHomeButton.connect('clicked()', lambda: slicer.util.selectModule('Home'))
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -66,14 +69,8 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Remove unneeded UI elements
     self.modifyWindowUI()
 
-    # Create logic class
-    self.logic = TrainUSLogic(self)
-
     # Setup connections
     self.setupConnections()
-
-    # Dark palette does not propagate on its own?
-    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Apply style
     self.applyApplicationStyle()
@@ -219,7 +216,7 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
-class TrainUSLogic(ScriptedLoadableModuleLogic):
+class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   """This class should implement all the actual computation done by your module.  The interface
   should be such that other python code can import this class and make use of the functionality without
   requiring an instance of the Widget.
@@ -339,8 +336,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic):
     #   self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndCloseEvent, self.onSceneEndClose)
 
     # Set up the layout / 3D View
-    self.logic.setup3DView()
-    self.logic.setupSliceViewers()
+    self.setup3DView()
+    self.setupSliceViewers()
 
   #------------------------------------------------------------------------------
   def setup3DView(self):
