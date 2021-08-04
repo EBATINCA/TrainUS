@@ -54,22 +54,22 @@
           <widget class="QTableWidget" name="participantsTable">
            <column>
             <property name="text">
-             <string>NAME</string>
+             <string>Name</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>SURNAME</string>
+             <string>Surname</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>LAST RECORDING</string>
+             <string>Last Recording</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>OTHER</string>
+             <string>Other</string>
             </property>
            </column>
           </widget>

@@ -31,17 +31,17 @@
        <widget class="QTableWidget" name="recordingsTable">
         <column>
          <property name="text">
-          <string>DATE</string>
+          <string>Date</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>EXERCISE</string>
+          <string>Exercise</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>DURATION</string>
+          <string>Duration</string>
          </property>
         </column>
        </widget>
