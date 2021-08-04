@@ -6,6 +6,7 @@ REM does not have to be built during development when no C++ component is change
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Home.py %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Resources\UI\*.ui %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources\UI
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Resources\Home.qss %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources
+copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\TabWidgets\*.py %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules\TabWidgets
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\TrainUS.py %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\Resources\UI\*.ui %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources\UI
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\Resources\TrainUS.qss %SLICER_BIN_DIR_REL_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources
@@ -23,6 +24,7 @@ copy /Y %TRAINUS_SOURCE_DIR%\Modules\UltrasoundProbeCalibration\Resources\UI\Ult
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Home.py %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Resources\UI\*.ui %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources\UI
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\Resources\Home.qss %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources
+copy /Y %TRAINUS_SOURCE_DIR%\Modules\Home\TabWidgets\*.py %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules\TabWidgets
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\TrainUS.py %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\Resources\UI\*.ui %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources\UI
 copy /Y %TRAINUS_SOURCE_DIR%\Modules\TrainUS\Resources\TrainUS.qss %SLICER_BIN_DIR_DBG_X64%\lib\TrainUS-4.13\qt-scripted-modules\Resources

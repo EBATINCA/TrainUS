@@ -6,6 +6,7 @@ from slicer.util import VTKObservationMixin
 # from Resources import HomeResourcesResources
 
 import logging
+import TabWidgets
 
 #------------------------------------------------------------------------------
 #
@@ -116,7 +117,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupConnections()
 
     # Dark palette does not propagate on its own?
-    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
+    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())   
+
+    # Setup user interface
+    self.setupUi()
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
@@ -209,11 +213,44 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
+    if not hasattr(slicer, 'trainUsWidget'):
+      # The TrainUS module has not been set up yet
+      return
+
     # Get parameter node
     parameterNode = slicer.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
+
+  #------------------------------------------------------------------------------
+  def setupUi(self):
+    logging.debug('Home.setupUi')
+
+    # Dashboard tab
+    self.ui.DashboardPanel = TabWidgets.Dashboard(self.ui.dashboardTab)
+    self.ui.DashboardPanel.homeWidget = self
+    self.ui.DashboardPanel.setupUi()
+    self.ui.dashboardTab.layout().addWidget(self.ui.DashboardPanel)
+
+    # Participants tab
+    self.ui.ParticipantsPanel = TabWidgets.Participants(self.ui.participantsTab)
+    self.ui.ParticipantsPanel.homeWidget = self
+    self.ui.ParticipantsPanel.setupUi()
+    self.ui.participantsTab.layout().addWidget(self.ui.ParticipantsPanel)
+
+    # Recordings tab
+    self.ui.RecordingsPanel = TabWidgets.Recordings(self.ui.recordingsTab)
+    self.ui.RecordingsPanel.homeWidget = self
+    self.ui.RecordingsPanel.setupUi()
+    self.ui.recordingsTab.layout().addWidget(self.ui.RecordingsPanel)
+
+    # Configuration tab
+    self.ui.ConfigurationPanel = TabWidgets.Configuration(self.ui.configurationTab)
+    self.ui.ConfigurationPanel.homeWidget = self
+    self.ui.ConfigurationPanel.setupUi()
+    self.ui.configurationTab.layout().addWidget(self.ui.ConfigurationPanel)
+
 
 
 #---------------------------------------------------------------------------------------------#
