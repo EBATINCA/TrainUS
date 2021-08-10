@@ -15,7 +15,6 @@ class Dashboard(qt.QWidget):
     # Define member variables
     self.homeWidget = None # Set externally after creation
     self.trainUsWidget = slicer.trainUsWidget
-    self.participantSelectionMode = 'New Participant'
 
   #------------------------------------------------------------------------------
   # Clean up when application is closed
@@ -93,7 +92,7 @@ class Dashboard(qt.QWidget):
       return
 
     # Update parameter node
-    parameterNode.SetParameter(self.homeWidget.logic.participantSelectionModeParameterName, 'New Participant')
+    parameterNode.SetParameter(self.trainUsWidget.logic.participantSelectionModeParameterName, 'New Participant')
 
     # Update group box visibility
     self.ui.newParticipantGroupBox.visible = True
