@@ -1,5 +1,6 @@
 import vtk, qt, ctk, slicer
 import os
+import numpy as np
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -99,6 +100,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     VTKObservationMixin.__init__(self)
 
     self.homeWidget = QHomeWidget()
+    self.trainUsWidget = slicer.trainUsWidget
     # self.homeWidget.setStyleSheet(self.loadStyleSheet())
 
   #------------------------------------------------------------------------------
@@ -119,8 +121,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Dark palette does not propagate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())   
 
-    # Setup user interface
+    # Setup participant interface
     self.setupUi()
+
+    # Update UI tables
+    self.updateDashboardTable()
+    self.updateParticipantsTable()
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
@@ -251,6 +257,85 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.ConfigurationPanel.setupUi()
     self.ui.configurationTab.layout().addWidget(self.ui.ConfigurationPanel)
 
+  def updateDashboardTable(self):
+    """
+    Updates content of dashboard table by reading the database in root directory.
+    """
+    # Get data from directory
+    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.logic.readRootDirectory()
+
+    # Get table widget
+    tableWidget = self.ui.DashboardPanel.ui.participantsTable
+
+    # Reset table
+    tableWidget.clearContents()
+    
+    # Update table content
+    numParticipants = len(participantID_list)
+    tableWidget.setRowCount(numParticipants)
+    for participantPos in range(numParticipants):
+      participantIDTableItem = qt.QTableWidgetItem(participantID_list[participantPos])
+      participantNameTableItem = qt.QTableWidgetItem(participantName_list[participantPos])
+      participantSurnameTableItem = qt.QTableWidgetItem(participantSurname_list[participantPos])
+      participantNumRecordingsTableItem = qt.QTableWidgetItem(str(participantNumRecordings_list[participantPos]))
+      tableWidget.setItem(participantPos, 0, participantIDTableItem)
+      tableWidget.setItem(participantPos, 1, participantNameTableItem)
+      tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
+      tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+
+  def getDataFromDashboardTable(self):
+    """
+    Gets data from dashboard table.
+
+    :return tuple: participant IDs (list), participant names (list), participant surname (list), participant number of recordings (list).
+    """
+    # Get table widget
+    tableWidget = self.ui.DashboardPanel.ui.participantsTable
+
+    # Get table elements
+    participantID_list = []
+    participantName_list = []
+    participantSurname_list = []
+    participantNumRecordings_list = []
+    numRows = tableWidget.rowCount
+    for rowID in range(numRows):
+      participantID = tableWidget.model().index(rowID,0).data()
+      participantName = tableWidget.model().index(rowID,1).data()
+      participantSurname = tableWidget.model().index(rowID,2).data()
+      participantNumRecordings = tableWidget.model().index(rowID,3).data()
+      participantID_list.append(participantID)
+      participantName_list.append(participantName)
+      participantSurname_list.append(participantSurname)
+      participantNumRecordings_list.append(participantNumRecordings)
+
+    return participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list
+
+  def updateParticipantsTable(self):
+    """
+    Updates content of participants table by reading the database in root directory.
+    """
+    # Get data from directory
+    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.logic.readRootDirectory()
+
+    # Get table widget
+    tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
+
+    # Reset table
+    tableWidget.clearContents()
+    
+    # Update table content
+    numParticipants = len(participantID_list)
+    tableWidget.setRowCount(numParticipants)
+    for participantPos in range(numParticipants):
+      participantIDTableItem = qt.QTableWidgetItem(participantID_list[participantPos])
+      participantNameTableItem = qt.QTableWidgetItem(participantName_list[participantPos])
+      participantSurnameTableItem = qt.QTableWidgetItem(participantSurname_list[participantPos])
+      participantNumRecordingsTableItem = qt.QTableWidgetItem(str(participantNumRecordings_list[participantPos]))
+      tableWidget.setItem(participantPos, 0, participantIDTableItem)
+      tableWidget.setItem(participantPos, 1, participantNameTableItem)
+      tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
+      tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+
 
 
 #---------------------------------------------------------------------------------------------#
@@ -295,7 +380,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # self.modelReferenceRolePrefix = 'Model_'
 
     # Parameter node parameter names
-    # self.datasetNameParameterName = 'DatasetName'
+    self.participantSelectionModeParameterName = 'ParticipantSelectionMode'
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
@@ -321,6 +406,135 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       pythonConsoleDockWidget.floating = True
     else:
       pythonConsoleDockWidget.floating = self.pythonConsoleWasFloating
+
+  #------------------------------------------------------------------------------
+  def readRootDirectory(self):
+    """
+    Reads all the files in the root directory to get the list of participants and recordings in the database.
+
+    :return tuple: participant IDs (list), participant names (list), participant surnames (list), and participant
+                  number of recordings (list)
+    """
+    
+    # Set root directory
+    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+
+    # Get participants
+    participantID_list = self.getListOfFoldersInDirectory(dataPath)
+
+    # Get participant info
+    participantName_list = []
+    participantSurname_list = []
+    participantNumRecordings_list = []
+    for participantID in participantID_list:
+      # Participant directory
+      participant_directory = os.path.join(dataPath, participantID)
+
+      # Get name and surname
+      participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
+      [participantName, participantSurname] = self.readParticipantInfoFile(participantInfo_file)
+      participantName_list.append(participantName)
+      participantSurname_list.append(participantSurname)
+
+      # Get number of recordings
+      recordingID_list = self.getListOfFoldersInDirectory(participant_directory)
+      numRecordings = len(recordingID_list)
+      participantNumRecordings_list.append(numRecordings)
+
+    # Display
+    print('\nDirectory: ', dataPath)
+    print('\nParticipants in directory: ', participantID_list)
+    print('\nNames: ', participantName_list)
+    print('\nSurnames: ', participantSurname_list)
+    print('\nNumber of recordings: ', participantNumRecordings_list)
+
+    return participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list
+
+  #------------------------------------------------------------------------------
+  def getListOfFoldersInDirectory(self, directory):
+    """
+    Gets list of folders contained in input directory.
+
+    :param directory: input directory (string)
+
+    :return list of folder names (list)
+    """
+    dirfiles = os.listdir(directory)
+    fullpaths = map(lambda name: os.path.join(directory, name), dirfiles)
+    folderList = []
+    for fileID, filePath in enumerate(fullpaths):
+      if os.path.isdir(filePath): 
+        folderList.append(dirfiles[fileID])
+    return list(folderList)
+
+  #------------------------------------------------------------------------------
+  def readParticipantInfoFile(self, filePath):
+    """
+    Reads participant's information from .txt file.
+
+    :param filePath: path to file (string)
+
+    :return tuple: participant name (string), participant surname (string)
+    """
+    file = open(filePath, "r")
+    participantName = file.readline()[len('Name:'):-1] # read name
+    participantSurname = file.readline()[len('Surname:'):-1] # read surname
+    file.close()
+    return participantName, participantSurname
+  
+  #------------------------------------------------------------------------------
+  def writeParticipantInfoFile(self, filePath, participantName, participantSurname):
+    """
+    Writes participant's information (name and surname) to .txt file.
+
+    :param filePath: path to file (string)
+    :param participantName: participant name (string)
+    :param participantSurname: participant surname (string)
+    """
+    file = open(filePath, "w") 
+    file.write("Name: " + participantName) 
+    file.write("\n") 
+    file.write("Surname: " + participantSurname) 
+    file.write("\n") 
+    file.close()
+
+  #------------------------------------------------------------------------------
+  def createNewParticipant(self, participantName, participantSurname):
+    """
+    Adds new participant to database by generating a unique ID, creating a new folder, 
+    and creating a new .txt file containing participant information.
+
+    :param participantName: participant name (string)
+    :param participantSurname: participant surname (string)
+
+    :return new participant ID (string)
+    """
+    
+    # Get data from directory
+    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.readRootDirectory()
+
+    # Generate new participant ID
+    participantID_array = np.array(participantID_list).astype(int)
+    maxParticipantID = np.max(participantID_array)
+    newParticipantID = "{:05d}".format(maxParticipantID + 1) # leading zeros, 5 digits
+
+    # Set root directory
+    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+
+    # Create participant folder
+    participant_directory = os.path.join(dataPath, str(newParticipantID))
+    try:
+      os.makedirs(participant_directory)    
+      print("Directory " , participant_directory ,  " Created ")
+    except FileExistsError:
+      print("Directory " , participant_directory ,  " already exists")  
+
+    # Create participant info file
+    participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
+    self.writeParticipantInfoFile(participantInfo_file, participantName, participantSurname)
+
+    return str(newParticipantID)
+
 
 #------------------------------------------------------------------------------
 #
@@ -349,7 +563,7 @@ class HomeTest(ScriptedLoadableModuleTest):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
-    way the user would interact with your code and confirm that it still works
+    way the participant would interact with your code and confirm that it still works
     the way you intended.
     One of the most important features of the tests is that it should alert other
     developers when their changes will have an impact on the behavior of your

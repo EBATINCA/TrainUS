@@ -246,17 +246,24 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.parameterNode = None
 
     # Constants
+    self.DATA_PATH = 'C:/DAVID/TrainUS_Database'
     #TODO:
 
     # Default parameters map
     self.defaultParameters = {}
-    # self.defaultParameters["DecimationFactor"] = 0.85
+    self.defaultParameters["ParticipantSelectionMode"] = 'New Participant'
+    self.defaultParameters["SelectedParticipantID"] = ''
+    self.defaultParameters["SelectedParticipantName"] = ''
+    self.defaultParameters["SelectedParticipantSurname"] = ''
 
     # Parameter node reference roles
     # self.modelReferenceRolePrefix = 'Model_'
 
     # Parameter node parameter names
-    # self.datasetNameParameterName = 'DatasetName'
+    self.participantSelectionModeParameterName = 'ParticipantSelectionMode'
+    self.selectedParticipantIDParameterName = 'SelectedParticipantID'
+    self.selectedParticipantNameParameterName = 'SelectedParticipantName'
+    self.selectedParticipantSurnameParameterName = 'SelectedParticipantSurname'
 
     # Setup scene
     self.setupScene()

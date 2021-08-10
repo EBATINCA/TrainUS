@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>721</width>
-    <height>445</height>
+    <height>545</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -35,7 +35,7 @@
        </widget>
       </item>
       <item row="5" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="existingParticipantGroupBox">
         <property name="title">
          <string>Existing participant</string>
         </property>
@@ -52,6 +52,14 @@
          </item>
          <item row="1" column="0" colspan="2">
           <widget class="QTableWidget" name="participantsTable">
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <column>
+            <property name="text">
+             <string>ID</string>
+            </property>
+           </column>
            <column>
             <property name="text">
              <string>Name</string>
@@ -64,7 +72,7 @@
            </column>
            <column>
             <property name="text">
-             <string>Last Recording</string>
+             <string>Num. Recordings</string>
             </property>
            </column>
            <column>
@@ -78,7 +86,7 @@
        </widget>
       </item>
       <item row="4" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="newParticipantGroupBox">
         <property name="title">
          <string>New participant</string>
         </property>
