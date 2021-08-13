@@ -14,6 +14,10 @@ class Participants(qt.QWidget):
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
+    self.trainUsWidget = slicer.trainUsWidget
+
+    # GUI flags
+    self.editParticipantVisible = False
 
   #------------------------------------------------------------------------------
   # Clean up when application is closed
@@ -35,7 +39,13 @@ class Participants(qt.QWidget):
     self.sectionLayout.addWidget(uiWidget)
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
-    # Customize widgets
+    # Customize widgets    
+    self.ui.editParticipantGroupBox.visible = False
+    self.ui.checkRecordingsButton.enabled = False
+    self.ui.editParticipantButton.enabled = False
+    self.ui.deleteParticipantButton.enabled = False
+    self.ui.saveEditButton.enabled = True 
+    self.ui.cancelEditButton.enabled = True
     
     # Setup GUI connections
     self.setupConnections()
@@ -44,13 +54,23 @@ class Participants(qt.QWidget):
   def setupConnections(self):
     logging.debug('Participants.setupConnections')
 
-    pass
+    self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
+    self.ui.checkRecordingsButton.clicked.connect(self.onCheckRecordingsButtonClicked)
+    self.ui.editParticipantButton.clicked.connect(self.onEditParticipantButtonClicked)
+    self.ui.deleteParticipantButton.clicked.connect(self.onDeleteParticipantButtonClicked)
+    self.ui.saveEditButton.clicked.connect(self.onSaveEditButtonClicked)
+    self.ui.cancelEditButton.clicked.connect(self.onCancelEditButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     logging.debug('Participants.disconnect')
 
-    pass
+    self.ui.participantsTable.itemSelectionChanged.disconnect()
+    self.ui.checkRecordingsButton.clicked.disconnect()
+    self.ui.editParticipantButton.clicked.disconnect()
+    self.ui.deleteParticipantButton.clicked.disconnect()
+    self.ui.saveEditButton.clicked.disconnect()
+    self.ui.cancelEditButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -59,12 +79,26 @@ class Participants(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.homeWidget.getParameterNode()
+    parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('Failed to get parameter node')
       return
 
-    pass
+    # Participant selection
+    participantSelected = self.isParticipantSelected()
+    self.ui.checkRecordingsButton.enabled = participantSelected
+    self.ui.editParticipantButton.enabled = participantSelected
+    self.ui.deleteParticipantButton.enabled = participantSelected
+
+    # Edit participant group box
+    self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
+    self.ui.editParticipantButton.enabled = not self.editParticipantVisible
+
+    # Edit participant text
+    [participantName, participantSurname] = self.getInfoForSelectedParticipant()
+    self.ui.editParticipantNameText.text = participantName
+    self.ui.editParticipantSurnameText.text = participantSurname
+    
 
 
   #------------------------------------------------------------------------------
@@ -73,12 +107,115 @@ class Participants(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onParticipantsTableItemSelected(self):
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected cells
+    participantID = ''
+    participantName = ''
+    participantSurname = ''
+    participantNumRecordings = ''
+    selected = self.ui.participantsTable.selectedItems()
+    if selected:
+      for item in selected:
+        # Get data
+        if item.column() == 0:
+          participantID = item.text()
+        if item.column() == 1:
+          participantName = item.text()
+        if item.column() == 2:
+          participantSurname = item.text()
+        if item.column() == 3:
+          participantNumRecordings = item.text()
+
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName, participantName)
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName, participantSurname)
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onCheckRecordingsButtonClicked(self):
+    pass
+
+  #------------------------------------------------------------------------------
+  def onEditParticipantButtonClicked(self):
+    
+    # Update group box visibility
+    self.editParticipantVisible = True
+    self.updateGUIFromMRML() 
+
+  #------------------------------------------------------------------------------
+  def onDeleteParticipantButtonClicked(self):
+    pass
+
+  #------------------------------------------------------------------------------
+  def onSaveEditButtonClicked(self):
+    # Update group box visibility
+    self.editParticipantVisible = False
+
+    # TODO: Save modifications in participants info   
+
+    # Update GUI
+    self.updateGUIFromMRML() 
 
 
+  #------------------------------------------------------------------------------
+  def onCancelEditButtonClicked(self):
+    # Update group box visibility
+    self.editParticipantVisible = False
 
+    # TODO: Delete input text line content and hide group box   
+
+    # Update GUI
+    self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
   #
   # Logic functions
   #
   #------------------------------------------------------------------------------
+  
+  def isParticipantSelected(self):
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedParticipantName = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName)
+    selectedParticipantSurname = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName)
+
+    # Check valid selection
+    participantSelected = True
+    if (selectedParticipantID == '') :
+      participantSelected = False
+
+    return participantSelected
+
+
+  def getInfoForSelectedParticipant(self):
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get info for selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    
+    # Get participant info
+    [participantName, participantSurname] = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
+
+    return participantName, participantSurname
+
+      

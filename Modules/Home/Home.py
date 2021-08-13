@@ -379,9 +379,6 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Parameter node reference roles
     # self.modelReferenceRolePrefix = 'Model_'
 
-    # Parameter node parameter names
-    self.participantSelectionModeParameterName = 'ParticipantSelectionMode'
-
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
@@ -480,6 +477,29 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participantName = file.readline()[len('Name:'):-1] # read name
     participantSurname = file.readline()[len('Surname:'):-1] # read surname
     file.close()
+    return participantName, participantSurname
+
+  #------------------------------------------------------------------------------
+  def getParticipantInfoFromID(self, participantID):
+    """
+    Get participant's information from participant ID.
+
+    :param participantID: participant ID (string)
+
+    :return tuple: participant name (string), participant surname (string)
+    """
+    # Set root directory
+    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+
+    # Participant directory
+    participant_directory = os.path.join(dataPath, participantID)
+
+    # Participant info file
+    participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
+    
+    # Read participant info
+    [participantName, participantSurname] = self.readParticipantInfoFile(participantInfo_file)
+
     return participantName, participantSurname
   
   #------------------------------------------------------------------------------
