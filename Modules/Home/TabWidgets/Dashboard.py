@@ -141,8 +141,6 @@ class Dashboard(qt.QWidget):
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName, participantName)
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName, participantSurname)
 
 
   #------------------------------------------------------------------------------
@@ -165,16 +163,14 @@ class Dashboard(qt.QWidget):
       newParticipantSurname = self.ui.newParticipantSurnameText.text
 
       # Create new participant
-      newParticipantID = self.homeWidget.logic.createNewParticipant(newParticipantName, newParticipantSurname)
+      newParticipantInfo = self.homeWidget.logic.createNewParticipant(newParticipantName, newParticipantSurname)
 
       # Update table
       self.homeWidget.updateDashboardTable()
       self.homeWidget.updateParticipantsTable()
 
       # Update parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantID)
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName, newParticipantName)
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName, newParticipantSurname)
+      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
 
     # Existing participants
     if participantSelectionMode == 'Existing Participant':
@@ -182,18 +178,16 @@ class Dashboard(qt.QWidget):
 
       # Get selected participant
       selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-      selectedParticipantName = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName)
-      selectedParticipantSurname = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName)
 
-      # Get participant info
-      [participantID, participantName, participantSurname, participantNumRecordings] = self.getParticipantInfoByID(selectedParticipantID)
+      # Get participant info from ID
+      selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
 
       # Display
       print('Selected participant: ')
-      print('   - Participant ID: ', participantID)
-      print('   - Participant Name: ', participantName)
-      print('   - Participant Surname: ', participantSurname)
-      print('   - Participant Num Recordings: ', participantNumRecordings)
+      print('   - Participant ID: ', selectedParticipantInfo['id'])
+      print('   - Participant Name: ', selectedParticipantInfo['name'])
+      print('   - Participant Surname: ', selectedParticipantInfo['surname'])
+      print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
 
 
   #------------------------------------------------------------------------------
@@ -201,27 +195,5 @@ class Dashboard(qt.QWidget):
   # Logic functions
   #
   #------------------------------------------------------------------------------
-  
-  #------------------------------------------------------------------------------
-  def getParticipantInfoByID(self, inputParticipantID):
-    # Get data from table
-    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.homeWidget.getDataFromDashboardTable()
-
-    # Get participant data
-    participantID = ''
-    participantName = ''
-    participantSurname = ''
-    participantNumRecordings = ''
-    numParticipants = len(participantID_list)
-    for participantPos in range(numParticipants):
-      if inputParticipantID == participantID_list[participantPos]:
-        participantID = participantID_list[participantPos]
-        participantName = participantName_list[participantPos]
-        participantSurname = participantSurname_list[participantPos]
-        participantNumRecordings = participantNumRecordings_list[participantPos]
-    return participantID, participantName, participantSurname, participantNumRecordings
-
-
-     
   
   

@@ -95,9 +95,13 @@ class Participants(qt.QWidget):
     self.ui.editParticipantButton.enabled = not self.editParticipantVisible
 
     # Edit participant text
-    [participantName, participantSurname] = self.getInfoForSelectedParticipant()
-    self.ui.editParticipantNameText.text = participantName
-    self.ui.editParticipantSurnameText.text = participantSurname
+    participantInfo = self.getInfoForSelectedParticipant()
+    if participantInfo:
+      self.ui.editParticipantNameText.text = participantInfo['name']
+      self.ui.editParticipantSurnameText.text = participantInfo['surname']
+    else:
+      self.ui.editParticipantNameText.text = ''
+      self.ui.editParticipantSurnameText.text = ''
     
 
 
@@ -135,8 +139,6 @@ class Participants(qt.QWidget):
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName, participantName)
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName, participantSurname)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -161,10 +163,19 @@ class Participants(qt.QWidget):
     # Update group box visibility
     self.editParticipantVisible = False
 
-    # TODO: Save modifications in participants info   
+    # Get input info
+    participantName = self.ui.editParticipantNameText.text
+    participantSurname = self.ui.editParticipantSurnameText.text
+
+    # Modify participant's info  
+    self.editParticipantInfo(participantName, participantSurname) 
 
     # Update GUI
     self.updateGUIFromMRML() 
+
+    # Tables    
+    self.homeWidget.updateDashboardTable()
+    self.homeWidget.updateParticipantsTable()
 
 
   #------------------------------------------------------------------------------
@@ -172,8 +183,10 @@ class Participants(qt.QWidget):
     # Update group box visibility
     self.editParticipantVisible = False
 
-    # TODO: Delete input text line content and hide group box   
-
+    # Reset input info
+    self.ui.editParticipantNameText.text = ''
+    self.ui.editParticipantSurnameText.text = ''
+    
     # Update GUI
     self.updateGUIFromMRML() 
 
@@ -192,8 +205,6 @@ class Participants(qt.QWidget):
 
     # Get selected participant
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-    selectedParticipantName = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantNameParameterName)
-    selectedParticipantSurname = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantSurnameParameterName)
 
     # Check valid selection
     participantSelected = True
@@ -210,12 +221,28 @@ class Participants(qt.QWidget):
       logging.error('Failed to get parameter node')
       return
 
-    # Get info for selected participant
+    # Get selected participant
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-    
-    # Get participant info
-    [participantName, participantSurname] = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
 
-    return participantName, participantSurname
+    # Get participant info from ID
+    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
+
+    return selectedParticipantInfo
+
+  def editParticipantInfo(self, participantName, participantSurname):
+
+    # Get selected participant info
+    selectedParticipantInfo = self.getInfoForSelectedParticipant()
+
+    # Edit participant info
+    selectedParticipantInfo['name'] = participantName
+    selectedParticipantInfo['surname'] = participantSurname
+
+    # Get JSON info file path
+    selectedParticipantID = selectedParticipantInfo['id']
+    participantInfoFilePath = self.homeWidget.logic.getParticipantInfoFilePath(selectedParticipantID)
+
+    # Write new file
+    self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
 
       

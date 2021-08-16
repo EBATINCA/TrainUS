@@ -253,8 +253,6 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.defaultParameters = {}
     self.defaultParameters["ParticipantSelectionMode"] = 'New Participant'
     self.defaultParameters["SelectedParticipantID"] = ''
-    self.defaultParameters["SelectedParticipantName"] = ''
-    self.defaultParameters["SelectedParticipantSurname"] = ''
 
     # Parameter node reference roles
     # self.modelReferenceRolePrefix = 'Model_'
@@ -262,8 +260,6 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Parameter node parameter names
     self.participantSelectionModeParameterName = 'ParticipantSelectionMode'
     self.selectedParticipantIDParameterName = 'SelectedParticipantID'
-    self.selectedParticipantNameParameterName = 'SelectedParticipantName'
-    self.selectedParticipantSurnameParameterName = 'SelectedParticipantSurname'
 
     # Setup scene
     self.setupScene()

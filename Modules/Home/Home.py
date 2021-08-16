@@ -1,6 +1,7 @@
 import vtk, qt, ctk, slicer
 import os
 import numpy as np
+import json
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -262,7 +263,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Updates content of dashboard table by reading the database in root directory.
     """
     # Get data from directory
-    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.logic.readRootDirectory()
+    participantInfo_list = self.logic.readRootDirectory()
 
     # Get table widget
     tableWidget = self.ui.DashboardPanel.ui.participantsTable
@@ -271,51 +272,24 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     tableWidget.clearContents()
     
     # Update table content
-    numParticipants = len(participantID_list)
+    numParticipants = len(participantInfo_list)
     tableWidget.setRowCount(numParticipants)
     for participantPos in range(numParticipants):
-      participantIDTableItem = qt.QTableWidgetItem(participantID_list[participantPos])
-      participantNameTableItem = qt.QTableWidgetItem(participantName_list[participantPos])
-      participantSurnameTableItem = qt.QTableWidgetItem(participantSurname_list[participantPos])
-      participantNumRecordingsTableItem = qt.QTableWidgetItem(str(participantNumRecordings_list[participantPos]))
+      participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
+      participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
+      participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
+      participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
       tableWidget.setItem(participantPos, 0, participantIDTableItem)
       tableWidget.setItem(participantPos, 1, participantNameTableItem)
       tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
       tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
-
-  def getDataFromDashboardTable(self):
-    """
-    Gets data from dashboard table.
-
-    :return tuple: participant IDs (list), participant names (list), participant surname (list), participant number of recordings (list).
-    """
-    # Get table widget
-    tableWidget = self.ui.DashboardPanel.ui.participantsTable
-
-    # Get table elements
-    participantID_list = []
-    participantName_list = []
-    participantSurname_list = []
-    participantNumRecordings_list = []
-    numRows = tableWidget.rowCount
-    for rowID in range(numRows):
-      participantID = tableWidget.model().index(rowID,0).data()
-      participantName = tableWidget.model().index(rowID,1).data()
-      participantSurname = tableWidget.model().index(rowID,2).data()
-      participantNumRecordings = tableWidget.model().index(rowID,3).data()
-      participantID_list.append(participantID)
-      participantName_list.append(participantName)
-      participantSurname_list.append(participantSurname)
-      participantNumRecordings_list.append(participantNumRecordings)
-
-    return participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list
 
   def updateParticipantsTable(self):
     """
     Updates content of participants table by reading the database in root directory.
     """
     # Get data from directory
-    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.logic.readRootDirectory()
+    participantInfo_list = self.logic.readRootDirectory()
 
     # Get table widget
     tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
@@ -324,13 +298,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     tableWidget.clearContents()
     
     # Update table content
-    numParticipants = len(participantID_list)
+    numParticipants = len(participantInfo_list)
     tableWidget.setRowCount(numParticipants)
     for participantPos in range(numParticipants):
-      participantIDTableItem = qt.QTableWidgetItem(participantID_list[participantPos])
-      participantNameTableItem = qt.QTableWidgetItem(participantName_list[participantPos])
-      participantSurnameTableItem = qt.QTableWidgetItem(participantSurname_list[participantPos])
-      participantNumRecordingsTableItem = qt.QTableWidgetItem(str(participantNumRecordings_list[participantPos]))
+      participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
+      participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
+      participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
+      participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
       tableWidget.setItem(participantPos, 0, participantIDTableItem)
       tableWidget.setItem(participantPos, 1, participantNameTableItem)
       tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
@@ -420,32 +394,21 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participantID_list = self.getListOfFoldersInDirectory(dataPath)
 
     # Get participant info
-    participantName_list = []
-    participantSurname_list = []
-    participantNumRecordings_list = []
+    participantInfo_list = list() # list of dictionaries
     for participantID in participantID_list:
       # Participant directory
-      participant_directory = os.path.join(dataPath, participantID)
+      participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
 
-      # Get name and surname
-      participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
-      [participantName, participantSurname] = self.readParticipantInfoFile(participantInfo_file)
-      participantName_list.append(participantName)
-      participantSurname_list.append(participantSurname)
-
-      # Get number of recordings
-      recordingID_list = self.getListOfFoldersInDirectory(participant_directory)
-      numRecordings = len(recordingID_list)
-      participantNumRecordings_list.append(numRecordings)
+      # Get participant info
+      participantInfo = self.readParticipantInfoFile(participantInfoFilePath)
+      participantInfo_list.append(participantInfo)
 
     # Display
     print('\nDirectory: ', dataPath)
     print('\nParticipants in directory: ', participantID_list)
-    print('\nNames: ', participantName_list)
-    print('\nSurnames: ', participantSurname_list)
-    print('\nNumber of recordings: ', participantNumRecordings_list)
+    print('\nInfo JSON: ', participantInfo_list)
 
-    return participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list
+    return participantInfo_list
 
   #------------------------------------------------------------------------------
   def getListOfFoldersInDirectory(self, directory):
@@ -467,22 +430,52 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   #------------------------------------------------------------------------------
   def readParticipantInfoFile(self, filePath):
     """
-    Reads participant's information from .txt file.
+    Reads participant's information from .json file.
+
+    :param filePath: path to JSON file (string)
+
+    :return participant info (dict)
+    """
+    try:
+      with open(filePath, 'r') as inputFile:
+        participantInfo =  json.loads(inputFile.read())
+    except:
+      print('[ERROR] Cannot read JSON file at ' + filePath)
+      participantInfo = None
+    return participantInfo
+  
+  #------------------------------------------------------------------------------
+  def writeParticipantInfoFile(self, filePath, participantInfo):
+    """
+    Writes participant's information (name and surname) to .txt file.
 
     :param filePath: path to file (string)
-
-    :return tuple: participant name (string), participant surname (string)
+    :param participantInfo: participant information (dict)
     """
-    file = open(filePath, "r")
-    participantName = file.readline()[len('Name:'):-1] # read name
-    participantSurname = file.readline()[len('Surname:'):-1] # read surname
-    file.close()
-    return participantName, participantSurname
+    with open(filePath, "w") as outputFile:
+      json.dump(participantInfo, outputFile, indent = 4)
 
   #------------------------------------------------------------------------------
   def getParticipantInfoFromID(self, participantID):
     """
     Get participant's information from participant ID.
+
+    :param participantID: participant ID (string)
+
+    :return tuple: participant name (string), participant surname (string)
+    """
+    # Participant info file
+    participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
+    
+    # Read participant info
+    participantInfo = self.readParticipantInfoFile(participantInfoFilePath)
+
+    return participantInfo
+
+  #------------------------------------------------------------------------------
+  def getParticipantInfoFilePath(self, participantID):
+    """
+    Get path to participant's information JSON file.
 
     :param participantID: participant ID (string)
 
@@ -495,28 +488,9 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participant_directory = os.path.join(dataPath, participantID)
 
     # Participant info file
-    participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
-    
-    # Read participant info
-    [participantName, participantSurname] = self.readParticipantInfoFile(participantInfo_file)
+    participantInfoFilePath = os.path.join(participant_directory, 'Participant_Info.json')
 
-    return participantName, participantSurname
-  
-  #------------------------------------------------------------------------------
-  def writeParticipantInfoFile(self, filePath, participantName, participantSurname):
-    """
-    Writes participant's information (name and surname) to .txt file.
-
-    :param filePath: path to file (string)
-    :param participantName: participant name (string)
-    :param participantSurname: participant surname (string)
-    """
-    file = open(filePath, "w") 
-    file.write("Name: " + participantName) 
-    file.write("\n") 
-    file.write("Surname: " + participantSurname) 
-    file.write("\n") 
-    file.close()
+    return participantInfoFilePath
 
   #------------------------------------------------------------------------------
   def createNewParticipant(self, participantName, participantSurname):
@@ -531,12 +505,21 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     """
     
     # Get data from directory
-    [participantID_list, participantName_list, participantSurname_list, participantNumRecordings_list] = self.readRootDirectory()
+    participantInfo_list = self.readRootDirectory()
 
-    # Generate new participant ID
+    # Get existing participant IDs
+    numParticipants = len(participantInfo_list)
+    participantID_list = []
+    for participant in range(numParticipants):
+      participantID_list.append(participantInfo_list[participant]['id'])
+
+    # Generate new participant ID (TODO: improve to ensure uniqueness)
     participantID_array = np.array(participantID_list).astype(int)
-    maxParticipantID = np.max(participantID_array)
-    newParticipantID = "{:05d}".format(maxParticipantID + 1) # leading zeros, 5 digits
+    try:
+      maxParticipantID = np.max(participantID_array)
+    except:
+      maxParticipantID = 0
+    newParticipantID = str("{:05d}".format(maxParticipantID + 1)) # leading zeros, 5 digits
 
     # Set root directory
     dataPath = slicer.trainUsWidget.logic.DATA_PATH
@@ -549,11 +532,18 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     except FileExistsError:
       print("Directory " , participant_directory ,  " already exists")  
 
-    # Create participant info file
-    participantInfo_file = os.path.join(participant_directory, 'Participant_Info.txt')
-    self.writeParticipantInfoFile(participantInfo_file, participantName, participantSurname)
+    # Create participant info dictionary
+    participantInfo = {}
+    participantInfo['id'] = newParticipantID
+    participantInfo['name'] = participantName
+    participantInfo['surname'] = participantSurname
+    participantInfo['number of recordings'] = str(0)
 
-    return str(newParticipantID)
+    # Create info file
+    participantInfoFilePath = self.getParticipantInfoFilePath(newParticipantID)
+    self.writeParticipantInfoFile(participantInfoFilePath, participantInfo)
+
+    return participantInfo
 
 
 #------------------------------------------------------------------------------
