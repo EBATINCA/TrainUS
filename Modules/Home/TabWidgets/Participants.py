@@ -156,7 +156,14 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onDeleteParticipantButtonClicked(self):
-    pass
+    
+    # Delete selected participant
+    self.deleteSelectedParticipant()
+
+    # Update tables    
+    self.homeWidget.updateDashboardTable()
+    self.homeWidget.updateParticipantsTable()
+
 
   #------------------------------------------------------------------------------
   def onSaveEditButtonClicked(self):
@@ -245,4 +252,17 @@ class Participants(qt.QWidget):
     # Write new file
     self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
 
+  def deleteSelectedParticipant(self):
+
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Delete participant
+    self.homeWidget.logic.deleteParticipant(selectedParticipantID)
       

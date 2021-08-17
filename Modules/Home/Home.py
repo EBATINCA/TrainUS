@@ -2,6 +2,7 @@ import vtk, qt, ctk, slicer
 import os
 import numpy as np
 import json
+import shutil
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -491,6 +492,22 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participantInfoFilePath = os.path.join(participant_directory, 'Participant_Info.json')
 
     return participantInfoFilePath
+
+  #------------------------------------------------------------------------------
+  def deleteParticipant(self, participantID):
+    """
+    Delete participant from root directory.
+
+    :param participantID: participant ID (string)
+    """
+    # Set root directory
+    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+
+    # Participant directory
+    participant_directory = os.path.join(dataPath, participantID)
+
+    # Delete folder
+    shutil.rmtree(participant_directory, ignore_errors=True)
 
   #------------------------------------------------------------------------------
   def createNewParticipant(self, participantName, participantSurname):
