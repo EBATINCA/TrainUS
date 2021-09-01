@@ -87,12 +87,12 @@ class Participants(qt.QWidget):
     # Participant selection
     participantSelected = self.isParticipantSelected()
     self.ui.checkRecordingsButton.enabled = participantSelected
-    self.ui.editParticipantButton.enabled = participantSelected
+    self.ui.editParticipantButton.enabled = participantSelected and (not self.editParticipantVisible)
     self.ui.deleteParticipantButton.enabled = participantSelected
 
     # Edit participant group box
     self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
-    self.ui.editParticipantButton.enabled = not self.editParticipantVisible
+    #self.ui.editParticipantButton.enabled = not self.editParticipantVisible
 
     # Edit participant text
     participantInfo = self.getInfoForSelectedParticipant()
