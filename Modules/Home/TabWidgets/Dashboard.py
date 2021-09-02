@@ -165,6 +165,10 @@ class Dashboard(qt.QWidget):
       # Create new participant
       newParticipantInfo = self.homeWidget.logic.createNewParticipant(newParticipantName, newParticipantSurname)
 
+      # Reset input text fields
+      self.ui.newParticipantNameText.text = ''
+      self.ui.newParticipantSurnameText.text = ''
+
       # Update table
       self.homeWidget.updateDashboardTable()
       self.homeWidget.updateParticipantsTable()
@@ -176,18 +180,18 @@ class Dashboard(qt.QWidget):
     if participantSelectionMode == 'Existing Participant':
       print('Starting training session - Existing Participant')
 
-      # Get selected participant
-      selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
 
-      # Get participant info from ID
-      selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
+    # Get participant info from ID
+    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
 
-      # Display
-      print('Selected participant: ')
-      print('   - Participant ID: ', selectedParticipantInfo['id'])
-      print('   - Participant Name: ', selectedParticipantInfo['name'])
-      print('   - Participant Surname: ', selectedParticipantInfo['surname'])
-      print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
+    # Display
+    print('Selected participant: ')
+    print('   - Participant ID: ', selectedParticipantInfo['id'])
+    print('   - Participant Name: ', selectedParticipantInfo['name'])
+    print('   - Participant Surname: ', selectedParticipantInfo['surname'])
+    print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
 
 
   #------------------------------------------------------------------------------
