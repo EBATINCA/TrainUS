@@ -141,6 +141,7 @@ class Participants(qt.QWidget):
 
     # Update dashboard table
     self.homeWidget.updateDashboardTableSelection()
+    self.homeWidget.updateRecordingsTable()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -165,7 +166,7 @@ class Participants(qt.QWidget):
     # Update tables    
     self.homeWidget.updateDashboardTable()
     self.homeWidget.updateParticipantsTable()
-
+    self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def onSaveEditButtonClicked(self):
@@ -185,7 +186,6 @@ class Participants(qt.QWidget):
     # Tables    
     self.homeWidget.updateDashboardTable()
     self.homeWidget.updateParticipantsTable()
-
 
   #------------------------------------------------------------------------------
   def onCancelEditButtonClicked(self):

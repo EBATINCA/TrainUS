@@ -14,6 +14,7 @@ class Recordings(qt.QWidget):
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
+    self.trainUsWidget = slicer.trainUsWidget
 
   #------------------------------------------------------------------------------
   # Clean up when application is closed
@@ -59,12 +60,16 @@ class Recordings(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.homeWidget.getParameterNode()
+
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('Failed to get parameter node')
       return
 
     pass
+
+
 
 
   #------------------------------------------------------------------------------
@@ -82,3 +87,5 @@ class Recordings(qt.QWidget):
   # Logic functions
   #
   #------------------------------------------------------------------------------
+
+  

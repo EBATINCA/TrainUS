@@ -129,6 +129,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update UI tables
     self.updateDashboardTable()
     self.updateParticipantsTable()
+    self.updateRecordingsTable()
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
@@ -273,17 +274,20 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     tableWidget.clearContents()
     
     # Update table content
-    numParticipants = len(participantInfo_list)
-    tableWidget.setRowCount(numParticipants)
-    for participantPos in range(numParticipants):
-      participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
-      participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
-      participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
-      participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
-      tableWidget.setItem(participantPos, 0, participantIDTableItem)
-      tableWidget.setItem(participantPos, 1, participantNameTableItem)
-      tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
-      tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+    if len(participantInfo_list) >= 0:
+      numParticipants = len(participantInfo_list)
+      tableWidget.setRowCount(numParticipants)
+      for participantPos in range(numParticipants):
+        participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
+        participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
+        participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
+        participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
+        tableWidget.setItem(participantPos, 0, participantIDTableItem)
+        tableWidget.setItem(participantPos, 1, participantNameTableItem)
+        tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
+        tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+    else:
+      logging.debug('Home.updateDashboardTable: No participants found in database...')
 
   def updateDashboardTableSelection(self):
     """
@@ -322,17 +326,20 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     tableWidget.clearContents()
     
     # Update table content
-    numParticipants = len(participantInfo_list)
-    tableWidget.setRowCount(numParticipants)
-    for participantPos in range(numParticipants):
-      participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
-      participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
-      participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
-      participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
-      tableWidget.setItem(participantPos, 0, participantIDTableItem)
-      tableWidget.setItem(participantPos, 1, participantNameTableItem)
-      tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
-      tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+    if len(participantInfo_list) >= 0:
+      numParticipants = len(participantInfo_list)
+      tableWidget.setRowCount(numParticipants)
+      for participantPos in range(numParticipants):
+        participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
+        participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
+        participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
+        participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
+        tableWidget.setItem(participantPos, 0, participantIDTableItem)
+        tableWidget.setItem(participantPos, 1, participantNameTableItem)
+        tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
+        tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+    else:
+      logging.debug('Home.updateParticipantsTable: No participants found in database...')
 
   def updateParticipantsTableSelection(self):
     """
@@ -357,6 +364,69 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       if item.text() == selectedParticipantID:
         tableWidget.setCurrentItem(item)
 
+  def updateRecordingsTable(self):
+    """
+    Updates selected participant in recordings table.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    #
+    # Update selected participant
+    #
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Get participant info from ID
+    selectedParticipantInfo = self.logic.getParticipantInfoFromID(selectedParticipantID)
+
+    # Create string to display in GUI
+    if selectedParticipantInfo:
+      participantID = selectedParticipantInfo['id']
+      participantName= selectedParticipantInfo['name']
+      participantSurname = selectedParticipantInfo['surname']
+      selectedParticipantLabel = f'[{participantID}] {participantSurname}, {participantName}'
+    else:
+      selectedParticipantLabel = ''
+
+    # Update GUI
+    self.ui.RecordingsPanel.ui.participantSelectionText.text = selectedParticipantLabel
+
+    #
+    # Update table content
+    #
+    
+    # Get table widget
+    tableWidget = self.ui.RecordingsPanel.ui.recordingsTable
+
+    # Reset table
+    tableWidget.clearContents()
+
+    # Update table if participant is selected
+    if selectedParticipantID is not '':
+      # Get data from directory
+      recordingInfo_list = self.logic.readParticipantDirectory(selectedParticipantID)
+
+      # Update table content
+      if len(recordingInfo_list) >= 0:
+        numRecordings = len(recordingInfo_list)
+        tableWidget.setRowCount(numRecordings)
+        for recordingPos in range(numRecordings):
+          recordingIDTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['id'])
+          recordingDateTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['date'])
+          recordingExerciseTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['exercise'])
+          recordingDurationTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['duration'])
+          tableWidget.setItem(recordingPos, 0, recordingIDTableItem)
+          tableWidget.setItem(recordingPos, 1, recordingDateTableItem)
+          tableWidget.setItem(recordingPos, 2, recordingExerciseTableItem)
+          tableWidget.setItem(recordingPos, 3, recordingDurationTableItem)
+      else:
+        logging.debug('Home.updateRecordingsTable: No recordings found in database...')
+        print('Home.updateRecordingsTable: No recordings found in database...')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -428,14 +498,13 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   #------------------------------------------------------------------------------
   def readRootDirectory(self):
     """
-    Reads all the files in the root directory to get the list of participants and recordings in the database.
+    Reads all the files in the root directory to get the list of participants in the database.
 
-    :return tuple: participant IDs (list), participant names (list), participant surnames (list), and participant
-                  number of recordings (list)
+    :return list: list of dictionaries containing the information of all participants in the database
     """
     logging.debug('Home.readRootDirectory')
 
-    # Set root directory
+    # Get root directory
     dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Get participants
@@ -444,7 +513,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Get participant info
     participantInfo_list = list() # list of dictionaries
     for participantID in participantID_list:
-      # Participant directory
+      # Participant info file
       participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
 
       # Get participant info
@@ -458,6 +527,46 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     print('\nInfo JSON: ', participantInfo_list)
 
     return participantInfo_list
+
+  #------------------------------------------------------------------------------
+  def readParticipantDirectory(self, participantID):
+    """
+    Reads participant directory to get the list of recordings in the database.
+
+    :return tuple: participant IDs (list), participant names (list), participant surnames (list), and participant
+                  number of recordings (list)
+    """
+    logging.debug('Home.readParticipantDirectory')
+
+    # Get root directory
+    dataPath = self.trainUsWidget.logic.DATA_PATH
+
+    # Participant directory
+    participantDirectory = os.path.join(dataPath, participantID)
+    print('Home.readParticipantDirectory: participant directory: ', participantDirectory)
+
+    # Get recordings
+    recordingID_list = self.getListOfFoldersInDirectory(participantDirectory)
+    print('Home.readParticipantDirectory: participant directory: ', recordingID_list)
+
+    # Get participant info
+    recordingInfo_list = list() # list of dictionaries
+    for recordingID in recordingID_list:
+      # Recording info file
+      recordingInfoFilePath = self.getRecordingInfoFilePath(participantID, recordingID)
+
+      # Get recording info
+      recordingInfo = self.readRecordingInfoFile(recordingInfoFilePath)
+      if recordingInfo is not None:
+        recordingInfo_list.append(recordingInfo)
+
+    # Display
+    print('\n>>>>>Home.readParticipantDirectory<<<<<<<<<<<<')
+    print('\nDirectory: ', participantDirectory)
+    print('\nRecordings in directory: ', recordingID_list)
+    print('\nInfo JSON: ', recordingInfo_list)  
+
+    return recordingInfo_list  
 
   #------------------------------------------------------------------------------
   def getListOfFoldersInDirectory(self, directory):
@@ -489,9 +598,26 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       with open(filePath, 'r') as inputFile:
         participantInfo =  json.loads(inputFile.read())
     except:
-      logging.error('Cannot read JSON file at ' + filePath)
+      logging.error('Cannot read participant information from JSON file at ' + filePath)
       participantInfo = None
     return participantInfo
+  
+  #------------------------------------------------------------------------------
+  def readRecordingInfoFile(self, filePath):
+    """
+    Reads recording's information from .json file.
+
+    :param filePath: path to JSON file (string)
+
+    :return recording info (dict)
+    """
+    try:
+      with open(filePath, 'r') as inputFile:
+        recordingInfo =  json.loads(inputFile.read())
+    except:
+      logging.error('Cannot read recording information from JSON file at ' + filePath)
+      recordingInfo = None
+    return recordingInfo
   
   #------------------------------------------------------------------------------
   def writeParticipantInfoFile(self, filePath, participantInfo):
@@ -559,12 +685,36 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Participant directory
-    participant_directory = os.path.join(dataPath, participantID)
+    participantDirectory = os.path.join(dataPath, participantID)
 
     # Participant info file
-    participantInfoFilePath = os.path.join(participant_directory, 'Participant_Info.json')
+    participantInfoFilePath = os.path.join(participantDirectory, 'Participant_Info.json')
 
     return participantInfoFilePath
+
+  #------------------------------------------------------------------------------
+  def getRecordingInfoFilePath(self, participantID, recordingID):
+    """
+    Get path to recording's information JSON file.
+
+    :param participantID: participant ID (string)
+    :param recordingID: recording ID (string)
+
+    :return recording info (dict)
+    """
+    # Set root directory
+    dataPath = self.trainUsWidget.logic.DATA_PATH
+
+    # Participant directory
+    participantDirectory = os.path.join(dataPath, participantID)
+
+    # Recording directory
+    recordingDirectory = os.path.join(participantDirectory, recordingID)
+
+    # Participant info file
+    recordingInfoFilePath = os.path.join(recordingDirectory, 'Recording_Info.json')
+
+    return recordingInfoFilePath
 
   #------------------------------------------------------------------------------
   def deleteParticipant(self, participantID):
@@ -579,10 +729,10 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Participant directory
-    participant_directory = os.path.join(dataPath, participantID)
+    participantDirectory = os.path.join(dataPath, participantID)
 
     # Delete folder
-    shutil.rmtree(participant_directory, ignore_errors=True)
+    shutil.rmtree(participantDirectory, ignore_errors=True)
 
   #------------------------------------------------------------------------------
   def createNewParticipant(self, participantName, participantSurname):
@@ -618,12 +768,12 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Create participant folder
-    participant_directory = os.path.join(dataPath, str(newParticipantID))
+    participantDirectory = os.path.join(dataPath, str(newParticipantID))
     try:
-      os.makedirs(participant_directory)    
-      logging.debug("Directory " , participant_directory ,  " was created ")
+      os.makedirs(participantDirectory)    
+      logging.debug("Directory " , participantDirectory ,  " was created ")
     except FileExistsError:
-      logging.debug("Directory " , participant_directory ,  " already exists")  
+      logging.debug("Directory " , participantDirectory ,  " already exists")  
 
     # Create participant info dictionary
     participantInfo = {}

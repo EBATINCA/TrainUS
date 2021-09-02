@@ -144,7 +144,7 @@ class Dashboard(qt.QWidget):
 
     # Update participants table
     self.homeWidget.updateParticipantsTableSelection()
-
+    self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def onStartButtonClicked(self):
@@ -172,12 +172,13 @@ class Dashboard(qt.QWidget):
       self.ui.newParticipantNameText.text = ''
       self.ui.newParticipantSurnameText.text = ''
 
+      # Update parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
+
       # Update table
       self.homeWidget.updateDashboardTable()
       self.homeWidget.updateParticipantsTable()
-
-      # Update parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
+      self.homeWidget.updateRecordingsTable()
 
       # Update table selection
       self.homeWidget.updateDashboardTableSelection()
