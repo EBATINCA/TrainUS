@@ -142,6 +142,9 @@ class Dashboard(qt.QWidget):
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
 
+    # Update participants table
+    self.homeWidget.updateParticipantsTableSelection()
+
 
   #------------------------------------------------------------------------------
   def onStartButtonClicked(self):
@@ -176,6 +179,10 @@ class Dashboard(qt.QWidget):
       # Update parameter node
       parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
 
+      # Update table selection
+      self.homeWidget.updateDashboardTableSelection()
+      self.homeWidget.updateParticipantsTableSelection()      
+
     # Existing participants
     if participantSelectionMode == 'Existing Participant':
       print('Starting training session - Existing Participant')
@@ -187,11 +194,14 @@ class Dashboard(qt.QWidget):
     selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
 
     # Display
-    print('Selected participant: ')
-    print('   - Participant ID: ', selectedParticipantInfo['id'])
-    print('   - Participant Name: ', selectedParticipantInfo['name'])
-    print('   - Participant Surname: ', selectedParticipantInfo['surname'])
-    print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
+    if selectedParticipantInfo:
+      print('Selected participant: ')
+      print('   - Participant ID: ', selectedParticipantInfo['id'])
+      print('   - Participant Name: ', selectedParticipantInfo['name'])
+      print('   - Participant Surname: ', selectedParticipantInfo['surname'])
+      print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
+    else:
+      print('Selected participant: NONE')
 
 
   #------------------------------------------------------------------------------

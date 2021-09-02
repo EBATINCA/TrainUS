@@ -92,10 +92,9 @@ class Participants(qt.QWidget):
 
     # Edit participant group box
     self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
-    #self.ui.editParticipantButton.enabled = not self.editParticipantVisible
 
     # Edit participant text
-    participantInfo = self.getInfoForSelectedParticipant()
+    participantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
     if participantInfo:
       self.ui.editParticipantNameText.text = participantInfo['name']
       self.ui.editParticipantSurnameText.text = participantInfo['surname']
@@ -139,6 +138,9 @@ class Participants(qt.QWidget):
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
+
+    # Update dashboard table
+    self.homeWidget.updateDashboardTableSelection()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -217,37 +219,20 @@ class Participants(qt.QWidget):
     participantSelected = True
     if (selectedParticipantID == '') :
       participantSelected = False
-
     return participantSelected
-
-
-  def getInfoForSelectedParticipant(self):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-
-    # Get participant info from ID
-    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
-
-    return selectedParticipantInfo
 
   def editParticipantInfo(self, participantName, participantSurname):
 
     # Get selected participant info
-    selectedParticipantInfo = self.getInfoForSelectedParticipant()
-
-    # Edit participant info
-    selectedParticipantInfo['name'] = participantName
-    selectedParticipantInfo['surname'] = participantSurname
+    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
 
     # Get JSON info file path
     selectedParticipantID = selectedParticipantInfo['id']
     participantInfoFilePath = self.homeWidget.logic.getParticipantInfoFilePath(selectedParticipantID)
+
+    # Edit participant info
+    selectedParticipantInfo['name'] = participantName
+    selectedParticipantInfo['surname'] = participantSurname
 
     # Write new file
     self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
@@ -265,4 +250,6 @@ class Participants(qt.QWidget):
 
     # Delete participant
     self.homeWidget.logic.deleteParticipant(selectedParticipantID)
-      
+    
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, '')

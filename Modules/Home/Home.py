@@ -226,7 +226,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     # Get parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
+    parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
@@ -285,6 +285,29 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
       tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
 
+  def updateDashboardTableSelection(self):
+    """
+    Updates selected item of dashboard table from parameter node.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Get table widget
+    tableWidget = self.ui.DashboardPanel.ui.participantsTable
+
+    # Select row corresponding to selected participant
+    numRows = tableWidget.rowCount
+    for row in range(numRows):
+      item = tableWidget.item(row, 0)
+      if item.text() == selectedParticipantID:
+        tableWidget.setCurrentItem(item)
+
   def updateParticipantsTable(self):
     """
     Updates content of participants table by reading the database in root directory.
@@ -311,6 +334,28 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
       tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
 
+  def updateParticipantsTableSelection(self):
+    """
+    Updates selected item of dashboard table from parameter node.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Get table widget
+    tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
+
+    # Select row corresponding to selected participant
+    numRows = tableWidget.rowCount
+    for row in range(numRows):
+      item = tableWidget.item(row, 0)
+      if item.text() == selectedParticipantID:
+        tableWidget.setCurrentItem(item)
 
 
 #---------------------------------------------------------------------------------------------#
@@ -338,6 +383,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.fileDir = os.path.dirname(__file__)
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
+    self.trainUsWidget = self.moduleWidget.trainUsWidget
     # Pointer to the parameter node so that we have access to the old one before setting the new one
     self.parameterNode = None
 
@@ -387,9 +433,10 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     :return tuple: participant IDs (list), participant names (list), participant surnames (list), and participant
                   number of recordings (list)
     """
-    
+    logging.debug('Home.readRootDirectory')
+
     # Set root directory
-    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+    dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Get participants
     participantID_list = self.getListOfFoldersInDirectory(dataPath)
@@ -405,6 +452,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       participantInfo_list.append(participantInfo)
 
     # Display
+    print('\n>>>>>Home.readRootDirectory<<<<<<<<<<<<')
     print('\nDirectory: ', dataPath)
     print('\nParticipants in directory: ', participantID_list)
     print('\nInfo JSON: ', participantInfo_list)
@@ -441,7 +489,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       with open(filePath, 'r') as inputFile:
         participantInfo =  json.loads(inputFile.read())
     except:
-      print('[ERROR] Cannot read JSON file at ' + filePath)
+      logging.error('Cannot read JSON file at ' + filePath)
       participantInfo = None
     return participantInfo
   
@@ -463,8 +511,12 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     :param participantID: participant ID (string)
 
-    :return tuple: participant name (string), participant surname (string)
+    :return participant info (dict)
     """
+    # Abort if participant ID is not invalid
+    if participantID == '':
+      return
+
     # Participant info file
     participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
     
@@ -474,16 +526,37 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     return participantInfo
 
   #------------------------------------------------------------------------------
+  def getParticipantInfoFromSelection(self):
+    """
+    Get participant's information from selection stored in parameter node.
+
+    :return participant info (dict)
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Get participant info from ID
+    selectedParticipantInfo = self.getParticipantInfoFromID(selectedParticipantID)
+
+    return selectedParticipantInfo
+
+  #------------------------------------------------------------------------------
   def getParticipantInfoFilePath(self, participantID):
     """
     Get path to participant's information JSON file.
 
     :param participantID: participant ID (string)
 
-    :return tuple: participant name (string), participant surname (string)
+    :return participant info (dict)
     """
     # Set root directory
-    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+    dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Participant directory
     participant_directory = os.path.join(dataPath, participantID)
@@ -500,8 +573,10 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     :param participantID: participant ID (string)
     """
+    logging.debug('Home.deleteParticipant')
+
     # Set root directory
-    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+    dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Participant directory
     participant_directory = os.path.join(dataPath, participantID)
@@ -518,9 +593,10 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     :param participantName: participant name (string)
     :param participantSurname: participant surname (string)
 
-    :return new participant ID (string)
+    :return new participant info (dict)
     """
-    
+    logging.debug('Home.createNewParticipant')
+
     # Get data from directory
     participantInfo_list = self.readRootDirectory()
 
@@ -539,15 +615,15 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     newParticipantID = str("{:05d}".format(maxParticipantID + 1)) # leading zeros, 5 digits
 
     # Set root directory
-    dataPath = slicer.trainUsWidget.logic.DATA_PATH
+    dataPath = self.trainUsWidget.logic.DATA_PATH
 
     # Create participant folder
     participant_directory = os.path.join(dataPath, str(newParticipantID))
     try:
       os.makedirs(participant_directory)    
-      print("Directory " , participant_directory ,  " Created ")
+      logging.debug("Directory " , participant_directory ,  " was created ")
     except FileExistsError:
-      print("Directory " , participant_directory ,  " already exists")  
+      logging.debug("Directory " , participant_directory ,  " already exists")  
 
     # Create participant info dictionary
     participantInfo = {}
