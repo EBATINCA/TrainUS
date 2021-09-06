@@ -173,6 +173,10 @@ class Participants(qt.QWidget):
     # Update group box visibility
     self.editParticipantVisible = False
 
+    # Get selected participant info
+    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
+    selectedParticipantID = selectedParticipantInfo['id']
+    
     # Get input info
     participantName = self.ui.editParticipantNameText.text
     participantSurname = self.ui.editParticipantSurnameText.text
@@ -182,10 +186,6 @@ class Participants(qt.QWidget):
 
     # Update GUI
     self.updateGUIFromMRML() 
-
-    # Tables    
-    self.homeWidget.updateDashboardTable()
-    self.homeWidget.updateParticipantsTable()
 
   #------------------------------------------------------------------------------
   def onCancelEditButtonClicked(self):
@@ -223,8 +223,14 @@ class Participants(qt.QWidget):
 
   def editParticipantInfo(self, participantName, participantSurname):
 
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
     # Get selected participant info
-    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
+    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection() 
 
     # Get JSON info file path
     selectedParticipantID = selectedParticipantInfo['id']
@@ -236,6 +242,17 @@ class Participants(qt.QWidget):
 
     # Write new file
     self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
+
+    # Update table content
+    self.homeWidget.updateDashboardTable()
+    self.homeWidget.updateParticipantsTable()
+
+    # Update participant selection
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, selectedParticipantID)
+
+    # Update table selection
+    self.homeWidget.updateDashboardTableSelection()
+    self.homeWidget.updateParticipantsTableSelection()
 
   def deleteSelectedParticipant(self):
 
