@@ -148,7 +148,9 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onCheckRecordingsButtonClicked(self):
-    pass
+    
+    # Change current tab to "Recordings"
+    self.homeWidget.ui.tabWidget.currentIndex = 2
 
   #------------------------------------------------------------------------------
   def onEditParticipantButtonClicked(self):
