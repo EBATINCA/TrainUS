@@ -552,11 +552,8 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Get participant info
     recordingInfo_list = list() # list of dictionaries
     for recordingID in recordingID_list:
-      # Recording info file
-      recordingInfoFilePath = self.getRecordingInfoFilePath(participantID, recordingID)
-
       # Get recording info
-      recordingInfo = self.readRecordingInfoFile(recordingInfoFilePath)
+      recordingInfo = self.getRecordingInfoFromID(participantID, recordingID)
       if recordingInfo is not None:
         recordingInfo_list.append(recordingInfo)
 
@@ -652,6 +649,28 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     return participantInfo
 
   #------------------------------------------------------------------------------
+  def getRecordingInfoFromID(self, participantID, recordingID):
+    """
+    Get recording's information from participant ID and recording ID.
+
+    :param participantID: participant ID (string)
+    :param recordingID: recording ID (string)
+
+    :return recording info (dict)
+    """
+    # Abort if recording ID is not invalid
+    if (participantID == '') or (recordingID == ''):
+      return
+
+    # Recording info file
+    recordingInfoFilePath = self.getRecordingInfoFilePath(participantID, recordingID)
+    
+    # Read recording info
+    recordingInfo = self.readRecordingInfoFile(recordingInfoFilePath)
+
+    return recordingInfo
+
+  #------------------------------------------------------------------------------
   def getParticipantInfoFromSelection(self):
     """
     Get participant's information from selection stored in parameter node.
@@ -671,6 +690,28 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     selectedParticipantInfo = self.getParticipantInfoFromID(selectedParticipantID)
 
     return selectedParticipantInfo
+
+  #------------------------------------------------------------------------------
+  def getRecordingInfoFromSelection(self):
+    """
+    Get recording's information from selection stored in parameter node.
+
+    :return recording info (dict)
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant and recording
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedRecordingID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedRecordingIDParameterName)
+
+    # Get participant info from ID
+    selectedRecordingInfo = self.getRecordingInfoFromID(selectedParticipantID, selectedRecordingID)
+
+    return selectedRecordingInfo
 
   #------------------------------------------------------------------------------
   def getParticipantInfoFilePath(self, participantID):

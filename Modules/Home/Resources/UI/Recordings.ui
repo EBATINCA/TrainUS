@@ -79,7 +79,7 @@
          <item>
           <widget class="QPushButton" name="recordingDetailsButton">
            <property name="text">
-            <string>See/Hide details</string>
+            <string>See details</string>
            </property>
           </widget>
          </item>
@@ -124,28 +124,19 @@
        </widget>
       </item>
       <item row="3" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="recordingDetailsGroupBox">
         <property name="title">
          <string>Recording details</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="1" column="1" colspan="2">
-          <widget class="QLineEdit" name="recordingDetailsDateText"/>
-         </item>
-         <item row="0" column="1" colspan="2">
-          <widget class="QLineEdit" name="recordingDetailsExerciseText"/>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_5">
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Duration:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <string>Participant ID</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="1" column="3">
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>Date:</string>
@@ -155,18 +146,115 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_2">
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="recordingParticipantSurnameText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>Training exercise:</string>
+            <string>Duration:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="2" column="1" colspan="2">
-          <widget class="QLineEdit" name="recordingDetailsDurationText"/>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Exercise:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="recordingParticipantNameText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4" colspan="2">
+          <widget class="QLineEdit" name="recordingDetailsExerciseText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Participant Name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4" colspan="2">
+          <widget class="QLineEdit" name="recordingDetailsDurationText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="recordingParticipantIDText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4" colspan="2">
+          <widget class="QLineEdit" name="recordingDetailsDateText">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Participant Surname</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
