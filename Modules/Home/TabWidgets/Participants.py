@@ -54,6 +54,7 @@ class Participants(qt.QWidget):
   def setupConnections(self):
     logging.debug('Participants.setupConnections')
 
+    self.ui.participantSearchText.textChanged.connect(self.onParticipantSearchTextChanged)
     self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
     self.ui.checkRecordingsButton.clicked.connect(self.onCheckRecordingsButtonClicked)
     self.ui.editParticipantButton.clicked.connect(self.onEditParticipantButtonClicked)
@@ -65,6 +66,7 @@ class Participants(qt.QWidget):
   def disconnect(self):
     logging.debug('Participants.disconnect')
 
+    self.ui.participantSearchText.textChanged.disconnect()
     self.ui.participantsTable.itemSelectionChanged.disconnect()
     self.ui.checkRecordingsButton.clicked.disconnect()
     self.ui.editParticipantButton.clicked.disconnect()
@@ -110,6 +112,15 @@ class Participants(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onParticipantSearchTextChanged(self, searchText):
+    # Synchronize dasboard table search
+    self.homeWidget.ui.DashboardPanel.ui.participantSearchText.setText(searchText)
+
+    # Update table content
+    self.homeWidget.updateParticipantsTable()
+    self.homeWidget.updateRecordingsTable()
+
   #------------------------------------------------------------------------------
   def onParticipantsTableItemSelected(self):
     # Parameter node

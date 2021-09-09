@@ -260,12 +260,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.ConfigurationPanel.setupUi()
     self.ui.configurationTab.layout().addWidget(self.ui.ConfigurationPanel)
 
+  #------------------------------------------------------------------------------
   def updateDashboardTable(self):
     """
     Updates content of dashboard table by reading the database in root directory.
     """
     # Get data from directory
     participantInfo_list = self.logic.readRootDirectory()
+
+    # Filter participants according to search text
+    searchText = self.ui.DashboardPanel.ui.participantSearchText.text
+    if searchText is not '':
+      participantInfo_list = self.logic.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
 
     # Get table widget
     tableWidget = self.ui.DashboardPanel.ui.participantsTable
@@ -287,8 +293,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
         tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
     else:
+      tableWidget.setRowCount(0)
       logging.debug('Home.updateDashboardTable: No participants found in database...')
 
+  #------------------------------------------------------------------------------
   def updateDashboardTableSelection(self):
     """
     Updates selected item of dashboard table from parameter node.
@@ -312,12 +320,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       if item.text() == selectedParticipantID:
         tableWidget.setCurrentItem(item)
 
+  #------------------------------------------------------------------------------
   def updateParticipantsTable(self):
     """
     Updates content of participants table by reading the database in root directory.
     """
     # Get data from directory
     participantInfo_list = self.logic.readRootDirectory()
+
+    # Filter participants according to search text
+    searchText = self.ui.ParticipantsPanel.ui.participantSearchText.text
+    if searchText is not '':
+      participantInfo_list = self.logic.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
 
     # Get table widget
     tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
@@ -339,8 +353,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
         tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
     else:
+      tableWidget.setRowCount(0)
       logging.debug('Home.updateParticipantsTable: No participants found in database...')
 
+  #------------------------------------------------------------------------------
   def updateParticipantsTableSelection(self):
     """
     Updates selected item of dashboard table from parameter node.
@@ -364,6 +380,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       if item.text() == selectedParticipantID:
         tableWidget.setCurrentItem(item)
 
+  #------------------------------------------------------------------------------
   def updateRecordingsTable(self):
     """
     Updates selected participant in recordings table.
@@ -425,8 +442,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
           tableWidget.setItem(recordingPos, 2, recordingExerciseTableItem)
           tableWidget.setItem(recordingPos, 3, recordingDurationTableItem)
       else:
+        tableWidget.setRowCount(0)
         logging.debug('Home.updateRecordingsTable: No recordings found in database...')
-        print('Home.updateRecordingsTable: No recordings found in database...')
+    else:
+      tableWidget.setRowCount(0)
+      logging.debug('Home.updateRecordingsTable: No participant is selected')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -527,6 +547,36 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     print('\nInfo JSON: ', participantInfo_list)
 
     return participantInfo_list
+
+  #------------------------------------------------------------------------------
+  def filterParticipantInfoListFromSearchText(self, participantInfo_list, searchText):
+    """
+    Filters participant information list of dictionaries to keep only those participant matching the search criteria.
+
+    :param participantInfo_list: list of dictionaries containing the information of all participants in the database (list)
+    :param searchText: input text in search box (string)
+
+    :return list: list of dictionaries containing the information of all participants matching search criteria
+    """
+    logging.debug('Home.filterParticipantInfoListFromSearchText')
+
+    # Get number of participants in input list
+    numParticipants = len(participantInfo_list)
+
+    # Convert input search text to lower case
+    searchText = searchText.lower()
+
+    # Create filtered list
+    participantInfoFiltered_list = list()
+    if numParticipants >= 0:
+      for participantPos in range(numParticipants):
+        participantName = participantInfo_list[participantPos]['name'] # Get name
+        participantSurname = participantInfo_list[participantPos]['surname'] # Get surname
+        participantString = participantName + ' ' + participantSurname # Create single string with participant name and surname
+        participantString = participantString.lower() # convert to lower case
+        if searchText in participantString: # keep participants meeting search criteria
+          participantInfoFiltered_list.append(participantInfo_list[participantPos])
+    return participantInfoFiltered_list  
 
   #------------------------------------------------------------------------------
   def readParticipantDirectory(self, participantID):

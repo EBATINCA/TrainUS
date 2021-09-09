@@ -51,6 +51,7 @@ class Dashboard(qt.QWidget):
 
     self.ui.newParticipantRadioButton.clicked.connect(self.onNewParticipantRadioButtonClicked)
     self.ui.existingParticipantRadioButton.clicked.connect(self.onExistingParticipantRadioButtonClicked)
+    self.ui.participantSearchText.textChanged.connect(self.onParticipantSearchTextChanged)
     self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
     self.ui.participantsTable.itemDoubleClicked.connect(self.onParticipantsTableItemDoubleClicked)    
     self.ui.startButton.clicked.connect(self.onStartButtonClicked)
@@ -61,6 +62,7 @@ class Dashboard(qt.QWidget):
 
     self.ui.newParticipantRadioButton.clicked.disconnect()
     self.ui.existingParticipantRadioButton.clicked.disconnect()
+    self.ui.participantSearchText.textChanged.disconnect()
     self.ui.participantsTable.itemSelectionChanged.disconnect()
     self.ui.participantsTable.itemDoubleClicked.disconnect()
     self.ui.startButton.clicked.disconnect()
@@ -114,6 +116,15 @@ class Dashboard(qt.QWidget):
     # Update group box visibility
     self.ui.newParticipantGroupBox.visible = False
     self.ui.existingParticipantGroupBox.visible = True
+
+  #------------------------------------------------------------------------------
+  def onParticipantSearchTextChanged(self, searchText):
+    # Synchronize partipants table search
+    self.homeWidget.ui.ParticipantsPanel.ui.participantSearchText.setText(searchText)
+
+    # Update table content
+    self.homeWidget.updateDashboardTable()
+    self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def onParticipantsTableItemSelected(self):
