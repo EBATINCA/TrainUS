@@ -52,6 +52,7 @@ class Dashboard(qt.QWidget):
     self.ui.newParticipantRadioButton.clicked.connect(self.onNewParticipantRadioButtonClicked)
     self.ui.existingParticipantRadioButton.clicked.connect(self.onExistingParticipantRadioButtonClicked)
     self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
+    self.ui.participantsTable.itemDoubleClicked.connect(self.onParticipantsTableItemDoubleClicked)    
     self.ui.startButton.clicked.connect(self.onStartButtonClicked)
 
   #------------------------------------------------------------------------------
@@ -61,6 +62,7 @@ class Dashboard(qt.QWidget):
     self.ui.newParticipantRadioButton.clicked.disconnect()
     self.ui.existingParticipantRadioButton.clicked.disconnect()
     self.ui.participantsTable.itemSelectionChanged.disconnect()
+    self.ui.participantsTable.itemDoubleClicked.disconnect()
     self.ui.startButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -145,6 +147,11 @@ class Dashboard(qt.QWidget):
     # Update participants table
     self.homeWidget.updateParticipantsTableSelection()
     self.homeWidget.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
+  def onParticipantsTableItemDoubleClicked(self):
+    # Change current tab to "Participants"
+    self.homeWidget.ui.tabWidget.currentIndex = 1
 
   #------------------------------------------------------------------------------
   def onStartButtonClicked(self):
