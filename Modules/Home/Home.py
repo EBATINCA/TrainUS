@@ -188,12 +188,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    pass
+    
+    self.ui.closeButton.clicked.connect(self.onCloseButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    pass
+    
+    self.ui.closeButton.clicked.disconnect()
+    
+  #------------------------------------------------------------------------------
+  def onCloseButtonClicked(self):
+    
+    # Shows slicer interface
+    self.hideHome()
 
+    # Change to TrainUS module
+    slicer.util.selectModule('TrainUS')
+    
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):
     """
