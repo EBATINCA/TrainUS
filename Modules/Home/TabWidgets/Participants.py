@@ -159,27 +159,27 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onCheckRecordingsButtonClicked(self):
-    
     # Change current tab to "Recordings"
     self.homeWidget.ui.tabWidget.currentIndex = 2
 
   #------------------------------------------------------------------------------
   def onEditParticipantButtonClicked(self):
-    
     # Update group box visibility
     self.editParticipantVisible = True
     self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
-  def onDeleteParticipantButtonClicked(self):
-    
-    # Delete selected participant
-    self.deleteSelectedParticipant()
+  def onDeleteParticipantButtonClicked(self):    
+    # Display message box to confirm delete action
+    deleteFlag = self.deleteParticipantMessageBox()
+    if deleteFlag:
+      # Delete selected participant
+      self.deleteSelectedParticipant()
 
-    # Update tables    
-    self.homeWidget.updateDashboardTable()
-    self.homeWidget.updateParticipantsTable()
-    self.homeWidget.updateRecordingsTable()
+      # Update tables    
+      self.homeWidget.updateDashboardTable()
+      self.homeWidget.updateParticipantsTable()
+      self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def onSaveEditButtonClicked(self):
@@ -218,7 +218,12 @@ class Participants(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
   def isParticipantSelected(self):
+    """
+    Check if a participant is selected.
+    :return bool: True if valid participant is selected, False otherwise
+    """    
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -229,13 +234,19 @@ class Participants(qt.QWidget):
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
 
     # Check valid selection
-    participantSelected = True
     if (selectedParticipantID == '') :
       participantSelected = False
+    else:
+      participantSelected = True
     return participantSelected
 
+  #------------------------------------------------------------------------------
   def editParticipantInfo(self, participantName, participantSurname):
-
+    """
+    Edit name and surname of the selected participant in the JSON info file.
+    :param participantName: new name for partipant (string)
+    :param participantSurname: new surname for participant (string)
+    """    
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -267,8 +278,31 @@ class Participants(qt.QWidget):
     self.homeWidget.updateDashboardTableSelection()
     self.homeWidget.updateParticipantsTableSelection()
 
-  def deleteSelectedParticipant(self):
+  #------------------------------------------------------------------------------
+  def deleteParticipantMessageBox(self):
+    """
+    Display message box for the user to confirm if the partipant data must be deleted.
+    :return bool: flag indication user selection. "True" means participant will be deleted.
+    """
+    confirmDelete = qt.QMessageBox()
+    confirmDelete.setIcon(qt.QMessageBox.Warning)
+    confirmDelete.setWindowTitle('Confirm')
+    confirmDelete.setText(
+      'Are you sure you want to delete the selected participant?\n\nOnce deleted, data associated with this participant will be lost.')
+    confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+    confirmDelete.setDefaultButton(qt.QMessageBox.No)
+    confirmDelete.setModal(True)
+    retval = confirmDelete.exec_()
+    if retval == qt.QMessageBox.Yes:
+      return True
+    else:
+      return False
 
+  #------------------------------------------------------------------------------
+  def deleteSelectedParticipant(self):
+    """
+    Delete selected participant from root directory.
+    """
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
