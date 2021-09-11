@@ -282,7 +282,7 @@ class Participants(qt.QWidget):
   def deleteParticipantMessageBox(self):
     """
     Display message box for the user to confirm if the partipant data must be deleted.
-    :return bool: flag indication user selection. "True" means participant will be deleted.
+    :return bool: True if delete action is confirmed, False otherwise
     """
     confirmDelete = qt.QMessageBox()
     confirmDelete.setIcon(qt.QMessageBox.Warning)
