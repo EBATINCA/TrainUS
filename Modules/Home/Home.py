@@ -837,6 +837,26 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     shutil.rmtree(participantDirectory, ignore_errors=True)
 
   #------------------------------------------------------------------------------
+  def deleteRecording(self, participantID, recordingID):
+    """
+    Delete recording from root directory.
+
+    :param participantID: participant ID (string)
+    :param recordingID: recording ID (string)
+    """
+    logging.debug('Home.deleteRecording')
+
+    # Set root directory
+    dataPath = self.trainUsWidget.logic.DATA_PATH
+
+    # Recording directory
+    participantDirectory = os.path.join(dataPath, participantID)
+    recordingDirectory = os.path.join(participantDirectory, recordingID)
+
+    # Delete folder
+    shutil.rmtree(recordingDirectory, ignore_errors=True)
+
+  #------------------------------------------------------------------------------
   def createNewParticipant(self, participantName, participantSurname):
     """
     Adds new participant to database by generating a unique ID, creating a new folder, 

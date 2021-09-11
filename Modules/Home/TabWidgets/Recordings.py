@@ -53,6 +53,7 @@ class Recordings(qt.QWidget):
 
     self.ui.recordingsTable.itemSelectionChanged.connect(self.onRecordingsTableItemSelected)
     self.ui.recordingDetailsButton.clicked.connect(self.onRecordingDetailsButtonClicked)
+    self.ui.deleteRecordingButton.clicked.connect(self.onDeleteRecordingButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
@@ -60,6 +61,7 @@ class Recordings(qt.QWidget):
 
     self.ui.recordingsTable.itemSelectionChanged.disconnect()
     self.ui.recordingDetailsButton.clicked.disconnect()
+    self.ui.deleteRecordingButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -155,12 +157,28 @@ class Recordings(qt.QWidget):
     self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
+  def onDeleteRecordingButtonClicked(self):    
+    # Display message box to confirm delete action
+    deleteFlag = self.deleteRecordingMessageBox()
+    if deleteFlag:
+      # Delete selected recording
+      self.deleteSelectedRecording()
+
+      # Update tables    
+      self.homeWidget.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
   #
   # Logic functions
   #
   #------------------------------------------------------------------------------
 
+  #------------------------------------------------------------------------------
   def isRecordingSelected(self):
+    """
+    Check if a recording is selected.
+    :return bool: True if valid recording is selected, False otherwise
+    """    
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -175,4 +193,46 @@ class Recordings(qt.QWidget):
     if (selectedRecordingID == '') :
       recordingSelected = False
     return recordingSelected
+
+  #------------------------------------------------------------------------------
+  def deleteRecordingMessageBox(self):
+    """
+    Display message box for the user to confirm if the recording data must be deleted.
+    :return bool: True if delete action is confirmed, False otherwise
+    """
+    confirmDelete = qt.QMessageBox()
+    confirmDelete.setIcon(qt.QMessageBox.Warning)
+    confirmDelete.setWindowTitle('Confirm')
+    confirmDelete.setText(
+      'Are you sure you want to delete the selected recording?\n\nOnce deleted, data associated with this recording will be lost.')
+    confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+    confirmDelete.setDefaultButton(qt.QMessageBox.No)
+    confirmDelete.setModal(True)
+    retval = confirmDelete.exec_()
+    if retval == qt.QMessageBox.Yes:
+      return True
+    else:
+      return False
+
+  #------------------------------------------------------------------------------
+  def deleteSelectedRecording(self):
+    """
+    Delete selected recording from root directory.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant and recording
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedRecordingID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedRecordingIDParameterName)
+
+    # Delete recording
+    self.homeWidget.logic.deleteRecording(selectedParticipantID, selectedRecordingID)
+    
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedRecordingIDParameterName, '')
+
   
