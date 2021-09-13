@@ -42,6 +42,7 @@ set(Slicer_DEFAULT_FAVORITE_MODULES "Data, Volumes, Models, Transforms, Markups,
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/DartConfiguration.tcl.in
   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
+  @ONLY
   )
 
 # Configure SuperBuild
