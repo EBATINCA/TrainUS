@@ -162,7 +162,7 @@ class Dashboard(qt.QWidget):
   #------------------------------------------------------------------------------
   def onParticipantsTableItemDoubleClicked(self):
     # Change current tab to "Participants"
-    self.homeWidget.ui.tabWidget.currentIndex = 1
+    self.homeWidget.ui.dashboardTabWidget.currentIndex = 1
 
   #------------------------------------------------------------------------------
   def onStartButtonClicked(self):
@@ -190,17 +190,17 @@ class Dashboard(qt.QWidget):
       self.ui.newParticipantNameText.text = ''
       self.ui.newParticipantSurnameText.text = ''
 
-      # Update parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
-
       # Update table
       self.homeWidget.updateDashboardTable()
       self.homeWidget.updateParticipantsTable()
       self.homeWidget.updateRecordingsTable()
 
+      # Update parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])    
+
       # Update table selection
       self.homeWidget.updateDashboardTableSelection()
-      self.homeWidget.updateParticipantsTableSelection()      
+      self.homeWidget.updateParticipantsTableSelection()        
 
     # Existing participants
     if participantSelectionMode == 'Existing Participant':
