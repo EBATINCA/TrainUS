@@ -126,6 +126,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Setup participant interface
     self.setupUi()
 
+    # Tab widget visibility
+    self.updateTrainingMenuVisibility(visible = False)
+
     # Update UI tables
     self.updateDashboardTable()
     self.updateParticipantsTable()
@@ -190,11 +193,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setupConnections(self):
     
     self.ui.closeButton.clicked.connect(self.onCloseButtonClicked)
+    self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     
     self.ui.closeButton.clicked.disconnect()
+    self.ui.finishTrainingButton.clicked.disconnect()
     
   #------------------------------------------------------------------------------
   def onCloseButtonClicked(self):
@@ -204,6 +209,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Change to TrainUS module
     slicer.util.selectModule('TrainUS')
+    
+  #------------------------------------------------------------------------------
+  def onFinishTrainingButtonClicked(self):
+    
+    # Hides training menu
+    self.updateTrainingMenuVisibility(visible = False)
     
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):
@@ -270,6 +281,28 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.ConfigurationPanel.homeWidget = self
     self.ui.ConfigurationPanel.setupUi()
     self.ui.configurationTab.layout().addWidget(self.ui.ConfigurationPanel)
+
+    # Basic training tab
+    self.ui.BasicTrainingPanel = TabWidgets.BasicTraining(self.ui.basicTrainingTab)
+    self.ui.BasicTrainingPanel.homeWidget = self
+    self.ui.BasicTrainingPanel.setupUi()
+    self.ui.basicTrainingTab.layout().addWidget(self.ui.BasicTrainingPanel)
+
+    # Advanced training tab
+    self.ui.AdvancedTrainingPanel = TabWidgets.AdvancedTraining(self.ui.advancedTrainingTab)
+    self.ui.AdvancedTrainingPanel.homeWidget = self
+    self.ui.AdvancedTrainingPanel.setupUi()
+    self.ui.advancedTrainingTab.layout().addWidget(self.ui.AdvancedTrainingPanel)
+
+  #------------------------------------------------------------------------------
+  def updateTrainingMenuVisibility(self, visible):
+    logging.debug('Home.TrainingMenuVisibility')
+
+    # Update visibility tab widgets
+    self.ui.dashboardTabWidget.visible = not visible 
+    self.ui.trainingInfoGroupBox.visible = visible
+    self.ui.trainingTabWidget.visible = visible
+    self.ui.finishTrainingFrame.visible = visible    
 
   #------------------------------------------------------------------------------
   def updateDashboardTable(self):
