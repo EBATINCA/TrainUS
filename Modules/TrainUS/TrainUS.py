@@ -246,8 +246,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.parameterNode = None
 
     # Constants
-    self.DATA_PATH = 'C:/DAVID/TrainUS_Database'
-    #TODO:
+    self.DATA_PATH = self.setupRootDirectory()
 
     # Default parameters map
     self.defaultParameters = {}
@@ -401,6 +400,21 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         shortcut = qt.QShortcut(slicer.util.mainWindow())
         shortcut.setKey(qt.QKeySequence(shortcutKey))
         shortcut.connect('activated()', callback)
+
+  #------------------------------------------------------------------------------
+  def setupRootDirectory(self):
+    # Get internal path
+    slicerUserSettingsDirectory = os.path.dirname(slicer.app.slicerUserSettingsFilePath)
+    # Create folder if it does not exist
+    dataFolderName = 'TrainUS_Database'
+    rootDirectory = os.path.join(slicerUserSettingsDirectory, dataFolderName)
+    try:
+      os.makedirs(rootDirectory)    
+      logging.debug('Root directory was created at: ' , rootDirectory)
+    except FileExistsError:
+      logging.debug('Root directory already exists...')
+    return rootDirectory 
+
 
 #------------------------------------------------------------------------------
 #
