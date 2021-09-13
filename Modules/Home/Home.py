@@ -926,9 +926,9 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participantDirectory = os.path.join(dataPath, str(newParticipantID))
     try:
       os.makedirs(participantDirectory)    
-      logging.debug("Directory " , participantDirectory ,  " was created ")
+      logging.debug('Participant directory was created: ', participantDirectory)
     except FileExistsError:
-      logging.debug("Directory " , participantDirectory ,  " already exists")  
+      logging.debug('Participant directory already exists: ', participantDirectory)
 
     # Create participant info dictionary
     participantInfo = {}
