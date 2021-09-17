@@ -6,13 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>721</width>
-    <height>445</height>
+    <width>924</width>
+    <height>554</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QFrame" name="frame">
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -22,6 +29,13 @@
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0">
        <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Search:</string>
         </property>
@@ -29,6 +43,16 @@
       </item>
       <item row="2" column="0" colspan="2">
        <widget class="QTableWidget" name="participantsTable">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContents</enum>
+        </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
         </property>
@@ -38,6 +62,12 @@
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectRows</enum>
         </property>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>150</number>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>
@@ -58,18 +88,25 @@
         </column>
         <column>
          <property name="text">
-          <string>Num. Recordings</string>
+          <string>Birth Date</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Other</string>
+          <string>Email</string>
          </property>
         </column>
        </widget>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>List of participants</string>
         </property>
@@ -77,12 +114,26 @@
       </item>
       <item row="2" column="2" rowspan="2">
        <widget class="QGroupBox" name="groupBox">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="title">
          <string>Options</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QPushButton" name="checkRecordingsButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Check recordings</string>
            </property>
@@ -90,6 +141,13 @@
          </item>
          <item>
           <widget class="QPushButton" name="editParticipantButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Edit participant</string>
            </property>
@@ -97,6 +155,13 @@
          </item>
          <item>
           <widget class="QPushButton" name="deleteParticipantButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Delete participant</string>
            </property>
@@ -104,6 +169,13 @@
          </item>
          <item>
           <spacer name="verticalSpacer">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -119,29 +191,74 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="participantSearchText"/>
+       <widget class="QLineEdit" name="participantSearchText">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
       </item>
       <item row="3" column="0" colspan="2">
        <widget class="QGroupBox" name="editParticipantGroupBox">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="title">
          <string>Edit participant</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="1" colspan="2">
-          <widget class="QLineEdit" name="editParticipantNameText"/>
+          <widget class="QLineEdit" name="editParticipantNameText">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+          </widget>
          </item>
          <item row="0" column="4">
           <widget class="QPushButton" name="saveEditButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Save</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1" colspan="2">
-          <widget class="QLineEdit" name="editParticipantSurnameText"/>
+          <widget class="QLineEdit" name="editParticipantSurnameText">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+          </widget>
          </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_2">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Name:</string>
            </property>
@@ -152,6 +269,13 @@
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Surname:</string>
            </property>
@@ -162,6 +286,13 @@
          </item>
          <item row="1" column="4">
           <widget class="QPushButton" name="cancelEditButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
             <string>Cancel</string>
            </property>
