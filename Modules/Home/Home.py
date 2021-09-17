@@ -331,11 +331,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
         participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
         participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
-        participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
+        participantBirthDateTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['birthdate'])
+        participantEmailTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['email'])
         tableWidget.setItem(participantPos, 0, participantIDTableItem)
         tableWidget.setItem(participantPos, 1, participantNameTableItem)
         tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
-        tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+        tableWidget.setItem(participantPos, 3, participantBirthDateTableItem)
+        tableWidget.setItem(participantPos, 4, participantEmailTableItem)
     else:
       tableWidget.setRowCount(0)
       logging.debug('Home.updateDashboardTable: No participants found in database...')
@@ -391,11 +393,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
         participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
         participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
-        participantNumRecordingsTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['number of recordings'])
+        participantBirthDateTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['birthdate'])
+        participantEmailTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['email'])
         tableWidget.setItem(participantPos, 0, participantIDTableItem)
         tableWidget.setItem(participantPos, 1, participantNameTableItem)
         tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
-        tableWidget.setItem(participantPos, 3, participantNumRecordingsTableItem)
+        tableWidget.setItem(participantPos, 3, participantBirthDateTableItem)
+        tableWidget.setItem(participantPos, 4, participantEmailTableItem)
     else:
       tableWidget.setRowCount(0)
       logging.debug('Home.updateParticipantsTable: No participants found in database...')
@@ -890,13 +894,15 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     shutil.rmtree(recordingDirectory, ignore_errors=True)
 
   #------------------------------------------------------------------------------
-  def createNewParticipant(self, participantName, participantSurname):
+  def createNewParticipant(self, participantName, participantSurname, participantBirthDate, participantEmail):
     """
     Adds new participant to database by generating a unique ID, creating a new folder, 
     and creating a new .txt file containing participant information.
 
     :param participantName: participant name (string)
     :param participantSurname: participant surname (string)
+    :param participantBirthDate: participant birth date (string)
+    :param participantEmail: participant email (string)
 
     :return new participant info (dict)
     """
@@ -926,22 +932,45 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     participantDirectory = os.path.join(dataPath, str(newParticipantID))
     try:
       os.makedirs(participantDirectory)    
-      logging.debug('Participant directory was created: ', participantDirectory)
+      logging.debug('Participant directory was created')
     except FileExistsError:
-      logging.debug('Participant directory already exists: ', participantDirectory)
+      logging.debug('Participant directory already exists')
 
     # Create participant info dictionary
     participantInfo = {}
     participantInfo['id'] = newParticipantID
     participantInfo['name'] = participantName
     participantInfo['surname'] = participantSurname
-    participantInfo['number of recordings'] = str(0)
+    participantInfo['birthdate'] = participantBirthDate
+    participantInfo['email'] = participantEmail
 
     # Create info file
     participantInfoFilePath = self.getParticipantInfoFilePath(newParticipantID)
     self.writeParticipantInfoFile(participantInfoFilePath, participantInfo)
 
     return participantInfo
+
+  #------------------------------------------------------------------------------
+  def isParticipantSelected(self):
+    """
+    Check if a participant is selected.
+    :return bool: True if valid participant is selected, False otherwise
+    """    
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Check valid selection
+    if (selectedParticipantID == '') :
+      participantSelected = False
+    else:
+      participantSelected = True
+    return participantSelected
 
 
 #------------------------------------------------------------------------------

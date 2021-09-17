@@ -41,9 +41,29 @@ class Dashboard(qt.QWidget):
     self.ui.existingParticipantRadioButton.checked = False
     self.ui.newParticipantGroupBox.visible = True
     self.ui.existingParticipantGroupBox.visible = False
+
+    # New participant input
+    self.ui.newParticipantNameText.setText('')
+    self.ui.newParticipantSurnameText.setText('')
+    self.ui.newParticipantEmailText.setText('')    
+    self.ui.newParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+    self.ui.newParticipantBirthDateEdit.setDisplayFormat('MM.dd.yyyy')
+
+    # Invalid input warnings
+    self.ui.newParticipantNameWarning.setText('')
+    self.ui.newParticipantNameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.newParticipantSurnameWarning.setText('')
+    self.ui.newParticipantSurnameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.newParticipantEmailWarning.setText('')
+    self.ui.newParticipantEmailWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.warningMessageText.setText('')
+    self.ui.warningMessageText.setStyleSheet("QLabel { color : red }")
     
     # Setup GUI connections
     self.setupConnections()
+
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
@@ -79,7 +99,25 @@ class Dashboard(qt.QWidget):
       logging.error('Failed to get parameter node')
       return
 
-    pass
+    # Update state of radio buttons
+    participantSelectionMode = parameterNode.GetParameter(self.trainUsWidget.logic.participantSelectionModeParameterName)
+    if participantSelectionMode == 'New Participant':
+      isRadioButtonChecked = self.ui.newParticipantRadioButton.checked
+      if not isRadioButtonChecked:
+        self.ui.newParticipantRadioButton.checked = True
+        self.onNewParticipantRadioButtonClicked()
+    if participantSelectionMode == 'Existing Participant':
+      isRadioButtonChecked = self.ui.existingParticipantRadioButton.checked
+      if not isRadioButtonChecked:
+        self.ui.existingParticipantRadioButton.checked = True
+        self.onExistingParticipantRadioButtonClicked()
+
+    # Update state of start button
+    if participantSelectionMode == 'New Participant':
+      self.ui.startButton.enabled = True
+    if participantSelectionMode == 'Existing Participant':
+      participantSelected = self.homeWidget.logic.isParticipantSelected()
+      self.ui.startButton.enabled = participantSelected
 
 
   #------------------------------------------------------------------------------
@@ -102,6 +140,9 @@ class Dashboard(qt.QWidget):
     self.ui.newParticipantGroupBox.visible = True
     self.ui.existingParticipantGroupBox.visible = False
 
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
+
   #------------------------------------------------------------------------------
   def onExistingParticipantRadioButtonClicked(self):
     # Parameter node
@@ -117,6 +158,9 @@ class Dashboard(qt.QWidget):
     self.ui.newParticipantGroupBox.visible = False
     self.ui.existingParticipantGroupBox.visible = True
 
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
+
   #------------------------------------------------------------------------------
   def onParticipantSearchTextChanged(self, searchText):
     # Synchronize partipants table search
@@ -125,6 +169,9 @@ class Dashboard(qt.QWidget):
     # Update table content
     self.homeWidget.updateDashboardTable()
     self.homeWidget.updateRecordingsTable()
+
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onParticipantsTableItemSelected(self):
@@ -136,21 +183,12 @@ class Dashboard(qt.QWidget):
 
     # Get selected cells
     participantID = ''
-    participantName = ''
-    participantSurname = ''
-    participantNumRecordings = ''
     selected = self.ui.participantsTable.selectedItems()
     if selected:
       for item in selected:
         # Get data
-        if item.column() == 0:
+        if item.column() == 0: # participant ID is stored in column 0
           participantID = item.text()
-        if item.column() == 1:
-          participantName = item.text()
-        if item.column() == 2:
-          participantSurname = item.text()
-        if item.column() == 3:
-          participantNumRecordings = item.text()
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
@@ -159,10 +197,16 @@ class Dashboard(qt.QWidget):
     self.homeWidget.updateParticipantsTableSelection()
     self.homeWidget.updateRecordingsTable()
 
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
+
   #------------------------------------------------------------------------------
   def onParticipantsTableItemDoubleClicked(self):
     # Change current tab to "Participants"
     self.homeWidget.ui.dashboardTabWidget.currentIndex = 1
+
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onStartButtonClicked(self):
@@ -179,16 +223,27 @@ class Dashboard(qt.QWidget):
     if participantSelectionMode == 'New Participant':
       print('Starting training session - New Participant')
 
+      # Check if user input is valid
+      isInputValid = self.isNewParticipantInputValid()
+      self.updateNewParticipantInputWarnings(isInputValid)
+      if not isInputValid:
+        logging.error('Not all input data is valid. New participant cannot be created.')
+        return
+
       # Get new participant input data
       newParticipantName = self.ui.newParticipantNameText.text
       newParticipantSurname = self.ui.newParticipantSurnameText.text
+      newParticipantBirthDate = self.ui.newParticipantBirthDateEdit.date.toString('yyyy-MM-dd') 
+      newParticipantEmail = self.ui.newParticipantEmailText.text
 
       # Create new participant
-      newParticipantInfo = self.homeWidget.logic.createNewParticipant(newParticipantName, newParticipantSurname)
+      newParticipantInfo = self.homeWidget.logic.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
 
       # Reset input text fields
       self.ui.newParticipantNameText.text = ''
       self.ui.newParticipantSurnameText.text = ''
+      self.ui.newParticipantEmailText.text = ''
+      self.ui.newParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
 
       # Update table
       self.homeWidget.updateDashboardTable()
@@ -196,7 +251,8 @@ class Dashboard(qt.QWidget):
       self.homeWidget.updateRecordingsTable()
 
       # Update parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])    
+      parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])   
+      parameterNode.SetParameter(self.trainUsWidget.logic.participantSelectionModeParameterName, 'Existing Participant') 
 
       # Update table selection
       self.homeWidget.updateDashboardTableSelection()
@@ -218,7 +274,8 @@ class Dashboard(qt.QWidget):
       print('   - Participant ID: ', selectedParticipantInfo['id'])
       print('   - Participant Name: ', selectedParticipantInfo['name'])
       print('   - Participant Surname: ', selectedParticipantInfo['surname'])
-      print('   - Participant Num Recordings: ', selectedParticipantInfo['number of recordings'])
+      print('   - Participant Birth Date: ', selectedParticipantInfo['birthdate'])
+      print('   - Participant Email: ', selectedParticipantInfo['email'])
     else:
       print('Selected participant: NONE')
 
@@ -235,7 +292,10 @@ class Dashboard(qt.QWidget):
     self.homeWidget.ui.hardwareSetUpLabel.text = 'Hardware set-up: ' + '-' # TODO
 
     # Shows training menu
-    self.homeWidget.updateTrainingMenuVisibility(visible = True)
+    self.homeWidget.updateTrainingMenuVisibility(visible = True)    
+
+    # Update GUI from MRML
+    self.updateGUIFromMRML()
 
 
   #------------------------------------------------------------------------------
@@ -244,4 +304,40 @@ class Dashboard(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def isNewParticipantInputValid(self):    
+    # Get user input
+    newParticipantName = self.ui.newParticipantNameText.text
+    newParticipantSurname = self.ui.newParticipantSurnameText.text
+    newParticipantEmail = self.ui.newParticipantEmailText.text
+
+    # Check valid input
+    validInput = (newParticipantName != '') and (newParticipantSurname != '') and (newParticipantEmail != '')
+    return validInput
+
+  #------------------------------------------------------------------------------
+  def updateNewParticipantInputWarnings(self, validInput):    
+    
+    # Get user input
+    newParticipantName = self.ui.newParticipantNameText.text
+    newParticipantSurname = self.ui.newParticipantSurnameText.text
+    newParticipantEmail = self.ui.newParticipantEmailText.text
+
+    # Display warnings to user
+    if validInput:
+      self.ui.newParticipantNameWarning.setText('')
+      self.ui.newParticipantSurnameWarning.setText('')
+      self.ui.newParticipantEmailWarning.setText('')
+      self.ui.warningMessageText.setText('')
+    else:
+      self.ui.warningMessageText.setText('* These fields are required to create a new participant.')
+      self.ui.newParticipantNameWarning.setText('')
+      self.ui.newParticipantSurnameWarning.setText('')
+      self.ui.newParticipantEmailWarning.setText('')
+      if newParticipantName == '':
+        self.ui.newParticipantNameWarning.setText('*')
+      if newParticipantSurname == '':
+        self.ui.newParticipantSurnameWarning.setText('*')
+      if newParticipantEmail == '':
+        self.ui.newParticipantEmailWarning.setText('*')
   

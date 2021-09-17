@@ -87,7 +87,7 @@ class Participants(qt.QWidget):
       return
 
     # Participant selection
-    participantSelected = self.isParticipantSelected()
+    participantSelected = self.homeWidget.logic.isParticipantSelected()
     self.ui.checkRecordingsButton.enabled = participantSelected
     self.ui.editParticipantButton.enabled = participantSelected and (not self.editParticipantVisible)
     self.ui.deleteParticipantButton.enabled = participantSelected
@@ -131,21 +131,12 @@ class Participants(qt.QWidget):
 
     # Get selected cells
     participantID = ''
-    participantName = ''
-    participantSurname = ''
-    participantNumRecordings = ''
     selected = self.ui.participantsTable.selectedItems()
     if selected:
       for item in selected:
         # Get data
-        if item.column() == 0:
+        if item.column() == 0: # participant ID is stored in column 0
           participantID = item.text()
-        if item.column() == 1:
-          participantName = item.text()
-        if item.column() == 2:
-          participantSurname = item.text()
-        if item.column() == 3:
-          participantNumRecordings = item.text()
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
@@ -218,28 +209,6 @@ class Participants(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
-  #------------------------------------------------------------------------------
-  def isParticipantSelected(self):
-    """
-    Check if a participant is selected.
-    :return bool: True if valid participant is selected, False otherwise
-    """    
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-
-    # Check valid selection
-    if (selectedParticipantID == '') :
-      participantSelected = False
-    else:
-      participantSelected = True
-    return participantSelected
-
   #------------------------------------------------------------------------------
   def editParticipantInfo(self, participantName, participantSurname):
     """
