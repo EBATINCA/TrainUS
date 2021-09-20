@@ -41,6 +41,17 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="participantSearchText">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0" colspan="2">
        <widget class="QTableWidget" name="participantsTable">
         <property name="font">
@@ -96,20 +107,6 @@
           <string>Email</string>
          </property>
         </column>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>List of participants</string>
-        </property>
        </widget>
       </item>
       <item row="2" column="2" rowspan="2">
@@ -190,14 +187,17 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="participantSearchText">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
+          <weight>75</weight>
+          <bold>true</bold>
          </font>
+        </property>
+        <property name="text">
+         <string>List of participants</string>
         </property>
        </widget>
       </item>
@@ -214,19 +214,8 @@
          <string>Edit participant</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="1" colspan="2">
-          <widget class="QLineEdit" name="editParticipantNameText">
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QPushButton" name="saveEditButton">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_5">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -235,18 +224,58 @@
             </font>
            </property>
            <property name="text">
-            <string>Save</string>
+            <string>Date of birth:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="1" column="1" colspan="2">
-          <widget class="QLineEdit" name="editParticipantSurnameText">
+         <item row="1" column="4">
+          <widget class="QLabel" name="editParticipantEmailWarning">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600; color:#ff0000;&quot;&gt;*&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QLabel" name="label_6">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
+           </property>
+           <property name="text">
+            <string>Email:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QDateEdit" name="editParticipantBirthDateEdit">
+           <property name="buttonSymbols">
+            <enum>QAbstractSpinBox::UpDownArrows</enum>
+           </property>
+           <property name="calendarPopup">
+            <bool>true</bool>
+           </property>
+           <property name="date">
+            <date>
+             <year>2021</year>
+             <month>1</month>
+             <day>1</day>
+            </date>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="editParticipantSurnameWarning">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600; color:#ff0000;&quot;&gt;*&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -267,7 +296,75 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="1" column="6">
+          <widget class="QPushButton" name="cancelEditButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Cancel</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QLineEdit" name="editParticipantEmailText">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QLineEdit" name="editParticipantSurnameText">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="editParticipantNameText">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="editParticipantNameWarning">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600; color:#ff0000;&quot;&gt;*&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="6">
+          <widget class="QPushButton" name="saveEditButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
           <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
@@ -284,8 +381,8 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="cancelEditButton">
+         <item row="2" column="2" colspan="4">
+          <widget class="QLabel" name="warningMessageText">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -294,7 +391,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Cancel</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600; color:#ff0000;&quot;&gt;* These fields cannot be empty.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>

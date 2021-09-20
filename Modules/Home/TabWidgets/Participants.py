@@ -46,6 +46,23 @@ class Participants(qt.QWidget):
     self.ui.deleteParticipantButton.enabled = False
     self.ui.saveEditButton.enabled = True 
     self.ui.cancelEditButton.enabled = True
+
+    # Edit participant input
+    self.ui.editParticipantNameText.setText('')
+    self.ui.editParticipantSurnameText.setText('')
+    self.ui.editParticipantEmailText.setText('')    
+    self.ui.editParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+    self.ui.editParticipantBirthDateEdit.setDisplayFormat('MM.dd.yyyy')
+
+    # Invalid input warnings
+    self.ui.editParticipantNameWarning.setText('')
+    self.ui.editParticipantNameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.editParticipantSurnameWarning.setText('')
+    self.ui.editParticipantSurnameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.editParticipantEmailWarning.setText('')
+    self.ui.editParticipantEmailWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.warningMessageText.setText('')
+    self.ui.warningMessageText.setStyleSheet("QLabel { color : red }")
     
     # Setup GUI connections
     self.setupConnections()
@@ -100,10 +117,13 @@ class Participants(qt.QWidget):
     if participantInfo:
       self.ui.editParticipantNameText.text = participantInfo['name']
       self.ui.editParticipantSurnameText.text = participantInfo['surname']
+      self.ui.editParticipantBirthDateEdit.setDate(qt.QDate().fromString(participantInfo['birthdate'], 'yyyy-MM-dd'))
+      self.ui.editParticipantEmailText.text = participantInfo['email']  
     else:
       self.ui.editParticipantNameText.text = ''
       self.ui.editParticipantSurnameText.text = ''
-    
+      self.ui.editParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+      self.ui.editParticipantEmailText.text = ''   
 
 
   #------------------------------------------------------------------------------
@@ -174,19 +194,24 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onSaveEditButtonClicked(self):
-    # Update group box visibility
-    self.editParticipantVisible = False
+    # Check if user input is valid
+    isInputValid = self.isEditParticipantInputValid()
+    self.updateEditParticipantInputWarnings(isInputValid)
+    if not isInputValid:
+      logging.error('Not all input data is valid. Participant data cannot be edited.')
+      return
 
-    # Get selected participant info
-    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
-    selectedParticipantID = selectedParticipantInfo['id']
-    
-    # Get input info
-    participantName = self.ui.editParticipantNameText.text
-    participantSurname = self.ui.editParticipantSurnameText.text
+    # Get edit participant input data
+    editParticipantName = self.ui.editParticipantNameText.text
+    editParticipantSurname = self.ui.editParticipantSurnameText.text
+    editParticipantBirthDate = self.ui.editParticipantBirthDateEdit.date.toString('yyyy-MM-dd') 
+    editParticipantEmail = self.ui.editParticipantEmailText.text    
 
     # Modify participant's info  
-    self.editParticipantInfo(participantName, participantSurname) 
+    self.editParticipantInfo(editParticipantName, editParticipantSurname, editParticipantBirthDate, editParticipantEmail) 
+
+    # Update group box visibility
+    self.editParticipantVisible = False
 
     # Update GUI
     self.updateGUIFromMRML() 
@@ -210,7 +235,7 @@ class Participants(qt.QWidget):
   #------------------------------------------------------------------------------
   
   #------------------------------------------------------------------------------
-  def editParticipantInfo(self, participantName, participantSurname):
+  def editParticipantInfo(self, participantName, participantSurname, participantBirthDate, participantEmail):
     """
     Edit name and surname of the selected participant in the JSON info file.
     :param participantName: new name for partipant (string)
@@ -232,6 +257,8 @@ class Participants(qt.QWidget):
     # Edit participant info
     selectedParticipantInfo['name'] = participantName
     selectedParticipantInfo['surname'] = participantSurname
+    selectedParticipantInfo['birthdate'] = participantBirthDate
+    selectedParticipantInfo['email'] = participantEmail
 
     # Write new file
     self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
@@ -286,3 +313,40 @@ class Participants(qt.QWidget):
     
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, '')
+
+  #------------------------------------------------------------------------------
+  def isEditParticipantInputValid(self):    
+    # Get user input
+    editParticipantName = self.ui.editParticipantNameText.text
+    editParticipantSurname = self.ui.editParticipantSurnameText.text
+    editParticipantEmail = self.ui.editParticipantEmailText.text
+
+    # Check valid input
+    validInput = (editParticipantName != '') and (editParticipantSurname != '') and (editParticipantEmail != '')
+    return validInput
+
+  #------------------------------------------------------------------------------
+  def updateEditParticipantInputWarnings(self, validInput):    
+    
+    # Get user input
+    editParticipantName = self.ui.editParticipantNameText.text
+    editParticipantSurname = self.ui.editParticipantSurnameText.text
+    editParticipantEmail = self.ui.editParticipantEmailText.text
+
+    # Display warnings to user
+    if validInput:
+      self.ui.editParticipantNameWarning.setText('')
+      self.ui.editParticipantSurnameWarning.setText('')
+      self.ui.editParticipantEmailWarning.setText('')
+      self.ui.warningMessageText.setText('')
+    else:
+      self.ui.warningMessageText.setText('* These fields cannot be empty.')
+      self.ui.editParticipantNameWarning.setText('')
+      self.ui.editParticipantSurnameWarning.setText('')
+      self.ui.editParticipantEmailWarning.setText('')
+      if editParticipantName == '':
+        self.ui.editParticipantNameWarning.setText('*')
+      if editParticipantSurname == '':
+        self.ui.editParticipantSurnameWarning.setText('*')
+      if editParticipantEmail == '':
+        self.ui.editParticipantEmailWarning.setText('*')
