@@ -190,25 +190,38 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.homeWidget.hide()
 
   #------------------------------------------------------------------------------
-  def setupConnections(self):
-    
-    self.ui.closeButton.clicked.connect(self.onCloseButtonClicked)
+  def setupConnections(self):    
+    self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
+    self.ui.exitAppButton.clicked.connect(self.onExitAppButtonClicked)
     self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
 
   #------------------------------------------------------------------------------
-  def disconnect(self):
-    
-    self.ui.closeButton.clicked.disconnect()
+  def disconnect(self):    
+    self.ui.backToSlicerButton.clicked.disconnect()
+    self.ui.exitAppButton.clicked.disconnect()
     self.ui.finishTrainingButton.clicked.disconnect()
     
   #------------------------------------------------------------------------------
-  def onCloseButtonClicked(self):
-    
+  def onBackToSlicerButtonClicked(self):    
     # Shows slicer interface
     self.hideHome()
 
     # Change to TrainUS module
     slicer.util.selectModule('TrainUS')
+    
+  #------------------------------------------------------------------------------
+  def onExitAppButtonClicked(self):
+    # Confirm exit message box
+    exitFlag = self.exitApplicationMessageBox()
+    if exitFlag:    
+      # Shows slicer interface
+      self.hideHome()
+
+      # Change to TrainUS module
+      slicer.util.selectModule('TrainUS')
+
+      # Exit application
+      self.trainUsWidget.logic.exitApplication()
     
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):
@@ -495,6 +508,26 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     else:
       tableWidget.setRowCount(0)
       logging.debug('Home.updateRecordingsTable: No participant is selected')
+
+  #------------------------------------------------------------------------------
+  def exitApplicationMessageBox(self):
+    """
+    Display message box for the user to confirm if the partipant data must be deleted.
+    :return bool: True if delete action is confirmed, False otherwise
+    """
+    confirmExit = qt.QMessageBox()
+    confirmExit.setIcon(qt.QMessageBox.Warning)
+    confirmExit.setWindowTitle('Confirm')
+    confirmExit.setText(
+      'Are you sure you want to exit TrainUS application?\n')
+    confirmExit.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+    confirmExit.setDefaultButton(qt.QMessageBox.No)
+    confirmExit.setModal(True)
+    retval = confirmExit.exec_()
+    if retval == qt.QMessageBox.Yes:
+      return True
+    else:
+      return False
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
