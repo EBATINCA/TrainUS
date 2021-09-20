@@ -225,7 +225,6 @@ class Dashboard(qt.QWidget):
 
       # Check if user input is valid
       isInputValid = self.isNewParticipantInputValid()
-      self.updateNewParticipantInputWarnings(isInputValid)
       if not isInputValid:
         logging.error('Not all input data is valid. New participant cannot be created.')
         return
@@ -313,15 +312,6 @@ class Dashboard(qt.QWidget):
 
     # Check valid input
     validInput = (newParticipantName != '') and (newParticipantSurname != '') and (newParticipantEmail != '')
-    return validInput
-
-  #------------------------------------------------------------------------------
-  def updateNewParticipantInputWarnings(self, validInput):    
-    
-    # Get user input
-    newParticipantName = self.ui.newParticipantNameText.text
-    newParticipantSurname = self.ui.newParticipantSurnameText.text
-    newParticipantEmail = self.ui.newParticipantEmailText.text
 
     # Display warnings to user
     if validInput:
@@ -340,4 +330,5 @@ class Dashboard(qt.QWidget):
         self.ui.newParticipantSurnameWarning.setText('*')
       if newParticipantEmail == '':
         self.ui.newParticipantEmailWarning.setText('*')
+    return validInput
   

@@ -196,7 +196,6 @@ class Participants(qt.QWidget):
   def onSaveEditButtonClicked(self):
     # Check if user input is valid
     isInputValid = self.isEditParticipantInputValid()
-    self.updateEditParticipantInputWarnings(isInputValid)
     if not isInputValid:
       logging.error('Not all input data is valid. Participant data cannot be edited.')
       return
@@ -316,6 +315,7 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def isEditParticipantInputValid(self):    
+    
     # Get user input
     editParticipantName = self.ui.editParticipantNameText.text
     editParticipantSurname = self.ui.editParticipantSurnameText.text
@@ -323,15 +323,6 @@ class Participants(qt.QWidget):
 
     # Check valid input
     validInput = (editParticipantName != '') and (editParticipantSurname != '') and (editParticipantEmail != '')
-    return validInput
-
-  #------------------------------------------------------------------------------
-  def updateEditParticipantInputWarnings(self, validInput):    
-    
-    # Get user input
-    editParticipantName = self.ui.editParticipantNameText.text
-    editParticipantSurname = self.ui.editParticipantSurnameText.text
-    editParticipantEmail = self.ui.editParticipantEmailText.text
 
     # Display warnings to user
     if validInput:
@@ -350,3 +341,4 @@ class Participants(qt.QWidget):
         self.ui.editParticipantSurnameWarning.setText('*')
       if editParticipantEmail == '':
         self.ui.editParticipantEmailWarning.setText('*')
+    return validInput
