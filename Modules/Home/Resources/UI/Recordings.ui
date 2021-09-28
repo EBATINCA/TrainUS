@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>923</width>
+    <width>935</width>
     <height>553</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -83,7 +83,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_1">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -97,7 +97,7 @@
        </widget>
       </item>
       <item row="2" column="2" rowspan="2">
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="optionsGroupBox">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -120,6 +120,9 @@
            </property>
            <property name="text">
             <string>See details</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -205,7 +208,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="1">
-          <widget class="QLabel" name="label_6">
+          <widget class="QLabel" name="recordingDetailsLabel_1">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -214,12 +217,12 @@
             </font>
            </property>
            <property name="text">
-            <string>Participant ID</string>
+            <string>Participant ID:</string>
            </property>
           </widget>
          </item>
          <item row="1" column="3">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="recordingDetailsLabel_5">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -253,7 +256,7 @@
           </widget>
          </item>
          <item row="2" column="3">
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="recordingDetailsLabel_6">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -270,7 +273,7 @@
           </widget>
          </item>
          <item row="0" column="3">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="recordingDetailsLabel_4">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -321,7 +324,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="label_7">
+          <widget class="QLabel" name="recordingDetailsLabel_2">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -330,7 +333,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Participant Name</string>
+            <string>Participant Name:</string>
            </property>
           </widget>
          </item>
@@ -386,7 +389,7 @@
           </widget>
          </item>
          <item row="2" column="1">
-          <widget class="QLabel" name="label_8">
+          <widget class="QLabel" name="recordingDetailsLabel_3">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -395,7 +398,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Participant Surname</string>
+            <string>Participant Surname:</string>
            </property>
           </widget>
          </item>

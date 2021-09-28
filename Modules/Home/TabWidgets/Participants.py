@@ -281,9 +281,8 @@ class Participants(qt.QWidget):
     """
     confirmDelete = qt.QMessageBox()
     confirmDelete.setIcon(qt.QMessageBox.Warning)
-    confirmDelete.setWindowTitle('Confirm')
-    confirmDelete.setText(
-      'Are you sure you want to delete the selected participant?\n\nOnce deleted, data associated with this participant will be lost.')
+    confirmDelete.setWindowTitle(self.homeWidget.logic.participants_deleteMessageBoxTitle)
+    confirmDelete.setText(self.homeWidget.logic.participants_deleteMessageBoxLabel)
     confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
     confirmDelete.setDefaultButton(qt.QMessageBox.No)
     confirmDelete.setModal(True)
@@ -331,7 +330,7 @@ class Participants(qt.QWidget):
       self.ui.editParticipantEmailWarning.setText('')
       self.ui.warningMessageText.setText('')
     else:
-      self.ui.warningMessageText.setText('* These fields cannot be empty.')
+      self.ui.warningMessageText.setText('* ' + self.homeWidget.logic.participants_warningMessageTextLabel)
       self.ui.editParticipantNameWarning.setText('')
       self.ui.editParticipantSurnameWarning.setText('')
       self.ui.editParticipantEmailWarning.setText('')

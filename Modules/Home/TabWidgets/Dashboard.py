@@ -286,9 +286,9 @@ class Dashboard(qt.QWidget):
     dateLabel = datetime.now().strftime('%Y-%m-%d')
     
     # Update training session info in UI
-    self.homeWidget.ui.participantLabel.text = 'Participant: ' + f'[{participantID}] {participantSurname}, {participantName}'
-    self.homeWidget.ui.dateTimeLabel.text = 'Date: ' + dateLabel
-    self.homeWidget.ui.hardwareSetUpLabel.text = 'Hardware set-up: ' + '-' # TODO
+    self.homeWidget.ui.participantLabel.text = f'[{participantID}] {participantSurname}, {participantName}'
+    self.homeWidget.ui.dateTimeLabel.text = dateLabel
+    self.homeWidget.ui.hardwareSetUpLabel.text = '-' # TODO
 
     # Shows training menu
     self.homeWidget.updateTrainingMenuVisibility(visible = True)    
@@ -320,7 +320,7 @@ class Dashboard(qt.QWidget):
       self.ui.newParticipantEmailWarning.setText('')
       self.ui.warningMessageText.setText('')
     else:
-      self.ui.warningMessageText.setText('* These fields are required to create a new participant.')
+      self.ui.warningMessageText.setText('* ' + self.homeWidget.logic.dashboard_warningMessageTextLabel)
       self.ui.newParticipantNameWarning.setText('')
       self.ui.newParticipantSurnameWarning.setText('')
       self.ui.newParticipantEmailWarning.setText('')

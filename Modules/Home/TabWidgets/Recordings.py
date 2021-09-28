@@ -40,9 +40,8 @@ class Recordings(qt.QWidget):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
-    self.ui.recordingDetailsGroupBox.visible = self.recordingDetailsVisible
+    self.ui.recordingDetailsGroupBox.visible = self.ui.recordingDetailsButton.checked
     self.ui.recordingDetailsButton.enabled = self.isRecordingSelected()
-    self.ui.recordingDetailsButton.setText('See details')
 
     # Setup GUI connections
     self.setupConnections()
@@ -81,13 +80,7 @@ class Recordings(qt.QWidget):
     self.ui.recordingDetailsButton.enabled = self.isRecordingSelected()
 
     # Recording details groupbox visibility
-    self.ui.recordingDetailsGroupBox.visible = self.recordingDetailsVisible
-
-    # Recording details button text
-    if self.recordingDetailsVisible:
-      self.ui.recordingDetailsButton.setText('Hide details')
-    else:
-      self.ui.recordingDetailsButton.setText('See details') 
+    self.ui.recordingDetailsGroupBox.visible = self.ui.recordingDetailsButton.checked
 
     # Recording details content
     participantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
@@ -147,12 +140,6 @@ class Recordings(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onRecordingDetailsButtonClicked(self):
-    # Update group box visibility
-    if self.recordingDetailsVisible:
-      self.recordingDetailsVisible = False
-    else:
-      self.recordingDetailsVisible = True
-
     # Update GUI
     self.updateGUIFromMRML() 
 
@@ -202,9 +189,8 @@ class Recordings(qt.QWidget):
     """
     confirmDelete = qt.QMessageBox()
     confirmDelete.setIcon(qt.QMessageBox.Warning)
-    confirmDelete.setWindowTitle('Confirm')
-    confirmDelete.setText(
-      'Are you sure you want to delete the selected recording?\n\nOnce deleted, data associated with this recording will be lost.')
+    confirmDelete.setWindowTitle(self.homeWidget.logic.recordings_deleteMessageBoxTitle)
+    confirmDelete.setText(self.homeWidget.logic.recordings_deleteMessageBoxLabel)
     confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
     confirmDelete.setDefaultButton(qt.QMessageBox.No)
     confirmDelete.setModal(True)

@@ -28,7 +28,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -110,7 +110,7 @@
        </widget>
       </item>
       <item row="2" column="2" rowspan="2">
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="optionsGroupBox">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -188,7 +188,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_1">
         <property name="font">
          <font>
           <pointsize>11</pointsize>
@@ -215,7 +215,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="editPartipantLabel_3">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -239,7 +239,7 @@
           </widget>
          </item>
          <item row="1" column="3">
-          <widget class="QLabel" name="label_6">
+          <widget class="QLabel" name="editPartipantLabel_4">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -280,7 +280,7 @@
           </widget>
          </item>
          <item row="0" column="0">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="editPartipantLabel_1">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -365,7 +365,7 @@
           </widget>
          </item>
          <item row="0" column="3">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="editPartipantLabel_2">
            <property name="font">
             <font>
              <pointsize>11</pointsize>

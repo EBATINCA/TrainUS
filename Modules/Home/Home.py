@@ -123,7 +123,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Dark palette does not propagate on its own?
     self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())   
 
-    # Setup participant interface
+    # Setup user interface
     self.setupUi()
 
     # Tab widget visibility
@@ -194,12 +194,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
     self.ui.exitAppButton.clicked.connect(self.onExitAppButtonClicked)
     self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
+    self.ui.languageComboBox.currentIndexChanged.connect(self.onLanguageComboBoxIndexChanged)
 
   #------------------------------------------------------------------------------
   def disconnect(self):    
     self.ui.backToSlicerButton.clicked.disconnect()
     self.ui.exitAppButton.clicked.disconnect()
     self.ui.finishTrainingButton.clicked.disconnect()
+    self.ui.languageComboBox.currentIndexChanged.disconnect()
     
   #------------------------------------------------------------------------------
   def onBackToSlicerButtonClicked(self):    
@@ -225,9 +227,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):
-    
     # Hides training menu
     self.updateTrainingMenuVisibility(visible = False)
+
+  #------------------------------------------------------------------------------
+  def onLanguageComboBoxIndexChanged(self):
+    # Update UI
+    self.logic.updateLanguageUI(self.ui.languageComboBox.currentIndex)
     
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):
@@ -306,6 +312,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.AdvancedTrainingPanel.homeWidget = self
     self.ui.AdvancedTrainingPanel.setupUi()
     self.ui.advancedTrainingTab.layout().addWidget(self.ui.AdvancedTrainingPanel)
+
+    # Update UI language
+    self.logic.updateLanguageUI(selectedLanguageIndex = 0) # english by default
 
   #------------------------------------------------------------------------------
   def updateTrainingMenuVisibility(self, visible):
@@ -517,9 +526,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     confirmExit = qt.QMessageBox()
     confirmExit.setIcon(qt.QMessageBox.Warning)
-    confirmExit.setWindowTitle('Confirm')
-    confirmExit.setText(
-      'Are you sure you want to exit TrainUS application?\n')
+    confirmExit.setWindowTitle(self.logic.home_exitAppMessageBoxTitle)
+    confirmExit.setText(self.logic.home_exitAppMessageBoxLabel)
     confirmExit.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
     confirmExit.setDefaultButton(qt.QMessageBox.No)
     confirmExit.setModal(True)
@@ -563,6 +571,16 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Constants
     #TODO:
+
+    # UI variables
+    self.home_exitAppMessageBoxTitle = ''
+    self.home_exitAppMessageBoxLabel = ''
+    self.dashboard_warningMessageTextLabel = ''
+    self.participants_warningMessageTextLabel = ''
+    self.participants_deleteMessageBoxTitle = ''
+    self.participants_deleteMessageBoxLabel = ''
+    self.recordings_deleteMessageBoxTitle = ''
+    self.recordings_deleteMessageBoxLabel = ''
 
     # Default parameters map
     self.defaultParameters = {}
@@ -1005,6 +1023,141 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       participantSelected = True
     return participantSelected
 
+  #------------------------------------------------------------------------------
+  def readLanguageFile(self, filePath):
+    """
+    Load data from language .json file into a dictionary.
+
+    :param filePath: path to JSON file (string)
+
+    :return language UI info (dict)
+    """
+    try:
+      with open(filePath, 'r') as inputFile:
+        languageInfo =  json.loads(inputFile.read())
+    except:
+      logging.error('Cannot read language texts from JSON file at ' + filePath)
+      languageInfo = None
+    return languageInfo
+
+  #------------------------------------------------------------------------------
+  def updateLanguageUI(self, selectedLanguageIndex):
+    """
+    Update UI texts according to the selected language.
+
+    :param selectedLanguageIndex: index of the selected language (int)
+    """
+    logging.debug('Home.updateLanguageUI')
+
+    # Language JSON files
+    #dataPath = 'C:/D/TUS/TrainUS/Modules/Home/Resources/Language/'
+    dataPath = self.moduleWidget.resourcePath('UI/')
+    if selectedLanguageIndex == 0:
+      fileName = 'LanguageFile_English.json'
+    elif selectedLanguageIndex == 1:
+      fileName = 'LanguageFile_Spanish.json'
+    else:
+      fileName = 'LanguageFile_English.json'
+    filePath = os.path.join(dataPath, fileName)
+
+    # Read JSON file
+    languageTexts = self.readLanguageFile(filePath)
+    if languageTexts is None:
+      return
+
+    # Update UI widgets texts from language file
+    ## Home
+    self.moduleWidget.ui.languageLabel.setText(languageTexts['Home.languageLabel'])
+    self.moduleWidget.ui.dashboardTabWidget.setTabText(0, languageTexts['Home.dashboardTab'])
+    self.moduleWidget.ui.dashboardTabWidget.setTabText(1, languageTexts['Home.participantsTab'])
+    self.moduleWidget.ui.dashboardTabWidget.setTabText(2, languageTexts['Home.recordingsTab'])
+    self.moduleWidget.ui.dashboardTabWidget.setTabText(3, languageTexts['Home.configurationTab'])
+    self.moduleWidget.ui.backToSlicerButton.setText(languageTexts['Home.backToSlicerButton'])
+    self.moduleWidget.ui.exitAppButton.setText(languageTexts['Home.exitAppButton'])
+    self.moduleWidget.ui.trainingTabWidget.setTabText(0, languageTexts['Home.basicTrainingTab'])
+    self.moduleWidget.ui.trainingTabWidget.setTabText(1, languageTexts['Home.advancedTrainingTab'])
+    self.moduleWidget.ui.trainingInfoGroupBox.setTitle(languageTexts['Home.trainingInfoGroupBox'])
+    self.moduleWidget.ui.participantInfoLabel_1.setText(languageTexts['Home.participantInfoLabel_1'])
+    self.moduleWidget.ui.participantInfoLabel_2.setText(languageTexts['Home.participantInfoLabel_2'])
+    self.moduleWidget.ui.participantInfoLabel_3.setText(languageTexts['Home.participantInfoLabel_3'])
+    self.moduleWidget.ui.finishTrainingButton.setText(languageTexts['Home.finishTrainingButton'])
+    self.home_exitAppMessageBoxTitle = languageTexts['Home.exitAppMessageBoxTitle']
+    self.home_exitAppMessageBoxLabel = languageTexts['Home.exitAppMessageBoxText_1'] + '\n\n' + languageTexts['Home.exitAppMessageBoxText_2']
+    ## Dashboard
+    self.moduleWidget.ui.DashboardPanel.ui.startButton.setText(languageTexts['Dashboard.startButton'])
+    self.moduleWidget.ui.DashboardPanel.ui.newParticipantRadioButton.setText(languageTexts['Dashboard.newParticipantRadioButton'])
+    self.moduleWidget.ui.DashboardPanel.ui.existingParticipantRadioButton.setText(languageTexts['Dashboard.existingParticipantRadioButton'])
+    self.moduleWidget.ui.DashboardPanel.ui.newParticipantGroupBox.setTitle(languageTexts['Dashboard.newParticipantGroupBox'])
+    self.moduleWidget.ui.DashboardPanel.ui.existingParticipantGroupBox.setTitle(languageTexts['Dashboard.existingParticipantGroupBox'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_1.setText(languageTexts['Dashboard.label_1'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_2.setText(languageTexts['Dashboard.label_2'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_3.setText(languageTexts['Dashboard.label_3'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_4.setText(languageTexts['Dashboard.label_4'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_5.setText(languageTexts['Dashboard.label_5'])
+    self.moduleWidget.ui.DashboardPanel.ui.label_6.setText(languageTexts['Dashboard.label_6'])
+    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column1']))
+    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column2']))
+    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column3']))
+    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column4']))
+    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column5']))
+    self.dashboard_warningMessageTextLabel = languageTexts['Dashboard.warningMessageText']
+    ## Participants
+    self.moduleWidget.ui.ParticipantsPanel.ui.label_1.setText(languageTexts['Participants.label_1'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.label_2.setText(languageTexts['Participants.label_2'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column1']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column2']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column3']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column4']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column5']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.optionsGroupBox.setTitle(languageTexts['Participants.optionsGroupBox'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.checkRecordingsButton.setText(languageTexts['Participants.checkRecordingsButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantButton.setText(languageTexts['Participants.editParticipantButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.deleteParticipantButton.setText(languageTexts['Participants.deleteParticipantButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantGroupBox.setTitle(languageTexts['Participants.editParticipantGroupBox'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_1.setText(languageTexts['Participants.editPartipantLabel_1'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_2.setText(languageTexts['Participants.editPartipantLabel_2'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_3.setText(languageTexts['Participants.editPartipantLabel_3'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_4.setText(languageTexts['Participants.editPartipantLabel_4'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.saveEditButton.setText(languageTexts['Participants.saveEditButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.cancelEditButton.setText(languageTexts['Participants.cancelEditButton'])
+    self.participants_warningMessageTextLabel = languageTexts['Participants.warningMessageText']
+    self.participants_deleteMessageBoxTitle = languageTexts['Participants.deleteMessageBoxTitle']
+    self.participants_deleteMessageBoxLabel = languageTexts['Participants.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Participants.deleteMessageBoxText_2']
+    ## Recordings
+    self.moduleWidget.ui.RecordingsPanel.ui.label_1.setText(languageTexts['Recordings.label_1'])
+    self.moduleWidget.ui.RecordingsPanel.ui.label_2.setText(languageTexts['Recordings.label_2'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column1']))
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column2']))
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column3']))
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column4']))
+    self.moduleWidget.ui.RecordingsPanel.ui.optionsGroupBox.setTitle(languageTexts['Recordings.optionsGroupBox'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsButton.setText(languageTexts['Recordings.recordingDetailsButton'])
+    self.moduleWidget.ui.RecordingsPanel.ui.evaluateRecordingButton.setText(languageTexts['Recordings.evaluateRecordingButton'])
+    self.moduleWidget.ui.RecordingsPanel.ui.deleteRecordingButton.setText(languageTexts['Recordings.deleteRecordingButton'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsGroupBox.setTitle(languageTexts['Recordings.recordingDetailsGroupBox'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_1.setText(languageTexts['Recordings.recordingDetailsLabel_1'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_2.setText(languageTexts['Recordings.recordingDetailsLabel_2'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_3.setText(languageTexts['Recordings.recordingDetailsLabel_3'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_4.setText(languageTexts['Recordings.recordingDetailsLabel_4'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_5.setText(languageTexts['Recordings.recordingDetailsLabel_5'])
+    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_6.setText(languageTexts['Recordings.recordingDetailsLabel_6'])
+    self.recordings_deleteMessageBoxTitle = languageTexts['Recordings.deleteMessageBoxTitle']
+    self.recordings_deleteMessageBoxLabel = languageTexts['Recordings.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Recordings.deleteMessageBoxText_2'] 
+
+    # Adjust width of table columns to new horizontal headers
+    COLUMN_H_MARGIN = 50
+    self.addMarginToColumnWidth(self.moduleWidget.ui.DashboardPanel.ui.participantsTable, COLUMN_H_MARGIN)
+    self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable, COLUMN_H_MARGIN)
+    self.addMarginToColumnWidth(self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable, COLUMN_H_MARGIN)
+
+  #------------------------------------------------------------------------------
+  def addMarginToColumnWidth(self, tableWidget, margin):
+    tableWidget.horizontalHeader().stretchLastSection = False
+    tableWidget.resizeColumnsToContents()
+    numColumns = tableWidget.columnCount
+    for col in range(numColumns):
+      tableWidget.setColumnWidth(col, tableWidget.columnWidth(col) + margin)
+    tableWidget.horizontalHeader().stretchLastSection = True
 
 #------------------------------------------------------------------------------
 #

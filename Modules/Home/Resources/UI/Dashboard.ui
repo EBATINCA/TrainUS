@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>943</width>
-    <height>649</height>
+    <width>939</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="font">
@@ -39,7 +39,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="label_6">
            <property name="text">
             <string>Search:</string>
            </property>
@@ -134,7 +134,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="label_4">
            <property name="text">
             <string>Date of birth:</string>
            </property>
@@ -205,7 +205,7 @@
           </widget>
          </item>
          <item row="1" column="6">
-          <widget class="QLabel" name="label_6">
+          <widget class="QLabel" name="label_5">
            <property name="text">
             <string>Email:</string>
            </property>
@@ -304,7 +304,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="label_1">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -313,7 +313,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Create or select participant for recording:</string>
+            <string>Create or select participant for training session:</string>
            </property>
           </widget>
          </item>
