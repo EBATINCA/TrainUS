@@ -43,13 +43,15 @@ class Configuration(qt.QWidget):
   #------------------------------------------------------------------------------
   def setupConnections(self):
     logging.debug('Configuration.setupConnections')
-
+    
+    self.ui.plusConnectionButton.clicked.connect(self.onPlusConnectionButton)
     self.ui.ultrasoundDisplaySettingsButton.clicked.connect(self.onUltrasoundDisplaySettingsButton)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     logging.debug('Configuration.disconnect')
 
+    self.ui.plusConnectionButton.clicked.disconnect()
     self.ui.ultrasoundDisplaySettingsButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -73,6 +75,15 @@ class Configuration(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onPlusConnectionButton(self):
+    
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to UltrasoundDisplaySettings module
+    slicer.util.selectModule('PlusServerConnection')
+
   #------------------------------------------------------------------------------
   def onUltrasoundDisplaySettingsButton(self):
     

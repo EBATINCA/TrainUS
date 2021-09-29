@@ -144,6 +144,7 @@ set(Slicer_EXTENSION_SOURCE_DIRS
   ${TrainUS_SOURCE_DIR}/Modules/TrainUS
   ${TrainUS_SOURCE_DIR}/Modules/Home
   ${TrainUS_SOURCE_DIR}/Modules/Evaluator
+  ${TrainUS_SOURCE_DIR}/Modules/PlusServerConnection
   ${TrainUS_SOURCE_DIR}/Modules/UltrasoundDisplaySettings
   ${TrainUS_SOURCE_DIR}/Modules/UltrasoundProbeCalibration
   ${TrainUS_SOURCE_DIR}/Modules/ToolPivotCalibration
