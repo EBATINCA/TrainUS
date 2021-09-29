@@ -40,6 +40,9 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     # Create logic class
     self.logic = UltrasoundDisplaySettingsLogic(self)
 
+    # TrainUS widget
+    self.trainUsWidget = slicer.trainUsWidget
+
   #------------------------------------------------------------------------------
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -69,6 +72,12 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     # Apply singleton parameter node settings to application
     self.logic.setParameterNode(self.logic.getParameterNode())
 
+    # Update GUI
+    self.updateGUIFromMRML()
+
+    # Display US image
+    self.logic.displayUSImage()
+
   #------------------------------------------------------------------------------
   def setupUi(self):
     
@@ -78,6 +87,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
+    self.ui.connectionStatusLabel.text = '-'
     self.ui.sliceControllerVisibilityCheckBox.checked = True
 
   #------------------------------------------------------------------------------
@@ -108,10 +118,14 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
     # Get parameter node
-    parameterNode = self.logic.getParameterNode()
+    parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
+
+    # Connection status
+    connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    self.ui.connectionStatusLabel.text = connectorStatus
 
   #------------------------------------------------------------------------------
   def onSliceControllerVisibilityCheckBoxToggled(self, state):
@@ -120,8 +134,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):
     # Go back to Home module
-    slicer.util.selectModule('Home')
-  
+    slicer.util.selectModule('Home') 
       
 
 
@@ -144,6 +157,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     self.fileDir = os.path.dirname(__file__)
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
+    self.trainUsWidget = slicer.trainUsWidget
     # Pointer to the parameter node so that we have access to the old one before setting the new one
     self.parameterNode = None
 
@@ -286,6 +300,33 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
         shortcut.setKey(qt.QKeySequence(shortcutKey))
         shortcut.connect('activated()', callback)
 
+  #------------------------------------------------------------------------------
+  def displayUSImage(self):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Display US image in slice view
+    try:
+      # Get image node
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+      # Select node in slice view
+      redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+      redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(usImageVolumeNode.GetID())
+      # Volume reslice driver
+      redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+      volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
+      volumeResliceDriverLogic.SetDriverForSlice(usImageVolumeNode.GetID(), redSliceNode)
+      volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, redSliceNode)
+      # Fit to view      
+      redSliceLogic.FitSliceToAll()
+    except:
+      print('Image not found in current scene...')
 
 #------------------------------------------------------------------------------
 #
