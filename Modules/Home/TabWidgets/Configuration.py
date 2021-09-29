@@ -44,13 +44,13 @@ class Configuration(qt.QWidget):
   def setupConnections(self):
     logging.debug('Configuration.setupConnections')
 
-    pass
+    self.ui.ultrasoundDisplaySettingsButton.clicked.connect(self.onUltrasoundDisplaySettingsButton)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     logging.debug('Configuration.disconnect')
 
-    pass
+    self.ui.ultrasoundDisplaySettingsButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -73,7 +73,14 @@ class Configuration(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onUltrasoundDisplaySettingsButton(self):
+    
+    # Shows slicer interface
+    self.homeWidget.hideHome()
 
+    # Change to UltrasoundDisplaySettings module
+    slicer.util.selectModule('UltrasoundDisplaySettings')
 
 
 
