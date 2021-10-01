@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>370</width>
-    <height>821</height>
+    <width>366</width>
+    <height>812</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
     <widget class="QLabel" name="spacer_1">
      <property name="font">
       <font>
-       <pointsize>13</pointsize>
+       <pointsize>8</pointsize>
       </font>
      </property>
      <property name="text">
@@ -97,19 +97,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="spacer_2">
-     <property name="font">
-      <font>
-       <pointsize>9</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="parametersGroupBox">
      <property name="font">
       <font>
        <pointsize>11</pointsize>
@@ -201,19 +189,93 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="spacer_3">
+    <widget class="QGroupBox" name="brightnessContrastGroupBox">
      <property name="font">
       <font>
-       <pointsize>9</pointsize>
+       <pointsize>11</pointsize>
       </font>
      </property>
-     <property name="text">
-      <string/>
+     <property name="title">
+      <string>Brightness/Contrast</string>
      </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QPushButton" name="brightnessContrastBrightButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Bright</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="brightnessContrastBrighterButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Brighter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="brightnessContrastNormalButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Normal</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="4">
+       <widget class="ctkDoubleRangeSlider" name="brightnessSliderWidget">
+        <property name="maximum">
+         <double>255.000000000000000</double>
+        </property>
+        <property name="maximumValue">
+         <double>255.000000000000000</double>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="brightnessContrastCustomButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Custom</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="DatasetGroupBox">
+    <widget class="QGroupBox" name="controlGroupBox">
      <property name="font">
       <font>
        <pointsize>11</pointsize>
@@ -225,7 +287,21 @@
       <string>Control</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0" colspan="2">
+      <item row="0" column="2">
+       <widget class="QPushButton" name="flipUltrasoundButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Flip</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
        <widget class="QPushButton" name="freezeUltrasoundButton">
         <property name="font">
          <font>
@@ -235,73 +311,59 @@
          </font>
         </property>
         <property name="text">
-         <string>FREEZE IMAGE</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Brightness/Contrast</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="2">
-          <widget class="QPushButton" name="brightnessContrastBrighterButton">
-           <property name="text">
-            <string>Brighter</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QPushButton" name="brightnessContrastBrightButton">
-           <property name="text">
-            <string>Bright</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QPushButton" name="brightnessContrastNormalButton">
-           <property name="text">
-            <string>Normal</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="ctkDoubleRangeSlider" name="brightnessSliderWidget">
-           <property name="maximum">
-            <double>255.000000000000000</double>
-           </property>
-           <property name="maximumValue">
-            <double>255.000000000000000</double>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_15">
-        <property name="text">
-         <string>Slice view controller:</string>
+         <string>Freeze</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="ctkCheckBox" name="sliceControllerVisibilityCheckBox">
-        <property name="iconSize">
-         <size>
-          <width>30</width>
-          <height>30</height>
-         </size>
+       <widget class="QPushButton" name="fitUltrasoundButton">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
         </property>
-        <property name="indicatorIcon">
-         <iconset>
-          <normaloff>:/Icons/VisibleOff.png</normaloff>
-          <normalon>:/Icons/VisibleOn.png</normalon>:/Icons/VisibleOff.png</iconset>
+        <property name="text">
+         <string>Fit</string>
         </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Slice view controller:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="ctkCheckBox" name="sliceControllerVisibilityCheckBox">
+           <property name="iconSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="indicatorIcon">
+            <iconset>
+             <normaloff>:/Icons/VisibleOff.png</normaloff>
+             <normalon>:/Icons/VisibleOn.png</normalon>:/Icons/VisibleOff.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

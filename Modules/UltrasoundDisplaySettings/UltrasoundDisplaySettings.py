@@ -89,13 +89,19 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     # Customize widgets
     self.ui.connectionStatusLabel.text = '-'
     self.ui.sliceControllerVisibilityCheckBox.checked = True
+    self.ui.freezeUltrasoundButton.setText('Un-freeze')
+    self.ui.fitUltrasoundButton.setText('Fit')
+    self.ui.flipUltrasoundButton.setText('Un-flip')
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
     self.ui.freezeUltrasoundButton.clicked.connect(self.onFreezeUltrasoundButtonClicked)
+    self.ui.fitUltrasoundButton.clicked.connect(self.onFitUltrasoundButtonClicked)
+    self.ui.flipUltrasoundButton.clicked.connect(self.onFlipUltrasoundButtonClicked)
     self.ui.brightnessContrastNormalButton.clicked.connect(self.onBrightnessContrastNormalButtonClicked)
     self.ui.brightnessContrastBrightButton.clicked.connect(self.onBrightnessContrastBrightButtonClicked)
     self.ui.brightnessContrastBrighterButton.clicked.connect(self.onBrightnessContrastBrighterButtonClicked)
+    self.ui.brightnessContrastCustomButton.clicked.connect(self.onBrightnessContrastCustomButtonClicked)
     self.ui.brightnessSliderWidget.valuesChanged.connect(self.onBrightnessSliderWidgetValuesChanged)
     self.ui.sliceControllerVisibilityCheckBox.toggled.connect(self.onSliceControllerVisibilityCheckBoxToggled)
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
@@ -103,9 +109,12 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   #------------------------------------------------------------------------------
   def disconnect(self):
     self.ui.freezeUltrasoundButton.clicked.disconnect()
+    self.ui.fitUltrasoundButton.clicked.disconnect()
+    self.ui.flipUltrasoundButton.clicked.disconnect()
     self.ui.brightnessContrastNormalButton.clicked.disconnect()
     self.ui.brightnessContrastBrightButton.clicked.disconnect()
     self.ui.brightnessContrastBrighterButton.clicked.disconnect()
+    self.ui.brightnessContrastCustomButton.clicked.disconnect()
     self.ui.brightnessSliderWidget.valuesChanged.disconnect()
     self.ui.sliceControllerVisibilityCheckBox.toggled.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
@@ -133,15 +142,30 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
 
+    # Enable buttons only if US image is available in the scene
+    usImageAvailable = self.logic.isUSImageAvailable()
+    self.ui.parametersGroupBox.enabled = usImageAvailable
+    self.ui.brightnessContrastGroupBox.enabled = usImageAvailable
+    self.ui.controlGroupBox.enabled = usImageAvailable
+
     # Connection status
     connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     self.ui.connectionStatusLabel.text = connectorStatus
 
     # Freeze ultrasound button
     if self.logic.usFrozen:
-      self.ui.freezeUltrasoundButton.setText('UN-FREEZE IMAGE')
+      self.ui.freezeUltrasoundButton.setText('Un-freeze')
     else:
-      self.ui.freezeUltrasoundButton.setText('FREEZE IMAGE')
+      self.ui.freezeUltrasoundButton.setText('Freeze')
+
+    # Flip ultrasound button
+    if self.logic.usFlipped:
+      self.ui.flipUltrasoundButton.setText('Un-flip')
+    else:
+      self.ui.flipUltrasoundButton.setText('Flip')
+
+    # Window/level adjustment
+    self.ui.brightnessSliderWidget.visible = self.ui.brightnessContrastCustomButton.checked
 
   #------------------------------------------------------------------------------
   def onSliceControllerVisibilityCheckBoxToggled(self, state):
@@ -150,6 +174,16 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   #------------------------------------------------------------------------------
   def onFreezeUltrasoundButtonClicked(self):
     self.logic.freezeUltrasoundImage()
+    self.updateGUIFromMRML()   
+
+  #------------------------------------------------------------------------------
+  def onFitUltrasoundButtonClicked(self):
+    self.logic.fitUltrasoundImage()
+    self.updateGUIFromMRML()   
+
+  #------------------------------------------------------------------------------
+  def onFlipUltrasoundButtonClicked(self):
+    self.logic.flipUltrasoundImage()
     self.updateGUIFromMRML()   
 
   #------------------------------------------------------------------------------
@@ -166,6 +200,11 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   def onBrightnessContrastBrighterButtonClicked(self):
     self.ui.brightnessSliderWidget.setMinimumValue(0)
     self.ui.brightnessSliderWidget.setMaximumValue(60)   
+
+  #------------------------------------------------------------------------------
+  def onBrightnessContrastCustomButtonClicked(self):
+    self.logic.updateBrightnessContrastInteraction(self.ui.brightnessContrastCustomButton.checked)
+    self.updateGUIFromMRML()   
 
   #------------------------------------------------------------------------------
   def onBrightnessSliderWidgetValuesChanged(self, minVal, maxVal):
@@ -212,6 +251,11 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
     # Ultrasound variables
     self.usFrozen = False
+    self.usFlipped = False
+
+    # Custom W/L
+    self.crosshairNode = None
+    self.mouseObserverID = None
 
     # Setup scene
     self.setupScene()
@@ -327,6 +371,70 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       pass
 
   #------------------------------------------------------------------------------
+  def setupKeyboardShortcuts(self):
+    shortcuts = [
+        ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
+        ]
+
+    for (shortcutKey, callback) in shortcuts:
+        shortcut = qt.QShortcut(slicer.util.mainWindow())
+        shortcut.setKey(qt.QKeySequence(shortcutKey))
+        shortcut.connect('activated()', callback)
+
+  #------------------------------------------------------------------------------
+  def displayUSImage(self):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Volume reslice driver
+    try:
+      volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
+    except:
+      logging.error('Volume Reslice Driver module was not found.')
+      return
+
+    # Set US image display
+    if self.isUSImageAvailable():
+      # Get volume node from image name
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+
+      # Set ultrasound image as background in slice view
+      redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+      redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(usImageVolumeNode.GetID())
+
+      # Volume reslice driver
+      redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+      volumeResliceDriverLogic.SetDriverForSlice(usImageVolumeNode.GetID(), redSliceNode)
+      volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, redSliceNode)
+
+    # Fit to view      
+    self.fitUltrasoundImage()
+
+  #------------------------------------------------------------------------------
+  def isUSImageAvailable(self):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Get US volume from name
+    try:
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+    except:
+      return False
+    return True
+
+  #------------------------------------------------------------------------------
   def updateSliceControllerVisibility(self, visible):
     # Update visibility of slice controllers
     for name in slicer.app.layoutManager().sliceViewNames():
@@ -360,43 +468,26 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       self.usFrozen = True
 
   #------------------------------------------------------------------------------
-  def setupKeyboardShortcuts(self):
-    shortcuts = [
-        ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
-        ]
-
-    for (shortcutKey, callback) in shortcuts:
-        shortcut = qt.QShortcut(slicer.util.mainWindow())
-        shortcut.setKey(qt.QKeySequence(shortcutKey))
-        shortcut.connect('activated()', callback)
+  def fitUltrasoundImage(self):
+    # Set ultrasound image as background in slice view
+    redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+    redSliceLogic.FitSliceToAll()
 
   #------------------------------------------------------------------------------
-  def displayUSImage(self):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
+  def flipUltrasoundImage(self):
+    # Get slice node
+    redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+      
+    # Volume reslice driver
+    try:
+      volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
+    except:
+      logging.error('Volume Reslice Driver module was not found.')
       return
 
-    # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
-
-    # Display US image in slice view
-    try:
-      # Get image node
-      usImageVolumeNode = slicer.util.getNode(usImageName)
-      # Select node in slice view
-      redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
-      redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(usImageVolumeNode.GetID())
-      # Volume reslice driver
-      redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
-      volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
-      volumeResliceDriverLogic.SetDriverForSlice(usImageVolumeNode.GetID(), redSliceNode)
-      volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, redSliceNode)
-      # Fit to view      
-      redSliceLogic.FitSliceToAll()
-    except:
-      print('Image not found in current scene...')
+    # Flip image
+    self.usFlipped = not self.usFlipped
+    volumeResliceDriverLogic.SetFlipForSlice(self.usFlipped, redSliceNode)
 
   #------------------------------------------------------------------------------
   def setImageMinMaxLevel(self, minLevel, maxLevel):    
@@ -418,8 +509,51 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       usImageDisplayNode.SetAutoWindowLevel(False)
       usImageDisplayNode.SetWindowLevelMinMax(minLevel, maxLevel)
     except:
-      print('Image not found in current scene...')
+      logging.error('Ultrasound image not found in current scene...')
 
+  #------------------------------------------------------------------------------
+  def getImageMinMaxLevel(self, caller=None, event=None):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Get volume and display node
+    try:
+      # Get volume node
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+      # Get display node
+      usImageDisplayNode = usImageVolumeNode.GetDisplayNode()
+    except:
+      logging.error('Ultrasound image not found in current scene...')
+      return
+
+    # Get min and max level
+    minLevel = usImageDisplayNode.GetWindowLevelMin()
+    maxLevel = usImageDisplayNode.GetWindowLevelMax()
+
+    # Update slider
+    self.moduleWidget.ui.brightnessSliderWidget.setMinimumValue(minLevel)
+    self.moduleWidget.ui.brightnessSliderWidget.setMaximumValue(maxLevel)
+
+  #------------------------------------------------------------------------------
+  def updateBrightnessContrastInteraction(self, custom):
+    if custom:
+      # Change to AdjustWindowLevel interaction mode
+      slicer.app.applicationLogic().GetInteractionNode().SetCurrentInteractionMode(slicer.vtkMRMLInteractionNode.AdjustWindowLevel)
+      # Add observer to mouse movement
+      self.crosshairNode = slicer.util.getNode("Crosshair")
+      self.mouseObserverID = self.crosshairNode.AddObserver(slicer.vtkMRMLCrosshairNode.CursorPositionModifiedEvent, self.getImageMinMaxLevel)
+    else:
+      # Change to normal interaction mode
+      slicer.app.applicationLogic().GetInteractionNode().SetCurrentInteractionMode(slicer.vtkMRMLInteractionNode.ViewTransform)
+      # Remove observer to moouse movement
+      if self.crosshairNode and self.mouseObserverID:
+        self.crosshairNode.RemoveObserver(self.mouseObserverID)
     
 
 #------------------------------------------------------------------------------
