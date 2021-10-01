@@ -253,8 +253,10 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.defaultParameters["ParticipantSelectionMode"] = 'New Participant'
     self.defaultParameters["SelectedParticipantID"] = ''
     self.defaultParameters["SelectedRecordingID"] = ''
-    self.defaultParameters["USImageName"] = 'Image_Reference'
+    self.defaultParameters["USImageName"] = 'Image_Image'
     self.defaultParameters["PlusConnectionStatus"] = 'OFF'
+    self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
+    self.defaultParameters["IGTLConnectorNodeID"] = ''
 
     # Parameter node reference roles
     # self.modelReferenceRolePrefix = 'Model_'
@@ -265,6 +267,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.selectedRecordingIDParameterName = 'SelectedRecordingID'
     self.usImageNameParameterName = 'USImageName'
     self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
+    self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
+    self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
 
     # Setup scene
     self.setupScene()

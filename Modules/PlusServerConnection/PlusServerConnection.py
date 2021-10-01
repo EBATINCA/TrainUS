@@ -59,6 +59,7 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
 
   #------------------------------------------------------------------------------
   def cleanup(self):
+    self.logic.stopPlusConnection() # stop PLUS server subprocess
     self.disconnect()
 
   #------------------------------------------------------------------------------
@@ -66,7 +67,7 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     """
     Runs whenever the module is reopened
     """
-    pass
+    self.logic.setParameterNode()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
@@ -77,7 +78,8 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
-    self.ui.connectionStatusLabel.text = '-'
+    self.ui.plusConnectionStatusLabel.text = 'OFF'
+    self.ui.igtlConnectionStatusLabel.text = '-'
     self.ui.startConnectionButton.enabled = True
     self.ui.stopConnectionButton.enabled = False
 
@@ -94,7 +96,7 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     self.ui.backToMenuButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
-  def updateGUIFromMRML(self):
+  def updateGUIFromMRML(self, caller=None, event=None):
     """
     Set selections and other settings on the GUI based on the parameter node.
 
@@ -106,17 +108,32 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
 
-    # Connection status
-    connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
-    self.ui.connectionStatusLabel.text = connectorStatus
+    # PLUS server connection status
+    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    self.ui.plusConnectionStatusLabel.text = plusConnectionStatus
 
     # Start/stop buttons
-    if connectorStatus == 'OFF':
-      self.ui.startConnectionButton.enabled = True
-      self.ui.stopConnectionButton.enabled = False
-    else:
+    if plusConnectionStatus == 'SUCCESSFUL':
       self.ui.startConnectionButton.enabled = False
       self.ui.stopConnectionButton.enabled = True
+    else:
+      self.ui.startConnectionButton.enabled = True
+      self.ui.stopConnectionButton.enabled = False
+
+    # IGTL connection status
+    igtlConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName)
+    self.ui.igtlConnectionStatusLabel.text = igtlConnectionStatus
+
+    # Update list of incoming nodes
+    tableWidget = self.ui.incomingNodesTable
+    tableWidget.clearContents() # reset table
+    numIncomingNodes = len(self.logic.incomingNodesNames)
+    tableWidget.setRowCount(numIncomingNodes)
+    for nodeIndex in range(numIncomingNodes):
+      nodeNameTableItem = qt.QTableWidgetItem(self.logic.incomingNodesNames[nodeIndex])
+      nodeTypeTableItem = qt.QTableWidgetItem(self.logic.incomingNodesTypes[nodeIndex])
+      tableWidget.setItem(nodeIndex, 0, nodeNameTableItem)
+      tableWidget.setItem(nodeIndex, 1, nodeTypeTableItem)
 
   #------------------------------------------------------------------------------
   def onStartConnectionButtonClicked(self):
@@ -139,9 +156,6 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     dialog.hide()
     dialog.deleteLater()
 
-    # Check connection status
-    self.logic.getPlusConnectionStatus()
-
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -158,9 +172,6 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
 
     # Restore cursor
     qt.QApplication.restoreOverrideCursor()
-
-    # Check connection status
-    self.logic.getPlusConnectionStatus()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -215,17 +226,41 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     self.moduleWidget = widgetInstance
     self.trainUsWidget = slicer.trainUsWidget
 
+    # Parameter node
+    self.parameterNode = None
+
     # PLUS connection variables
     self.connector = None
     self.isRunning = False
-    self.plusLauncherPath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/bin/PlusServer.exe'
-    self.plusConfigFilePath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/config/PlusDeviceSet_Server_Sim_NwirePhantom.xml'
+    self.plusLauncherPath = 'C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServer.exe'
+    self.plusConfigFilePath = 'C:/D/TUS/US simulation data/l20171207_113513_config.xml'
+    #self.plusLauncherPath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/bin/PlusServer.exe'
+    #self.plusConfigFilePath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/config/PlusDeviceSet_Server_Sim_NwirePhantom.xml'
+    self.incomingNodesNames = list()
+    self.incomingNodesTypes = list()
 
     # Setup scene
     self.setupScene()
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
+
+  #------------------------------------------------------------------------------
+  def setParameterNode(self):
+    
+    # Get parameter node
+    self.parameterNode = self.trainUsWidget.getParameterNode()
+    if not self.parameterNode:
+      logging.error('setParameterNode: Failed to get parameter node')
+      return
+
+    # Remove observations from nodes referenced in the old parameter node
+    if self.parameterNode is not None:
+      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
+
+    # Add observations on referenced nodes
+    if self.parameterNode:
+      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)  
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
@@ -302,6 +337,12 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     """
     logging.debug('PlusServerConnection.startPlusConnection')
 
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('getIGTLConnectionStatus: Failed to get parameter node')
+      return
+
     # Update progress label
     if progressLabel:
       progressLabel.text = 'Launching PLUS server. Please wait...'
@@ -320,15 +361,21 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.p = subprocess.Popen([self.plusLauncherPath, '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
 
       # Wait
-      time.sleep(5)
+      time.sleep(10)
 
       # Create IGTL connector node if it does not exist
       if not self.connector:
         self.connector = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLIGTLConnectorNode')
         self.connector.SetTypeClient("localhost", 18944)
 
+      # Save connector node ID into parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.connector.GetID())    
+
       # Add observer to connector
-      self.addObserver(self.connector, vtk.vtkCommand.ModifiedEvent, self.getPlusConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)
 
       # Start connector
       self.connector.Start()
@@ -343,21 +390,44 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
       # Get state of connector      
       slicer.app.processEvents()
-      if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected:
-        logging.error('PLUS Server failed to launch')        
+      if self.connector.GetState() != slicer.vtkMRMLIGTLConnectorNode.StateConnected: # no connection
+        logging.error('PLUS Server failed to launch')  
         self.stopPlusConnection()
-        self.removeObserver(self.connector, vtk.vtkCommand.ModifiedEvent, self.getPlusConnectionStatus)
+
+        # Set status
+        plusConnectionStatus = 'FAILED'
+
+        # Remove observers to connector node
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)
+
         # Print output in Python Console
         output = self.p.stdout.read()
         output = output.decode("utf-8")
         print(output)
-        return
-      print('Start connection with PLUS server.')
+
+      else: # connected
+        logging.debug('Start connection with PLUS server.')
+        # Set status
+        plusConnectionStatus ='SUCCESSFUL'
 
     else:
       self.stopPlusConnection()
+
+      # Set status
+      plusConnectionStatus = 'OFF'
+
+      # Remove observers to connector node
       if self.connector:
-        self.removeObserver(self.connector, vtk.vtkCommand.ModifiedEvent, self.getPlusConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)
+
+    # Save connection status
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, plusConnectionStatus)
 
   #------------------------------------------------------------------------------
   def stopPlusConnection(self):
@@ -365,16 +435,44 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     Stop connection with PLUS server.
     """
     logging.debug('PlusServerConnection.stopPlusConnection')
+    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('getIGTLConnectionStatus: Failed to get parameter node')
+      return
+
+    # Stop PLUS server and IGTL connector
     if self.isRunning:
       self.connector.Stop()
       self.p.terminate()
       self.isRunning = False
-      print('Stop connection with PLUS server.')
+      logging.debug('Stop connection with PLUS server.')
+
+      # Wait
+      time.sleep(2)
+
+      # Remove observers
       if self.connector:
-        self.removeObserver(self.connector, vtk.vtkCommand.ModifiedEvent, self.getPlusConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+        self.removeObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)
+
+    # Save IGTL connection status
+    self.getIGTLConnectionStatus()
+
+    # Save PLUS connection status
+    plusConnectionStatus = 'OFF'
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, plusConnectionStatus)
 
   #------------------------------------------------------------------------------
-  def getPlusConnectionStatus(self, caller=None, event=None):
+  def getIGTLConnectionStatus(self, caller=None, event=None):
+    logging.debug('PlusServerConnection.getIGTLConnectionStatus')
+
+    # Wait
+    time.sleep(0.5) # some time is required for connection status to update
+
     # Get state from connector
     connectorState = self.connector.GetState()
     if connectorState == slicer.vtkMRMLIGTLConnectorNode.StateOff:
@@ -389,11 +487,31 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
-      logging.error('getPlusConnectionStatus: Failed to get parameter node')
+      logging.error('getIGTLConnectionStatus: Failed to get parameter node')
       return
 
+    # Update list of incoming nodes
+    self.getListOfIncomingNodes()
+
     # Update parameter node    
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, status)
+    parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName, status)
+
+  #------------------------------------------------------------------------------
+  def getListOfIncomingNodes(self):    
+    if not self.connector:
+      return
+
+    # Get number of incoming MRML nodes
+    numIncomingNodes = self.connector.GetNumberOfIncomingMRMLNodes()
+
+    # Get name and type of each node
+    self.incomingNodesNames = list()
+    self.incomingNodesTypes = list()
+    if self.connector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+      for nodeIndex in range(numIncomingNodes):
+        node = self.connector.GetIncomingMRMLNode(nodeIndex)
+        self.incomingNodesNames.append(node.GetName())
+        self.incomingNodesTypes.append(node.GetClassName())
 
 
 #------------------------------------------------------------------------------
