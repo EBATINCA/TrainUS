@@ -72,11 +72,11 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     # Apply singleton parameter node settings to application
     self.logic.setParameterNode(self.logic.getParameterNode())
 
-    # Update GUI
-    self.updateGUIFromMRML()
-
     # Display US image
     self.logic.displayUSImage()
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
@@ -92,11 +92,21 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
+    self.ui.freezeUltrasoundButton.clicked.connect(self.onFreezeUltrasoundButtonClicked)
+    self.ui.brightnessContrastNormalButton.clicked.connect(self.onBrightnessContrastNormalButtonClicked)
+    self.ui.brightnessContrastBrightButton.clicked.connect(self.onBrightnessContrastBrightButtonClicked)
+    self.ui.brightnessContrastBrighterButton.clicked.connect(self.onBrightnessContrastBrighterButtonClicked)
+    self.ui.brightnessSliderWidget.valuesChanged.connect(self.onBrightnessSliderWidgetValuesChanged)
     self.ui.sliceControllerVisibilityCheckBox.toggled.connect(self.onSliceControllerVisibilityCheckBoxToggled)
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
+    self.ui.freezeUltrasoundButton.clicked.disconnect()
+    self.ui.brightnessContrastNormalButton.clicked.disconnect()
+    self.ui.brightnessContrastBrightButton.clicked.disconnect()
+    self.ui.brightnessContrastBrighterButton.clicked.disconnect()
+    self.ui.brightnessSliderWidget.valuesChanged.disconnect()
     self.ui.sliceControllerVisibilityCheckBox.toggled.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -127,9 +137,40 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     self.ui.connectionStatusLabel.text = connectorStatus
 
+    # Freeze ultrasound button
+    if self.logic.usFrozen:
+      self.ui.freezeUltrasoundButton.setText('UN-FREEZE IMAGE')
+    else:
+      self.ui.freezeUltrasoundButton.setText('FREEZE IMAGE')
+
   #------------------------------------------------------------------------------
   def onSliceControllerVisibilityCheckBoxToggled(self, state):
     self.logic.updateSliceControllerVisibility(not state)
+
+  #------------------------------------------------------------------------------
+  def onFreezeUltrasoundButtonClicked(self):
+    self.logic.freezeUltrasoundImage()
+    self.updateGUIFromMRML()   
+
+  #------------------------------------------------------------------------------
+  def onBrightnessContrastNormalButtonClicked(self):
+    self.ui.brightnessSliderWidget.setMinimumValue(0)
+    self.ui.brightnessSliderWidget.setMaximumValue(200)   
+
+  #------------------------------------------------------------------------------
+  def onBrightnessContrastBrightButtonClicked(self):
+    self.ui.brightnessSliderWidget.setMinimumValue(0)
+    self.ui.brightnessSliderWidget.setMaximumValue(120)   
+
+  #------------------------------------------------------------------------------
+  def onBrightnessContrastBrighterButtonClicked(self):
+    self.ui.brightnessSliderWidget.setMinimumValue(0)
+    self.ui.brightnessSliderWidget.setMaximumValue(60)   
+
+  #------------------------------------------------------------------------------
+  def onBrightnessSliderWidgetValuesChanged(self, minVal, maxVal):
+    # Update us image level
+    self.logic.setImageMinMaxLevel(minVal, maxVal)  
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):
@@ -168,6 +209,9 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # self.modelReferenceRolePrefix = 'Model_'
 
     # Parameter node parameter names
+
+    # Ultrasound variables
+    self.usFrozen = False
 
     # Setup scene
     self.setupScene()
@@ -290,6 +334,32 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       sliceWidget.sliceController().setVisible(visible)
 
   #------------------------------------------------------------------------------
+  def freezeUltrasoundImage(self):
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get IGTL connector node ID from parameter node
+    connectorNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName)
+
+    # Get IGTL connector node ID
+    try:
+      connectorNode = slicer.util.getNode(connectorNodeID)
+    except:
+      logging.error('UltrasoundDisplaySettings.freezeUltrasoundImage Unable to get connector node from ID')
+      return
+
+    # Update frozen state
+    if self.usFrozen:
+      connectorNode.Start()
+      self.usFrozen = False
+    else:
+      connectorNode.Stop()
+      self.usFrozen = True
+
+  #------------------------------------------------------------------------------
   def setupKeyboardShortcuts(self):
     shortcuts = [
         ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
@@ -327,6 +397,30 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       redSliceLogic.FitSliceToAll()
     except:
       print('Image not found in current scene...')
+
+  #------------------------------------------------------------------------------
+  def setImageMinMaxLevel(self, minLevel, maxLevel):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('displayUSImage: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Display US image in slice view
+    try:
+      # Get volume node
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+      # Get display node
+      usImageDisplayNode = usImageVolumeNode.GetDisplayNode()
+      usImageDisplayNode.SetAutoWindowLevel(False)
+      usImageDisplayNode.SetWindowLevelMinMax(minLevel, maxLevel)
+    except:
+      print('Image not found in current scene...')
+
+    
 
 #------------------------------------------------------------------------------
 #
