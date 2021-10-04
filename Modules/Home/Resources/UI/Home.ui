@@ -388,7 +388,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="participantInfoLabel_3">
            <property name="text">
-            <string>Hardware:</string>
+            <string>Configuration:</string>
            </property>
           </widget>
          </item>

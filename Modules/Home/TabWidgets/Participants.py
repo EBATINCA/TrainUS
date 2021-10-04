@@ -16,7 +16,8 @@ class Participants(qt.QWidget):
     self.homeWidget = None # Set externally after creation
     self.trainUsWidget = slicer.trainUsWidget
 
-    # GUI flags
+    # GUI flags    
+    self.newParticipantVisible = False
     self.editParticipantVisible = False
 
   #------------------------------------------------------------------------------
@@ -40,12 +41,23 @@ class Participants(qt.QWidget):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets    
+    self.ui.newParticipantGroupBox.visible = False
     self.ui.editParticipantGroupBox.visible = False
     self.ui.checkRecordingsButton.enabled = False
+    self.ui.newParticipantButton.enabled = False
     self.ui.editParticipantButton.enabled = False
     self.ui.deleteParticipantButton.enabled = False
-    self.ui.saveEditButton.enabled = True 
-    self.ui.cancelEditButton.enabled = True
+    self.ui.newParticipantSaveButton.enabled = True 
+    self.ui.newParticipantCancelButton.enabled = True
+    self.ui.editParticipantSaveButton.enabled = True 
+    self.ui.editParticipantCancelButton.enabled = True
+
+    # New participant input
+    self.ui.newParticipantNameText.setText('')
+    self.ui.newParticipantSurnameText.setText('')
+    self.ui.newParticipantEmailText.setText('')    
+    self.ui.newParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+    self.ui.newParticipantBirthDateEdit.setDisplayFormat('MM.dd.yyyy')
 
     # Edit participant input
     self.ui.editParticipantNameText.setText('')
@@ -55,14 +67,22 @@ class Participants(qt.QWidget):
     self.ui.editParticipantBirthDateEdit.setDisplayFormat('MM.dd.yyyy')
 
     # Invalid input warnings
+    self.ui.newParticipantNameWarning.setText('')
+    self.ui.newParticipantNameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.newParticipantSurnameWarning.setText('')
+    self.ui.newParticipantSurnameWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.newParticipantEmailWarning.setText('')
+    self.ui.newParticipantEmailWarning.setStyleSheet("QLabel { color : red }")
+    self.ui.newParticipantWarningMessageText.setText('')
+    self.ui.newParticipantWarningMessageText.setStyleSheet("QLabel { color : red }")
     self.ui.editParticipantNameWarning.setText('')
     self.ui.editParticipantNameWarning.setStyleSheet("QLabel { color : red }")
     self.ui.editParticipantSurnameWarning.setText('')
     self.ui.editParticipantSurnameWarning.setStyleSheet("QLabel { color : red }")
     self.ui.editParticipantEmailWarning.setText('')
     self.ui.editParticipantEmailWarning.setStyleSheet("QLabel { color : red }")
-    self.ui.warningMessageText.setText('')
-    self.ui.warningMessageText.setStyleSheet("QLabel { color : red }")
+    self.ui.editParticipantWarningMessageText.setText('')
+    self.ui.editParticipantWarningMessageText.setStyleSheet("QLabel { color : red }")
     
     # Setup GUI connections
     self.setupConnections()
@@ -74,10 +94,13 @@ class Participants(qt.QWidget):
     self.ui.participantSearchText.textChanged.connect(self.onParticipantSearchTextChanged)
     self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
     self.ui.checkRecordingsButton.clicked.connect(self.onCheckRecordingsButtonClicked)
+    self.ui.newParticipantButton.clicked.connect(self.onNewParticipantButtonClicked)
     self.ui.editParticipantButton.clicked.connect(self.onEditParticipantButtonClicked)
     self.ui.deleteParticipantButton.clicked.connect(self.onDeleteParticipantButtonClicked)
-    self.ui.saveEditButton.clicked.connect(self.onSaveEditButtonClicked)
-    self.ui.cancelEditButton.clicked.connect(self.onCancelEditButtonClicked)
+    self.ui.newParticipantSaveButton.clicked.connect(self.onNewParticipantSaveButtonClicked)
+    self.ui.newParticipantCancelButton.clicked.connect(self.onNewParticipantCancelButtonClicked)
+    self.ui.editParticipantSaveButton.clicked.connect(self.onEditParticipantSaveButtonClicked)
+    self.ui.editParticipantCancelButton.clicked.connect(self.onEditParticipantCancelButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
@@ -86,10 +109,13 @@ class Participants(qt.QWidget):
     self.ui.participantSearchText.textChanged.disconnect()
     self.ui.participantsTable.itemSelectionChanged.disconnect()
     self.ui.checkRecordingsButton.clicked.disconnect()
+    self.ui.newParticipantButton.clicked.disconnect()
     self.ui.editParticipantButton.clicked.disconnect()
     self.ui.deleteParticipantButton.clicked.disconnect()
-    self.ui.saveEditButton.clicked.disconnect()
-    self.ui.cancelEditButton.clicked.disconnect()
+    self.ui.newParticipantSaveButton.clicked.disconnect()
+    self.ui.newParticipantCancelButton.clicked.disconnect()
+    self.ui.editParticipantSaveButton.clicked.disconnect()
+    self.ui.editParticipantCancelButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -106,10 +132,12 @@ class Participants(qt.QWidget):
     # Participant selection
     participantSelected = self.homeWidget.logic.isParticipantSelected()
     self.ui.checkRecordingsButton.enabled = participantSelected
+    self.ui.newParticipantButton.enabled = (not self.newParticipantVisible)
     self.ui.editParticipantButton.enabled = participantSelected and (not self.editParticipantVisible)
     self.ui.deleteParticipantButton.enabled = participantSelected
 
     # Edit participant group box
+    self.ui.newParticipantGroupBox.visible = self.newParticipantVisible
     self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
 
     # Edit participant text
@@ -143,12 +171,6 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def onParticipantsTableItemSelected(self):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get selected cells
     participantID = ''
     selected = self.ui.participantsTable.selectedItems()
@@ -158,12 +180,8 @@ class Participants(qt.QWidget):
         if item.column() == 0: # participant ID is stored in column 0
           participantID = item.text()
 
-    # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-
-    # Update dashboard table
-    self.homeWidget.updateDashboardTableSelection()
-    self.homeWidget.updateRecordingsTable()
+    # Update selected participant
+    self.updateSelectedParticipant(participantID)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -172,6 +190,12 @@ class Participants(qt.QWidget):
   def onCheckRecordingsButtonClicked(self):
     # Change current tab to "Recordings"
     self.homeWidget.ui.dashboardTabWidget.currentIndex = 2
+
+  #------------------------------------------------------------------------------
+  def onNewParticipantButtonClicked(self):
+    # Update group box visibility
+    self.newParticipantVisible = True
+    self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
   def onEditParticipantButtonClicked(self):
@@ -187,13 +211,51 @@ class Participants(qt.QWidget):
       # Delete selected participant
       self.deleteSelectedParticipant()
 
-      # Update tables    
-      self.homeWidget.updateDashboardTable()
-      self.homeWidget.updateParticipantsTable()
-      self.homeWidget.updateRecordingsTable()
+  #------------------------------------------------------------------------------
+  def onNewParticipantSaveButtonClicked(self):
+    # Check if user input is valid
+    isInputValid = self.isNewParticipantInputValid()
+    if not isInputValid:
+      logging.error('Not all input data is valid. New participant cannot be created.')
+      return
+
+    # Get new participant input data
+    newParticipantName = self.ui.newParticipantNameText.text
+    newParticipantSurname = self.ui.newParticipantSurnameText.text
+    newParticipantBirthDate = self.ui.newParticipantBirthDateEdit.date.toString('yyyy-MM-dd') 
+    newParticipantEmail = self.ui.newParticipantEmailText.text
+
+    # Create new participant
+    self.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
+
+    # Reset input text fields
+    self.ui.newParticipantNameText.text = ''
+    self.ui.newParticipantSurnameText.text = ''
+    self.ui.newParticipantEmailText.text = ''
+    self.ui.newParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+
+    # Update group box visibility
+    self.newParticipantVisible = False
+
+    # Update GUI
+    self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
-  def onSaveEditButtonClicked(self):
+  def onNewParticipantCancelButtonClicked(self):
+    # Update group box visibility
+    self.newParticipantVisible = False
+
+    # Reset input text fields
+    self.ui.newParticipantNameText.text = ''
+    self.ui.newParticipantSurnameText.text = ''
+    self.ui.newParticipantEmailText.text = ''
+    self.ui.newParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+
+    # Update GUI
+    self.updateGUIFromMRML() 
+
+  #------------------------------------------------------------------------------
+  def onEditParticipantSaveButtonClicked(self):
     # Check if user input is valid
     isInputValid = self.isEditParticipantInputValid()
     if not isInputValid:
@@ -216,13 +278,15 @@ class Participants(qt.QWidget):
     self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
-  def onCancelEditButtonClicked(self):
+  def onEditParticipantCancelButtonClicked(self):
     # Update group box visibility
     self.editParticipantVisible = False
 
     # Reset input info
     self.ui.editParticipantNameText.text = ''
     self.ui.editParticipantSurnameText.text = ''
+    self.ui.editParticipantBirthDateEdit.setDate(qt.QDate().currentDate())
+    self.ui.editParticipantEmailText.text = ''   
     
     # Update GUI
     self.updateGUIFromMRML() 
@@ -232,7 +296,96 @@ class Participants(qt.QWidget):
   # Logic functions
   #
   #------------------------------------------------------------------------------
+
+  #------------------------------------------------------------------------------
+  def updateSelectedParticipant(self, participantID):
+    """
+    Update selected participant from ID.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
+
+    # Update recordings table
+    self.homeWidget.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
+  def deleteSelectedParticipant(self):
+    """
+    Delete selected participant from root directory.
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+
+    # Delete participant
+    self.homeWidget.logic.deleteParticipant(selectedParticipantID)
+    
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, '')
+
+    # Update tables    
+    self.homeWidget.updateParticipantsTable()
+    self.homeWidget.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
+  def deleteParticipantMessageBox(self):
+    """
+    Display message box for the user to confirm if the partipant data must be deleted.
+    :return bool: True if delete action is confirmed, False otherwise
+    """
+    confirmDelete = qt.QMessageBox()
+    confirmDelete.setIcon(qt.QMessageBox.Warning)
+    confirmDelete.setWindowTitle(self.homeWidget.logic.participants_deleteMessageBoxTitle)
+    confirmDelete.setText(self.homeWidget.logic.participants_deleteMessageBoxLabel)
+    confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
+    confirmDelete.setDefaultButton(qt.QMessageBox.No)
+    confirmDelete.setModal(True)
+    retval = confirmDelete.exec_()
+    if retval == qt.QMessageBox.Yes:
+      return True
+    else:
+      return False
   
+  #------------------------------------------------------------------------------
+  def createNewParticipant(self, participantName, participantSurname, participantBirthDate, participantEmail):
+    """
+    Adds new participant to table from the input data and selects it.
+
+    :param participantName: participant name (string)
+    :param participantSurname: participant surname (string)
+    :param participantBirthDate: participant birth date (string)
+    :param participantEmail: participant email (string)
+    """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Create new participant
+    newParticipantInfo = self.homeWidget.logic.createNewParticipant(participantName, participantSurname, participantBirthDate, participantEmail)
+
+    # Update table
+    self.homeWidget.updateParticipantsTable()
+    self.homeWidget.updateRecordingsTable()
+
+    # Update parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
+
+    # Update table selection
+    self.homeWidget.updateParticipantsTableSelection()
+
   #------------------------------------------------------------------------------
   def editParticipantInfo(self, participantName, participantSurname, participantBirthDate, participantEmail):
     """
@@ -263,54 +416,42 @@ class Participants(qt.QWidget):
     self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
 
     # Update table content
-    self.homeWidget.updateDashboardTable()
     self.homeWidget.updateParticipantsTable()
 
     # Update participant selection
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, selectedParticipantID)
 
     # Update table selection
-    self.homeWidget.updateDashboardTableSelection()
     self.homeWidget.updateParticipantsTableSelection()
-
-  #------------------------------------------------------------------------------
-  def deleteParticipantMessageBox(self):
-    """
-    Display message box for the user to confirm if the partipant data must be deleted.
-    :return bool: True if delete action is confirmed, False otherwise
-    """
-    confirmDelete = qt.QMessageBox()
-    confirmDelete.setIcon(qt.QMessageBox.Warning)
-    confirmDelete.setWindowTitle(self.homeWidget.logic.participants_deleteMessageBoxTitle)
-    confirmDelete.setText(self.homeWidget.logic.participants_deleteMessageBoxLabel)
-    confirmDelete.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
-    confirmDelete.setDefaultButton(qt.QMessageBox.No)
-    confirmDelete.setModal(True)
-    retval = confirmDelete.exec_()
-    if retval == qt.QMessageBox.Yes:
-      return True
-    else:
-      return False
-
-  #------------------------------------------------------------------------------
-  def deleteSelectedParticipant(self):
-    """
-    Delete selected participant from root directory.
-    """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-
-    # Delete participant
-    self.homeWidget.logic.deleteParticipant(selectedParticipantID)
     
-    # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, '')
+  #------------------------------------------------------------------------------
+  def isNewParticipantInputValid(self):    
+    # Get user input
+    newParticipantName = self.ui.newParticipantNameText.text
+    newParticipantSurname = self.ui.newParticipantSurnameText.text
+    newParticipantEmail = self.ui.newParticipantEmailText.text
+
+    # Check valid input
+    validInput = (newParticipantName != '') and (newParticipantSurname != '') and (newParticipantEmail != '')
+
+    # Display warnings to user
+    if validInput:
+      self.ui.newParticipantNameWarning.setText('')
+      self.ui.newParticipantSurnameWarning.setText('')
+      self.ui.newParticipantEmailWarning.setText('')
+      self.ui.newParticipantWarningMessageText.setText('')
+    else:
+      self.ui.newParticipantWarningMessageText.setText('* ' + self.homeWidget.logic.newParticipantWarningMessageText)
+      self.ui.newParticipantNameWarning.setText('')
+      self.ui.newParticipantSurnameWarning.setText('')
+      self.ui.newParticipantEmailWarning.setText('')
+      if newParticipantName == '':
+        self.ui.newParticipantNameWarning.setText('*')
+      if newParticipantSurname == '':
+        self.ui.newParticipantSurnameWarning.setText('*')
+      if newParticipantEmail == '':
+        self.ui.newParticipantEmailWarning.setText('*')
+    return validInput
 
   #------------------------------------------------------------------------------
   def isEditParticipantInputValid(self):    
@@ -328,9 +469,9 @@ class Participants(qt.QWidget):
       self.ui.editParticipantNameWarning.setText('')
       self.ui.editParticipantSurnameWarning.setText('')
       self.ui.editParticipantEmailWarning.setText('')
-      self.ui.warningMessageText.setText('')
+      self.ui.editParticipantWarningMessageText.setText('')
     else:
-      self.ui.warningMessageText.setText('* ' + self.homeWidget.logic.participants_warningMessageTextLabel)
+      self.ui.editParticipantWarningMessageText.setText('* ' + self.homeWidget.logic.editParticipantWarningMessageText)
       self.ui.editParticipantNameWarning.setText('')
       self.ui.editParticipantSurnameWarning.setText('')
       self.ui.editParticipantEmailWarning.setText('')

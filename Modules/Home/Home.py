@@ -130,7 +130,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateTrainingMenuVisibility(visible = False)
 
     # Update UI tables
-    self.updateDashboardTable()
     self.updateParticipantsTable()
     self.updateRecordingsTable()
 
@@ -151,6 +150,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Runs whenever the module is reopened
     """
     self.showHome()
+
+    # Observe parameter node
+    self.logic.observeParameterNode()
 
   #------------------------------------------------------------------------------
   def showHome(self):
@@ -273,6 +275,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
 
+    # Update dashboard panel
+    self.updateDashboardPanel()
+
   #------------------------------------------------------------------------------
   def setupUi(self):
     logging.debug('Home.setupUi')
@@ -325,68 +330,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.trainingInfoGroupBox.visible = visible
     self.ui.trainingTabWidget.visible = visible
     self.ui.finishTrainingFrame.visible = visible    
-
-  #------------------------------------------------------------------------------
-  def updateDashboardTable(self):
-    """
-    Updates content of dashboard table by reading the database in root directory.
-    """
-    # Get data from directory
-    participantInfo_list = self.logic.readRootDirectory()
-
-    # Filter participants according to search text
-    searchText = self.ui.DashboardPanel.ui.participantSearchText.text
-    if searchText is not '':
-      participantInfo_list = self.logic.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
-
-    # Get table widget
-    tableWidget = self.ui.DashboardPanel.ui.participantsTable
-
-    # Reset table
-    tableWidget.clearContents()
-    
-    # Update table content
-    if len(participantInfo_list) >= 0:
-      numParticipants = len(participantInfo_list)
-      tableWidget.setRowCount(numParticipants)
-      for participantPos in range(numParticipants):
-        participantIDTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['id'])
-        participantNameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['name'])
-        participantSurnameTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['surname'])
-        participantBirthDateTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['birthdate'])
-        participantEmailTableItem = qt.QTableWidgetItem(participantInfo_list[participantPos]['email'])
-        tableWidget.setItem(participantPos, 0, participantIDTableItem)
-        tableWidget.setItem(participantPos, 1, participantNameTableItem)
-        tableWidget.setItem(participantPos, 2, participantSurnameTableItem)
-        tableWidget.setItem(participantPos, 3, participantBirthDateTableItem)
-        tableWidget.setItem(participantPos, 4, participantEmailTableItem)
-    else:
-      tableWidget.setRowCount(0)
-      logging.debug('Home.updateDashboardTable: No participants found in database...')
-
-  #------------------------------------------------------------------------------
-  def updateDashboardTableSelection(self):
-    """
-    Updates selected item of dashboard table from parameter node.
-    """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-
-    # Get table widget
-    tableWidget = self.ui.DashboardPanel.ui.participantsTable
-
-    # Select row corresponding to selected participant
-    numRows = tableWidget.rowCount
-    for row in range(numRows):
-      item = tableWidget.item(row, 0)
-      if item.text() == selectedParticipantID:
-        tableWidget.setCurrentItem(item)
 
   #------------------------------------------------------------------------------
   def updateParticipantsTable(self):
@@ -519,9 +462,53 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.debug('Home.updateRecordingsTable: No participant is selected')
 
   #------------------------------------------------------------------------------
+  def updateDashboardPanel(self):
+    """
+    Update Dashboard panel indicating selected participant and configuration.
+    """    
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    participantSelected = self.logic.isParticipantSelected()
+
+    # Get information from selected participant
+    if participantSelected:
+      selectedParticipantInfo = self.logic.getParticipantInfoFromID(selectedParticipantID)
+      selectedParticipantName = selectedParticipantInfo['name']
+      selectedParticipantSurname = selectedParticipantInfo['surname']
+    else:      
+      selectedParticipantName = ''
+      selectedParticipantSurname = ''
+
+    # Get selected hardware configuration
+    selectedUltrasoundDevice = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
+    selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
+    selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+
+    # Get connection status
+    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    igtlConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName)
+    
+    # Update GUI
+    self.ui.DashboardPanel.ui.participantNameText.text = selectedParticipantName
+    self.ui.DashboardPanel.ui.participantSurnameText.text = selectedParticipantSurname
+    self.ui.DashboardPanel.ui.participantIDText.text = selectedParticipantID
+    self.ui.DashboardPanel.ui.ultrasoundDeviceText.text = selectedUltrasoundDevice
+    self.ui.DashboardPanel.ui.trackingSystemText.text = selectedTrackingSystem
+    self.ui.DashboardPanel.ui.simulationPhantomText.text = selectedSimulationPhantom
+    self.ui.DashboardPanel.ui.plusConnectionStatusText.text = plusConnectionStatus
+    self.ui.DashboardPanel.ui.igtlConnectionStatusText.text = igtlConnectionStatus
+    self.ui.DashboardPanel.ui.startButton.enabled = participantSelected
+
+  #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
     """
-    Display message box for the user to confirm if the partipant data must be deleted.
+    Display message box for the user to confirm if the participant data must be deleted.
     :return bool: True if delete action is confirmed, False otherwise
     """
     confirmExit = qt.QMessageBox()
@@ -575,8 +562,8 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # UI variables
     self.home_exitAppMessageBoxTitle = ''
     self.home_exitAppMessageBoxLabel = ''
-    self.dashboard_warningMessageTextLabel = ''
-    self.participants_warningMessageTextLabel = ''
+    self.newParticipantWarningMessageText = ''
+    self.editParticipantWarningMessageText = ''
     self.participants_deleteMessageBoxTitle = ''
     self.participants_deleteMessageBoxLabel = ''
     self.recordings_deleteMessageBoxTitle = ''
@@ -591,6 +578,24 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
+
+  #------------------------------------------------------------------------------
+  def observeParameterNode(self):
+    """
+    Add observe to TrainUS parameter node.
+    """
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('updateGUIFromMRML: Failed to get parameter node')
+      return
+
+    # Add observations on referenced nodes
+    if parameterNode:
+      self.addObserver(parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
+
+    # Update widgets
+    self.moduleWidget.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def setupKeyboardShortcuts(self):
@@ -1084,43 +1089,44 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.home_exitAppMessageBoxTitle = languageTexts['Home.exitAppMessageBoxTitle']
     self.home_exitAppMessageBoxLabel = languageTexts['Home.exitAppMessageBoxText_1'] + '\n\n' + languageTexts['Home.exitAppMessageBoxText_2']
     ## Dashboard
-    self.moduleWidget.ui.DashboardPanel.ui.startButton.setText(languageTexts['Dashboard.startButton'])
-    self.moduleWidget.ui.DashboardPanel.ui.newParticipantRadioButton.setText(languageTexts['Dashboard.newParticipantRadioButton'])
-    self.moduleWidget.ui.DashboardPanel.ui.existingParticipantRadioButton.setText(languageTexts['Dashboard.existingParticipantRadioButton'])
-    self.moduleWidget.ui.DashboardPanel.ui.newParticipantGroupBox.setTitle(languageTexts['Dashboard.newParticipantGroupBox'])
-    self.moduleWidget.ui.DashboardPanel.ui.existingParticipantGroupBox.setTitle(languageTexts['Dashboard.existingParticipantGroupBox'])
     self.moduleWidget.ui.DashboardPanel.ui.label_1.setText(languageTexts['Dashboard.label_1'])
-    self.moduleWidget.ui.DashboardPanel.ui.label_2.setText(languageTexts['Dashboard.label_2'])
-    self.moduleWidget.ui.DashboardPanel.ui.label_3.setText(languageTexts['Dashboard.label_3'])
-    self.moduleWidget.ui.DashboardPanel.ui.label_4.setText(languageTexts['Dashboard.label_4'])
-    self.moduleWidget.ui.DashboardPanel.ui.label_5.setText(languageTexts['Dashboard.label_5'])
-    self.moduleWidget.ui.DashboardPanel.ui.label_6.setText(languageTexts['Dashboard.label_6'])
-    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column1']))
-    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column2']))
-    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column3']))
-    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column4']))
-    self.moduleWidget.ui.DashboardPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column5']))
-    self.dashboard_warningMessageTextLabel = languageTexts['Dashboard.warningMessageText']
+    self.moduleWidget.ui.DashboardPanel.ui.participantGroupBox.setTitle(languageTexts['Dashboard.participantGroupBox'])
+    self.moduleWidget.ui.DashboardPanel.ui.participantNameLabel.setText(languageTexts['Dashboard.participantNameLabel'])
+    self.moduleWidget.ui.DashboardPanel.ui.participantSurnameLabel.setText(languageTexts['Dashboard.participantSurnameLabel'])
+    self.moduleWidget.ui.DashboardPanel.ui.configurationGroupBox.setTitle(languageTexts['Dashboard.configurationGroupBox'])
+    self.moduleWidget.ui.DashboardPanel.ui.ultrasoundDeviceLabel.setText(languageTexts['Dashboard.ultrasoundDeviceLabel'])
+    self.moduleWidget.ui.DashboardPanel.ui.trackingSystemLabel.setText(languageTexts['Dashboard.trackingSystemLabel'])
+    self.moduleWidget.ui.DashboardPanel.ui.simulationPhantomLabel.setText(languageTexts['Dashboard.simulationPhantomLabel'])
+    self.moduleWidget.ui.DashboardPanel.ui.startButton.setText(languageTexts['Dashboard.startButton'])
     ## Participants
     self.moduleWidget.ui.ParticipantsPanel.ui.label_1.setText(languageTexts['Participants.label_1'])
     self.moduleWidget.ui.ParticipantsPanel.ui.label_2.setText(languageTexts['Participants.label_2'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column1']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column2']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column3']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column4']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Dashboard.participantsTable_column5']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column1']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column2']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column3']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column4']))
+    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column5']))
     self.moduleWidget.ui.ParticipantsPanel.ui.optionsGroupBox.setTitle(languageTexts['Participants.optionsGroupBox'])
     self.moduleWidget.ui.ParticipantsPanel.ui.checkRecordingsButton.setText(languageTexts['Participants.checkRecordingsButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantButton.setText(languageTexts['Participants.newParticipantButton'])
     self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantButton.setText(languageTexts['Participants.editParticipantButton'])
     self.moduleWidget.ui.ParticipantsPanel.ui.deleteParticipantButton.setText(languageTexts['Participants.deleteParticipantButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantGroupBox.setTitle(languageTexts['Participants.newParticipantGroupBox'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_1.setText(languageTexts['Participants.newParticipantLabel_1'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_2.setText(languageTexts['Participants.newParticipantLabel_2'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_3.setText(languageTexts['Participants.newParticipantLabel_3'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_4.setText(languageTexts['Participants.newParticipantLabel_4'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantSaveButton.setText(languageTexts['Participants.newParticipantSaveButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantCancelButton.setText(languageTexts['Participants.newParticipantCancelButton'])
+    self.newParticipantWarningMessageText = languageTexts['Participants.newParticipantWarningMessageText']
     self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantGroupBox.setTitle(languageTexts['Participants.editParticipantGroupBox'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_1.setText(languageTexts['Participants.editPartipantLabel_1'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_2.setText(languageTexts['Participants.editPartipantLabel_2'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_3.setText(languageTexts['Participants.editPartipantLabel_3'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editPartipantLabel_4.setText(languageTexts['Participants.editPartipantLabel_4'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.saveEditButton.setText(languageTexts['Participants.saveEditButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.cancelEditButton.setText(languageTexts['Participants.cancelEditButton'])
-    self.participants_warningMessageTextLabel = languageTexts['Participants.warningMessageText']
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_1.setText(languageTexts['Participants.editParticipantLabel_1'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_2.setText(languageTexts['Participants.editParticipantLabel_2'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_3.setText(languageTexts['Participants.editParticipantLabel_3'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_4.setText(languageTexts['Participants.editParticipantLabel_4'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantSaveButton.setText(languageTexts['Participants.editParticipantSaveButton'])
+    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantCancelButton.setText(languageTexts['Participants.editParticipantCancelButton'])
+    self.editParticipantWarningMessageText = languageTexts['Participants.editParticipantWarningMessageText']
     self.participants_deleteMessageBoxTitle = languageTexts['Participants.deleteMessageBoxTitle']
     self.participants_deleteMessageBoxLabel = languageTexts['Participants.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Participants.deleteMessageBoxText_2']
     ## Recordings
@@ -1146,7 +1152,6 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Adjust width of table columns to new horizontal headers
     COLUMN_H_MARGIN = 50
-    self.addMarginToColumnWidth(self.moduleWidget.ui.DashboardPanel.ui.participantsTable, COLUMN_H_MARGIN)
     self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable, COLUMN_H_MARGIN)
     self.addMarginToColumnWidth(self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable, COLUMN_H_MARGIN)
 
