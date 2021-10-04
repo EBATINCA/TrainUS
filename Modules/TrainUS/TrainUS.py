@@ -248,11 +248,18 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Constants
     self.DATA_PATH = self.setupRootDirectory()
 
+    # Hardware configurations
+    self.ultrasoundDeviceOptions = ['None', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
+    self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
+    self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
+
     # Default parameters map
     self.defaultParameters = {}
-    self.defaultParameters["ParticipantSelectionMode"] = 'New Participant'
     self.defaultParameters["SelectedParticipantID"] = ''
     self.defaultParameters["SelectedRecordingID"] = ''
+    self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]
+    self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[1]
+    self.defaultParameters["SelectedSimulationPhantom"] = self.trackingSystemOptions[0]
     self.defaultParameters["USImageName"] = 'Image_Image'
     self.defaultParameters["PlusConnectionStatus"] = 'OFF'
     self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
@@ -262,14 +269,16 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # self.modelReferenceRolePrefix = 'Model_'
 
     # Parameter node parameter names
-    self.participantSelectionModeParameterName = 'ParticipantSelectionMode'
     self.selectedParticipantIDParameterName = 'SelectedParticipantID'
     self.selectedRecordingIDParameterName = 'SelectedRecordingID'
+    self.selectedUltrasoundDeviceParameterName = 'SelectedUltrasoundDevice'
+    self.selectedTrackingSystemParameterName = 'SelectedTrackingSystem'
+    self.selectedSimulationPhantomParameterName = 'SelectedSimulationPhantom'
     self.usImageNameParameterName = 'USImageName'
     self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
     self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
     self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
-
+    
     # Setup scene
     self.setupScene()
 

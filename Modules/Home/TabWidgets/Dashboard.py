@@ -108,18 +108,6 @@ class Dashboard(qt.QWidget):
     else:
       print('Selected participant: NONE')
 
-    # Get training session info
-    participantID = selectedParticipantInfo['id']
-    participantName= selectedParticipantInfo['name']
-    participantSurname = selectedParticipantInfo['surname']
-    from datetime import datetime
-    dateLabel = datetime.now().strftime('%Y-%m-%d')
-    
-    # Update training session info in UI
-    self.homeWidget.ui.participantLabel.text = f'[{participantID}] {participantSurname}, {participantName}'
-    self.homeWidget.ui.dateTimeLabel.text = dateLabel
-    self.homeWidget.ui.hardwareSetUpLabel.text = '-' # TODO
-
     # Shows training menu
     self.homeWidget.updateTrainingMenuVisibility(visible = True)    
 

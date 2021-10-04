@@ -485,6 +485,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       selectedParticipantName = ''
       selectedParticipantSurname = ''
 
+    # Get current date
+    from datetime import datetime
+    dateLabel = datetime.now().strftime('%Y-%m-%d')
+
     # Get selected hardware configuration
     selectedUltrasoundDevice = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
     selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
@@ -494,7 +498,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     igtlConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName)
     
-    # Update GUI
+    # Update GUI in dashboard tab
     self.ui.DashboardPanel.ui.participantNameText.text = selectedParticipantName
     self.ui.DashboardPanel.ui.participantSurnameText.text = selectedParticipantSurname
     self.ui.DashboardPanel.ui.participantIDText.text = selectedParticipantID
@@ -504,6 +508,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.DashboardPanel.ui.plusConnectionStatusText.text = plusConnectionStatus
     self.ui.DashboardPanel.ui.igtlConnectionStatusText.text = igtlConnectionStatus
     self.ui.DashboardPanel.ui.startButton.enabled = participantSelected
+
+    # Update GUI in training session info box    
+    self.ui.participantLabel.text = f'[{selectedParticipantID}] {selectedParticipantSurname}, {selectedParticipantName}'
+    self.ui.dateTimeLabel.text = dateLabel
+    self.ui.hardwareSetUpLabel.text = f'{selectedUltrasoundDevice} / {selectedTrackingSystem} / {selectedSimulationPhantom}'
 
   #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
