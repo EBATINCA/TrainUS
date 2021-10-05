@@ -4,31 +4,35 @@ import os
 
 #------------------------------------------------------------------------------
 #
-# BasicTraining
+# PlugAndPlay
 #
 #------------------------------------------------------------------------------
-class BasicTraining(qt.QWidget):
+class PlugAndPlay(qt.QWidget):
 
   def __init__(self, parent=None):
-    super(BasicTraining, self).__init__(parent)
+    super(PlugAndPlay, self).__init__(parent)
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
+    self.trainUsWidget = slicer.trainUsWidget
+
+    # GUI flags
+    self.recordingDetailsVisible = False
 
   #------------------------------------------------------------------------------
   # Clean up when application is closed
   def cleanup(self):
-    logging.debug('BasicTraining.cleanup')
+    logging.debug('PlugAndPlay.cleanup')
 
     self.disconnect()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
-    logging.debug('BasicTraining.setupUi')
+    logging.debug('PlugAndPlay.setupUi')
 
     # Load widget from .ui file (created by Qt Designer).
     # Additional widgets can be instantiated manually and added to self.layout.
-    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'BasicTraining.ui')
+    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'PlugAndPlay.ui')
     uiWidget = slicer.util.loadUI(uiFilePath)
     self.sectionLayout = qt.QVBoxLayout(self)
     self.sectionLayout.setContentsMargins(0, 0, 0, 0)
@@ -36,21 +40,23 @@ class BasicTraining(qt.QWidget):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
-    
+
     # Setup GUI connections
     self.setupConnections()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    logging.debug('BasicTraining.setupConnections')
+    logging.debug('PlugAndPlay.setupConnections')
 
-    pass
+    self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
+    self.ui.nextPageButton.clicked.connect(self.onNextPageButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    logging.debug('BasicTraining.disconnect')
+    logging.debug('PlugAndPlay.disconnect')
 
-    pass
+    self.ui.previousPageButton.clicked.disconnect()
+    self.ui.nextPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -59,13 +65,14 @@ class BasicTraining(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.homeWidget.getParameterNode()
+
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('Failed to get parameter node')
       return
 
-    pass
-
+    
 
   #------------------------------------------------------------------------------
   #
@@ -73,12 +80,20 @@ class BasicTraining(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onPreviousPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 3)
 
-
-
+  #------------------------------------------------------------------------------
+  def onNextPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 5)
 
   #------------------------------------------------------------------------------
   #
   # Logic functions
   #
   #------------------------------------------------------------------------------
+
+  

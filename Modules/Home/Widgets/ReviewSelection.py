@@ -4,13 +4,13 @@ import os
 
 #------------------------------------------------------------------------------
 #
-# Dashboard
+# ReviewSelection
 #
 #------------------------------------------------------------------------------
-class Dashboard(qt.QWidget):
+class ReviewSelection(qt.QWidget):
 
   def __init__(self, parent=None):
-    super(Dashboard, self).__init__(parent)
+    super(ReviewSelection, self).__init__(parent)
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
@@ -19,17 +19,17 @@ class Dashboard(qt.QWidget):
   #------------------------------------------------------------------------------
   # Clean up when application is closed
   def cleanup(self):
-    logging.debug('Dashboard.cleanup')
+    logging.debug('ReviewSelection.cleanup')
 
     self.disconnect()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
-    logging.debug('Dashboard.setupUi')
+    logging.debug('ReviewSelection.setupUi')
 
     # Load widget from .ui file (created by Qt Designer).
     # Additional widgets can be instantiated manually and added to self.layout.
-    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'Dashboard.ui')
+    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'ReviewSelection.ui')
     uiWidget = slicer.util.loadUI(uiFilePath)
     self.sectionLayout = qt.QVBoxLayout(self)
     self.sectionLayout.setContentsMargins(0, 0, 0, 0)
@@ -51,15 +51,21 @@ class Dashboard(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    logging.debug('Dashboard.setupConnections')
+    logging.debug('ReviewSelection.setupConnections')
 
-    self.ui.startButton.clicked.connect(self.onStartButtonClicked)
+    self.ui.editParticipantSelectionButton.clicked.connect(self.onEditParticipantSelectionButtonClicked)
+    self.ui.editHardwareSelectionButton.clicked.connect(self.onEditHardwareSelectionButtonClicked)
+    self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
+    self.ui.nextPageButton.clicked.connect(self.onNextPageButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    logging.debug('Dashboard.disconnect')
+    logging.debug('ReviewSelection.disconnect')
 
-    self.ui.startButton.clicked.disconnect()
+    self.ui.editParticipantSelectionButton.clicked.disconnect()
+    self.ui.editHardwareSelectionButton.clicked.disconnect()
+    self.ui.previousPageButton.clicked.disconnect()
+    self.ui.nextPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -73,10 +79,6 @@ class Dashboard(qt.QWidget):
       logging.error('Failed to get parameter node')
       return
 
-    # Update state of start button
-    participantSelected = self.homeWidget.logic.isParticipantSelected()
-    self.ui.startButton.enabled = participantSelected
-
 
   #------------------------------------------------------------------------------
   #
@@ -84,35 +86,24 @@ class Dashboard(qt.QWidget):
   #
 
   #------------------------------------------------------------------------------
-  def onStartButtonClicked(self):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
+  def onEditParticipantSelectionButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 1)
 
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+  #------------------------------------------------------------------------------
+  def onEditHardwareSelectionButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 2)
 
-    # Get participant info from ID
-    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromID(selectedParticipantID)
+  #------------------------------------------------------------------------------
+  def onPreviousPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 2)
 
-    # Display
-    if selectedParticipantInfo:
-      print('Selected participant: ')
-      print('   - Participant ID: ', selectedParticipantInfo['id'])
-      print('   - Participant Name: ', selectedParticipantInfo['name'])
-      print('   - Participant Surname: ', selectedParticipantInfo['surname'])
-      print('   - Participant Birth Date: ', selectedParticipantInfo['birthdate'])
-      print('   - Participant Email: ', selectedParticipantInfo['email'])
-    else:
-      print('Selected participant: NONE')
-
-    # Shows training menu
-    self.homeWidget.updateTrainingMenuVisibility(visible = True)    
-
-    # Update GUI from MRML
-    self.updateGUIFromMRML()
+  #------------------------------------------------------------------------------
+  def onNextPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 4)
 
 
   #------------------------------------------------------------------------------

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1258</width>
-    <height>634</height>
+    <width>1262</width>
+    <height>643</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -27,114 +27,96 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="2">
-       <widget class="QLabel" name="label_2">
+      <item row="4" column="2">
+       <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
-          <pointsize>5</pointsize>
+          <pointsize>13</pointsize>
           <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
         <property name="text">
-         <string/>
+         <string>Simulation phantom:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="0" colspan="6">
-       <widget class="QGroupBox" name="groupBox_2">
+      <item row="10" column="0" colspan="6">
+       <widget class="QGroupBox" name="trackingSystemGrouBox">
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <pointsize>13</pointsize>
           <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
         <property name="title">
-         <string>Hardware connection</string>
+         <string>Tracking system</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
-          <widget class="QPushButton" name="plusConnectionButton">
+          <widget class="QPushButton" name="toolTrackingStatusButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
            <property name="text">
-            <string>PLUS Server Connection</string>
+            <string>Tool Tracking Status</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLabel" name="label_4">
+          <widget class="QPushButton" name="toolPivotCalibrationButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
            <property name="text">
-            <string/>
+            <string>Tool Pivot Calibration</string>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QLabel" name="label_5">
+          <widget class="QPushButton" name="phantomRegistrationButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
            <property name="text">
-            <string/>
+            <string>Phantom Registration</string>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="4" column="2">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Simulation phantom:</string>
+      <item row="11" column="2">
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QComboBox" name="simulationPhantomComboBox"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
         </property>
-        <property name="text">
-         <string>Hardware set-up</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Ultrasound device:</string>
-        </property>
-       </widget>
+       </spacer>
       </item>
       <item row="8" column="0" colspan="6">
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="ultrasoundImagingGroupBox">
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <pointsize>13</pointsize>
           <weight>50</weight>
           <bold>false</bold>
          </font>
@@ -147,7 +129,7 @@
           <widget class="QPushButton" name="ultrasoundProbeCalibrationButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
@@ -161,7 +143,7 @@
           <widget class="QPushButton" name="ultrasoundDisplaySettingsButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
@@ -188,43 +170,6 @@
         </layout>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QComboBox" name="ultrasoundDeviceComboBox"/>
-      </item>
-      <item row="2" column="4">
-       <widget class="QLabel" name="label_3">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="QLabel" name="label_7">
-        <property name="text">
-         <string>Tracking system:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="3">
-       <widget class="QComboBox" name="trackingSystemComboBox"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_10">
-        <property name="text">
-         <string>Configuration:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="5" column="2">
        <spacer name="verticalSpacer">
         <property name="font">
@@ -248,35 +193,35 @@
         </property>
        </spacer>
       </item>
-      <item row="10" column="0" colspan="6">
-       <widget class="QGroupBox" name="groupBox_4">
+      <item row="7" column="0" colspan="6">
+       <widget class="QGroupBox" name="hardwareConnectionGroupBox">
         <property name="font">
          <font>
-          <pointsize>11</pointsize>
+          <pointsize>13</pointsize>
           <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
         <property name="title">
-         <string>Tracking system</string>
+         <string>Hardware connection</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_5">
+        <layout class="QGridLayout" name="gridLayout_3">
          <item row="0" column="0">
-          <widget class="QPushButton" name="otsToolTrackingStatusButton">
+          <widget class="QPushButton" name="plusConnectionButton">
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
+             <pointsize>13</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
            <property name="text">
-            <string>Tool Tracking Status</string>
+            <string>PLUS Server Connection</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QPushButton" name="otsToolPivotCalibrationButton">
+          <widget class="QLabel" name="label_40">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -285,12 +230,12 @@
             </font>
            </property>
            <property name="text">
-            <string>Tool Pivot Calibration</string>
+            <string/>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QPushButton" name="otsPhantomRegistrationButton">
+          <widget class="QLabel" name="label_50">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -299,25 +244,51 @@
             </font>
            </property>
            <property name="text">
-            <string>Phantom Registration</string>
+            <string/>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="11" column="2">
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+      <item row="3" column="2">
+       <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+        <property name="text">
+         <string>Tracking system:</string>
         </property>
-       </spacer>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QComboBox" name="ultrasoundDeviceComboBox">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_1">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Hardware set-up</string>
+        </property>
+       </widget>
       </item>
       <item row="2" column="1" rowspan="3">
        <widget class="Line" name="line">
@@ -331,6 +302,126 @@
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QLabel" name="label_30">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Configuration</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QComboBox" name="simulationPhantomComboBox">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_20">
+        <property name="font">
+         <font>
+          <pointsize>5</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Ultrasound device:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QComboBox" name="trackingSystemComboBox">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="6">
+       <widget class="QFrame" name="navigationBar">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="previousPageButton">
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>BACK</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

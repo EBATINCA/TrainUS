@@ -85,6 +85,9 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Apply style
     self.applyApplicationStyle()
 
+    # Avoid style to be applied by default
+    self.settingsUI.CustomStyleCheckBox.checked = False
+
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
 
@@ -255,6 +258,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Default parameters map
     self.defaultParameters = {}
+    self.defaultParameters["AppMode"] = 'TRAINING'
     self.defaultParameters["SelectedParticipantID"] = ''
     self.defaultParameters["SelectedRecordingID"] = ''
     self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]
@@ -269,6 +273,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # self.modelReferenceRolePrefix = 'Model_'
 
     # Parameter node parameter names
+    self.selectedAppModeParameterName = 'AppMode'
     self.selectedParticipantIDParameterName = 'SelectedParticipantID'
     self.selectedRecordingIDParameterName = 'SelectedRecordingID'
     self.selectedUltrasoundDeviceParameterName = 'SelectedUltrasoundDevice'

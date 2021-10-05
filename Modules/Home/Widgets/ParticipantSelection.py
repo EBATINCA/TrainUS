@@ -4,13 +4,13 @@ import os
 
 #------------------------------------------------------------------------------
 #
-# Participants
+# ParticipantSelection
 #
 #------------------------------------------------------------------------------
-class Participants(qt.QWidget):
+class ParticipantSelection(qt.QWidget):
 
   def __init__(self, parent=None):
-    super(Participants, self).__init__(parent)
+    super(ParticipantSelection, self).__init__(parent)
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
@@ -23,17 +23,17 @@ class Participants(qt.QWidget):
   #------------------------------------------------------------------------------
   # Clean up when application is closed
   def cleanup(self):
-    logging.debug('Participants.cleanup')
+    logging.debug('ParticipantSelection.cleanup')
 
     self.disconnect()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
-    logging.debug('Participants.setupUi')
+    logging.debug('ParticipantSelection.setupUi')
 
     # Load widget from .ui file (created by Qt Designer).
     # Additional widgets can be instantiated manually and added to self.layout.
-    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'Participants.ui')
+    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'ParticipantSelection.ui')
     uiWidget = slicer.util.loadUI(uiFilePath)
     self.sectionLayout = qt.QVBoxLayout(self)
     self.sectionLayout.setContentsMargins(0, 0, 0, 0)
@@ -43,14 +43,15 @@ class Participants(qt.QWidget):
     # Customize widgets    
     self.ui.newParticipantGroupBox.visible = False
     self.ui.editParticipantGroupBox.visible = False
-    self.ui.checkRecordingsButton.enabled = False
-    self.ui.newParticipantButton.enabled = False
+    self.ui.newParticipantButton.enabled = True
     self.ui.editParticipantButton.enabled = False
     self.ui.deleteParticipantButton.enabled = False
     self.ui.newParticipantSaveButton.enabled = True 
     self.ui.newParticipantCancelButton.enabled = True
     self.ui.editParticipantSaveButton.enabled = True 
     self.ui.editParticipantCancelButton.enabled = True
+    self.ui.previousPageButton.enabled = True
+    self.ui.nextPageButton.enabled = False
 
     # New participant input
     self.ui.newParticipantNameText.setText('')
@@ -89,11 +90,10 @@ class Participants(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    logging.debug('Participants.setupConnections')
+    logging.debug('ParticipantSelection.setupConnections')
 
     self.ui.participantSearchText.textChanged.connect(self.onParticipantSearchTextChanged)
-    self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
-    self.ui.checkRecordingsButton.clicked.connect(self.onCheckRecordingsButtonClicked)
+    self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantSelectionTableItemSelected)
     self.ui.newParticipantButton.clicked.connect(self.onNewParticipantButtonClicked)
     self.ui.editParticipantButton.clicked.connect(self.onEditParticipantButtonClicked)
     self.ui.deleteParticipantButton.clicked.connect(self.onDeleteParticipantButtonClicked)
@@ -101,14 +101,15 @@ class Participants(qt.QWidget):
     self.ui.newParticipantCancelButton.clicked.connect(self.onNewParticipantCancelButtonClicked)
     self.ui.editParticipantSaveButton.clicked.connect(self.onEditParticipantSaveButtonClicked)
     self.ui.editParticipantCancelButton.clicked.connect(self.onEditParticipantCancelButtonClicked)
+    self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
+    self.ui.nextPageButton.clicked.connect(self.onNextPageButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    logging.debug('Participants.disconnect')
+    logging.debug('ParticipantSelection.disconnect')
 
     self.ui.participantSearchText.textChanged.disconnect()
     self.ui.participantsTable.itemSelectionChanged.disconnect()
-    self.ui.checkRecordingsButton.clicked.disconnect()
     self.ui.newParticipantButton.clicked.disconnect()
     self.ui.editParticipantButton.clicked.disconnect()
     self.ui.deleteParticipantButton.clicked.disconnect()
@@ -116,6 +117,8 @@ class Participants(qt.QWidget):
     self.ui.newParticipantCancelButton.clicked.disconnect()
     self.ui.editParticipantSaveButton.clicked.disconnect()
     self.ui.editParticipantCancelButton.clicked.disconnect()
+    self.ui.previousPageButton.clicked.disconnect()
+    self.ui.nextPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -131,10 +134,10 @@ class Participants(qt.QWidget):
 
     # Participant selection
     participantSelected = self.homeWidget.logic.isParticipantSelected()
-    self.ui.checkRecordingsButton.enabled = participantSelected
-    self.ui.newParticipantButton.enabled = (not self.newParticipantVisible)
-    self.ui.editParticipantButton.enabled = participantSelected and (not self.editParticipantVisible)
-    self.ui.deleteParticipantButton.enabled = participantSelected
+    self.ui.newParticipantButton.enabled = (not self.newParticipantVisible) and (not self.editParticipantVisible)
+    self.ui.editParticipantButton.enabled = participantSelected and (not self.newParticipantVisible) and (not self.editParticipantVisible)
+    self.ui.deleteParticipantButton.enabled = participantSelected and (not self.newParticipantVisible) and (not self.editParticipantVisible)
+    self.ui.nextPageButton.enabled = participantSelected
 
     # Edit participant group box
     self.ui.newParticipantGroupBox.visible = self.newParticipantVisible
@@ -162,15 +165,15 @@ class Participants(qt.QWidget):
   
   #------------------------------------------------------------------------------
   def onParticipantSearchTextChanged(self, searchText):
-    # Synchronize dasboard table search
-    self.homeWidget.ui.DashboardPanel.ui.participantSearchText.setText(searchText)
-
+    
     # Update table content
     self.homeWidget.updateParticipantsTable()
-    self.homeWidget.updateRecordingsTable()
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onParticipantsTableItemSelected(self):
+  def onParticipantSelectionTableItemSelected(self):
     # Get selected cells
     participantID = ''
     selected = self.ui.participantsTable.selectedItems()
@@ -187,12 +190,10 @@ class Participants(qt.QWidget):
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onCheckRecordingsButtonClicked(self):
-    # Change current tab to "Recordings"
-    self.homeWidget.ui.dashboardTabWidget.currentIndex = 2
-
-  #------------------------------------------------------------------------------
   def onNewParticipantButtonClicked(self):
+    # Update table content to remove current selection
+    self.homeWidget.updateParticipantsTable()
+
     # Update group box visibility
     self.newParticipantVisible = True
     self.updateGUIFromMRML() 
@@ -292,6 +293,17 @@ class Participants(qt.QWidget):
     self.updateGUIFromMRML() 
 
   #------------------------------------------------------------------------------
+  def onPreviousPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 0)
+
+  #------------------------------------------------------------------------------
+  def onNextPageButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 2)
+
+
+  #------------------------------------------------------------------------------
   #
   # Logic functions
   #
@@ -310,9 +322,6 @@ class Participants(qt.QWidget):
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-
-    # Update recordings table
-    self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def deleteSelectedParticipant(self):
@@ -336,7 +345,6 @@ class Participants(qt.QWidget):
 
     # Update tables    
     self.homeWidget.updateParticipantsTable()
-    self.homeWidget.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
   def deleteParticipantMessageBox(self):
@@ -378,7 +386,6 @@ class Participants(qt.QWidget):
 
     # Update table
     self.homeWidget.updateParticipantsTable()
-    self.homeWidget.updateRecordingsTable()
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])

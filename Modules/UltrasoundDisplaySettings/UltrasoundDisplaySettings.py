@@ -551,7 +551,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     else:
       # Change to normal interaction mode
       slicer.app.applicationLogic().GetInteractionNode().SetCurrentInteractionMode(slicer.vtkMRMLInteractionNode.ViewTransform)
-      # Remove observer to moouse movement
+      # Remove observer to mouse movement
       if self.crosshairNode and self.mouseObserverID:
         self.crosshairNode.RemoveObserver(self.mouseObserverID)
     

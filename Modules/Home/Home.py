@@ -9,7 +9,9 @@ from slicer.util import VTKObservationMixin
 # from Resources import HomeResourcesResources
 
 import logging
-import TabWidgets
+
+# Custom widgets
+import Widgets
 
 #------------------------------------------------------------------------------
 #
@@ -126,15 +128,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Setup user interface
     self.setupUi()
 
-    # Tab widget visibility
-    self.updateTrainingMenuVisibility(visible = False)
-
     # Update UI tables
     self.updateParticipantsTable()
     self.updateRecordingsTable()
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
+
+    # Update UI mode
+    self.updateUIforMode(modeID = 0)
 
   #------------------------------------------------------------------------------
   def onClose(self, unusedOne, unusedTwo):
@@ -193,17 +195,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
+    # Welcome page
     self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
     self.ui.exitAppButton.clicked.connect(self.onExitAppButtonClicked)
-    self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
     self.ui.languageComboBox.currentIndexChanged.connect(self.onLanguageComboBoxIndexChanged)
+    self.ui.trainingModeButton.clicked.connect(self.onTrainingModeButtonClicked)
+    self.ui.evaluationModeButton.clicked.connect(self.onEvaluationModeButtonClicked)
+    self.ui.configurationButton.clicked.connect(self.onConfigurationButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):    
+    # Welcome page
     self.ui.backToSlicerButton.clicked.disconnect()
     self.ui.exitAppButton.clicked.disconnect()
-    self.ui.finishTrainingButton.clicked.disconnect()
     self.ui.languageComboBox.currentIndexChanged.disconnect()
+    self.ui.trainingModeButton.clicked.disconnect()
+    self.ui.evaluationModeButton.clicked.disconnect()
+    self.ui.configurationButton.clicked.disconnect()
     
   #------------------------------------------------------------------------------
   def onBackToSlicerButtonClicked(self):    
@@ -228,15 +236,40 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.trainUsWidget.logic.exitApplication()
     
   #------------------------------------------------------------------------------
-  def onFinishTrainingButtonClicked(self):
-    # Hides training menu
-    self.updateTrainingMenuVisibility(visible = False)
-
-  #------------------------------------------------------------------------------
   def onLanguageComboBoxIndexChanged(self):
     # Update UI
     self.logic.updateLanguageUI(self.ui.languageComboBox.currentIndex)
     
+  #------------------------------------------------------------------------------
+  def onTrainingModeButtonClicked(self):
+    # Update mode
+    self.logic.switchAppMode('TRAINING')
+
+    # Update UI
+    self.updateUIforMode(modeID = 1) # switch to training mode
+
+    # Update UI tables
+    self.updateParticipantsTable()
+    self.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
+  def onEvaluationModeButtonClicked(self):
+
+    # Update mode
+    self.logic.switchAppMode('EVALUATION')
+
+    # Update UI
+    self.updateUIforMode(modeID = 6) # switch to evaluation mode
+
+    # Update UI tables
+    self.updateParticipantsTable()
+    self.updateRecordingsTable()
+
+  #------------------------------------------------------------------------------
+  def onConfigurationButtonClicked(self):
+    # Update UI
+    self.updateUIforMode(modeID = 7) # switch to configuration
+
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):
     """
@@ -275,82 +308,173 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.error('updateGUIFromMRML: Failed to get parameter node')
       return
 
-    # Update dashboard panel
-    self.updateDashboardPanel()
+    # Update review selection panel
+    self.updateReviewSelectionPanel()
+
+    # Update training session panel
+    self.updateTrainingSessionPanel()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
     logging.debug('Home.setupUi')
 
-    # Dashboard tab
-    self.ui.DashboardPanel = TabWidgets.Dashboard(self.ui.dashboardTab)
-    self.ui.DashboardPanel.homeWidget = self
-    self.ui.DashboardPanel.setupUi()
-    self.ui.dashboardTab.layout().addWidget(self.ui.DashboardPanel)
-
-    # Participants tab
-    self.ui.ParticipantsPanel = TabWidgets.Participants(self.ui.participantsTab)
-    self.ui.ParticipantsPanel.homeWidget = self
-    self.ui.ParticipantsPanel.setupUi()
-    self.ui.participantsTab.layout().addWidget(self.ui.ParticipantsPanel)
-
-    # Recordings tab
-    self.ui.RecordingsPanel = TabWidgets.Recordings(self.ui.recordingsTab)
-    self.ui.RecordingsPanel.homeWidget = self
-    self.ui.RecordingsPanel.setupUi()
-    self.ui.recordingsTab.layout().addWidget(self.ui.RecordingsPanel)
-
-    # Configuration tab
-    self.ui.ConfigurationPanel = TabWidgets.Configuration(self.ui.configurationTab)
+    # Configuration page
+    self.ui.ConfigurationPanel = Widgets.Configuration(self.ui.configurationWidget)
     self.ui.ConfigurationPanel.homeWidget = self
     self.ui.ConfigurationPanel.setupUi()
-    self.ui.configurationTab.layout().addWidget(self.ui.ConfigurationPanel)
+    self.ui.configurationWidget.layout().addWidget(self.ui.ConfigurationPanel)
 
-    # Basic training tab
-    self.ui.BasicTrainingPanel = TabWidgets.BasicTraining(self.ui.basicTrainingTab)
-    self.ui.BasicTrainingPanel.homeWidget = self
-    self.ui.BasicTrainingPanel.setupUi()
-    self.ui.basicTrainingTab.layout().addWidget(self.ui.BasicTrainingPanel)
+    # Training page
+    ## Step 1
+    self.ui.ParticipantSelectionPanel = Widgets.ParticipantSelection(self.ui.step1Page)
+    self.ui.ParticipantSelectionPanel.homeWidget = self
+    self.ui.ParticipantSelectionPanel.setupUi()
+    self.ui.step1Page.layout().addWidget(self.ui.ParticipantSelectionPanel)
+    ## Step 2
+    self.ui.HardwareSelectionPanel = Widgets.HardwareSelection(self.ui.step2Page)
+    self.ui.HardwareSelectionPanel.homeWidget = self
+    self.ui.HardwareSelectionPanel.setupUi()
+    self.ui.step2Page.layout().addWidget(self.ui.HardwareSelectionPanel)
+    ## Step 3
+    self.ui.ReviewSelectionPanel = Widgets.ReviewSelection(self.ui.step3Page)
+    self.ui.ReviewSelectionPanel.homeWidget = self
+    self.ui.ReviewSelectionPanel.setupUi()
+    self.ui.step3Page.layout().addWidget(self.ui.ReviewSelectionPanel)
+    ## Step 4
+    self.ui.PlugAndPlayPanel = Widgets.PlugAndPlay(self.ui.step4Page)
+    self.ui.PlugAndPlayPanel.homeWidget = self
+    self.ui.PlugAndPlayPanel.setupUi()
+    self.ui.step4Page.layout().addWidget(self.ui.PlugAndPlayPanel) 
 
-    # Advanced training tab
-    self.ui.AdvancedTrainingPanel = TabWidgets.AdvancedTraining(self.ui.advancedTrainingTab)
-    self.ui.AdvancedTrainingPanel.homeWidget = self
-    self.ui.AdvancedTrainingPanel.setupUi()
-    self.ui.advancedTrainingTab.layout().addWidget(self.ui.AdvancedTrainingPanel)
+    # Evaluation page
+    self.ui.EvaluationPanel = Widgets.Evaluation(self.ui.evaluationWidget)
+    self.ui.EvaluationPanel.homeWidget = self
+    self.ui.EvaluationPanel.setupUi()
+    self.ui.evaluationWidget.layout().addWidget(self.ui.EvaluationPanel)
+    
+    # Training session page
+    self.ui.TrainingSessionPanel = Widgets.TrainingSession(self.ui.trainingSessionWidget)
+    self.ui.TrainingSessionPanel.homeWidget = self
+    self.ui.TrainingSessionPanel.setupUi()
+    self.ui.trainingSessionWidget.layout().addWidget(self.ui.TrainingSessionPanel)
 
     # Update UI language
     self.logic.updateLanguageUI(selectedLanguageIndex = 0) # english by default
 
   #------------------------------------------------------------------------------
-  def updateTrainingMenuVisibility(self, visible):
-    logging.debug('Home.TrainingMenuVisibility')
+  def updateUIforMode(self, modeID):
+    logging.debug('Home.updateUIforMode')
 
-    # Update visibility tab widgets
-    self.ui.dashboardTabWidget.visible = not visible 
-    self.ui.trainingInfoGroupBox.visible = visible
-    self.ui.trainingTabWidget.visible = visible
-    self.ui.finishTrainingFrame.visible = visible    
+    # Reset navigation label style
+    self.ui.step1NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
+    self.ui.step2NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
+    self.ui.step3NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
+    self.ui.step4NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
+    self.ui.step1NavigationFrame.lineWidth = 0
+    self.ui.step2NavigationFrame.lineWidth = 0
+    self.ui.step3NavigationFrame.lineWidth = 0
+    self.ui.step4NavigationFrame.lineWidth = 0
+
+    # Switch mode
+    if modeID == 0: # home page
+      self.ui.welcomePage.visible = True 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = False
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False
+    if modeID == 1: # start training - step 1
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = True
+      self.ui.stackedWidget.currentIndex = 0
+      self.ui.step1NavigationLabel.setStyleSheet("QLabel { color : black }")
+      self.ui.step1NavigationFrame.lineWidth = 2
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False
+    if modeID == 2: # start training - step 2
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = True
+      self.ui.stackedWidget.currentIndex = 1
+      self.ui.step2NavigationLabel.setStyleSheet("QLabel { color : black }")
+      self.ui.step2NavigationFrame.lineWidth = 2
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False
+    if modeID == 3: # start training - step 3
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = True
+      self.ui.stackedWidget.currentIndex = 2
+      self.ui.step3NavigationLabel.setStyleSheet("QLabel { color : black }")
+      self.ui.step3NavigationFrame.lineWidth = 2
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False
+    if modeID == 4: # start training - step 4
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = True
+      self.ui.stackedWidget.currentIndex = 3
+      self.ui.step4NavigationLabel.setStyleSheet("QLabel { color : black }")
+      self.ui.step4NavigationFrame.lineWidth = 2
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False
+    if modeID == 5: # Training session
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = False
+      self.ui.trainingSessionPage.visible = True
+      self.ui.evaluationPage.visible = False
+    if modeID == 6: # Recording management
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = False
+      self.ui.trainingPage.visible = False
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = True
+    if modeID == 7: # configuration
+      self.ui.welcomePage.visible = False 
+      self.ui.configurationPage.visible = True
+      self.ui.trainingPage.visible = False
+      self.ui.trainingSessionPage.visible = False
+      self.ui.evaluationPage.visible = False    
 
   #------------------------------------------------------------------------------
   def updateParticipantsTable(self):
     """
     Updates content of participants table by reading the database in root directory.
     """
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get current app mode
+    appMode = parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName)
+
+    # Select target table to update according to app mode
+    if appMode == 'TRAINING':
+      uiPanel = self.ui.ParticipantSelectionPanel
+    elif appMode == 'EVALUATION':
+      uiPanel = self.ui.EvaluationPanel
+    else:
+      logging.error('Home.updateParticipantsTable: Unknown app mode')
+      return
+
     # Get data from directory
     participantInfo_list = self.logic.readRootDirectory()
-
+    
     # Filter participants according to search text
-    searchText = self.ui.ParticipantsPanel.ui.participantSearchText.text
+    searchText = uiPanel.ui.participantSearchText.text
     if searchText is not '':
       participantInfo_list = self.logic.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
 
-    # Get table widget
-    tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
+    ## Get table widget
+    tableWidget = uiPanel.ui.participantsTable
 
-    # Reset table
+    ## Reset table
     tableWidget.clearContents()
     
-    # Update table content
+    ## Update table content
     if len(participantInfo_list) >= 0:
       numParticipants = len(participantInfo_list)
       tableWidget.setRowCount(numParticipants)
@@ -383,8 +507,20 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Get selected participant
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
 
+    # Get current app mode
+    appMode = parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName)
+
+    # Select target table to update according to app mode
+    if appMode == 'TRAINING':
+      uiPanel = self.ui.ParticipantSelectionPanel
+    elif appMode == 'EVALUATION':
+      uiPanel = self.ui.EvaluationPanel
+    else:
+      logging.error('Home.updateParticipantsTableSelection: Unknown app mode')
+      return
+
     # Get table widget
-    tableWidget = self.ui.ParticipantsPanel.ui.participantsTable
+    tableWidget = uiPanel.ui.participantsTable
 
     # Select row corresponding to selected participant
     numRows = tableWidget.rowCount
@@ -424,14 +560,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       selectedParticipantLabel = ''
 
     # Update GUI
-    self.ui.RecordingsPanel.ui.participantSelectionText.text = selectedParticipantLabel
+    self.ui.EvaluationPanel.ui.participantSelectionText.text = selectedParticipantLabel
 
     #
     # Update table content
     #
     
     # Get table widget
-    tableWidget = self.ui.RecordingsPanel.ui.recordingsTable
+    tableWidget = self.ui.EvaluationPanel.ui.recordingsTable
 
     # Reset table
     tableWidget.clearContents()
@@ -462,9 +598,46 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       logging.debug('Home.updateRecordingsTable: No participant is selected')
 
   #------------------------------------------------------------------------------
-  def updateDashboardPanel(self):
+  def updateReviewSelectionPanel(self):
     """
-    Update Dashboard panel indicating selected participant and configuration.
+    Update review selection panel indicating selected participant and configuration.
+    """    
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    participantSelected = self.logic.isParticipantSelected()
+
+    # Get information from selected participant
+    if participantSelected:
+      selectedParticipantInfo = self.logic.getParticipantInfoFromID(selectedParticipantID)
+      selectedParticipantName = selectedParticipantInfo['name']
+      selectedParticipantSurname = selectedParticipantInfo['surname']
+    else:      
+      selectedParticipantName = ''
+      selectedParticipantSurname = ''
+
+    # Get selected hardware configuration
+    selectedUltrasoundDevice = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
+    selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
+    selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+
+    # Update GUI in dashboard tab
+    self.ui.ReviewSelectionPanel.ui.participantNameText.text = selectedParticipantName
+    self.ui.ReviewSelectionPanel.ui.participantSurnameText.text = selectedParticipantSurname
+    self.ui.ReviewSelectionPanel.ui.participantIDText.text = selectedParticipantID
+    self.ui.ReviewSelectionPanel.ui.ultrasoundDeviceText.text = selectedUltrasoundDevice
+    self.ui.ReviewSelectionPanel.ui.trackingSystemText.text = selectedTrackingSystem
+    self.ui.ReviewSelectionPanel.ui.simulationPhantomText.text = selectedSimulationPhantom
+
+  #------------------------------------------------------------------------------
+  def updateTrainingSessionPanel(self):
+    """
+    Update training session panel indicating selected participant, configuration, and date.
     """    
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
@@ -494,25 +667,10 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
     selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
 
-    # Get connection status
-    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
-    igtlConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName)
-    
-    # Update GUI in dashboard tab
-    self.ui.DashboardPanel.ui.participantNameText.text = selectedParticipantName
-    self.ui.DashboardPanel.ui.participantSurnameText.text = selectedParticipantSurname
-    self.ui.DashboardPanel.ui.participantIDText.text = selectedParticipantID
-    self.ui.DashboardPanel.ui.ultrasoundDeviceText.text = selectedUltrasoundDevice
-    self.ui.DashboardPanel.ui.trackingSystemText.text = selectedTrackingSystem
-    self.ui.DashboardPanel.ui.simulationPhantomText.text = selectedSimulationPhantom
-    self.ui.DashboardPanel.ui.plusConnectionStatusText.text = plusConnectionStatus
-    self.ui.DashboardPanel.ui.igtlConnectionStatusText.text = igtlConnectionStatus
-    self.ui.DashboardPanel.ui.startButton.enabled = participantSelected
-
     # Update GUI in training session info box    
-    self.ui.participantLabel.text = f'[{selectedParticipantID}] {selectedParticipantSurname}, {selectedParticipantName}'
-    self.ui.dateTimeLabel.text = dateLabel
-    self.ui.hardwareSetUpLabel.text = f'{selectedUltrasoundDevice} / {selectedTrackingSystem} / {selectedSimulationPhantom}'
+    self.ui.TrainingSessionPanel.ui.participantLabel.text = f'[{selectedParticipantID}] {selectedParticipantSurname}, {selectedParticipantName}'
+    self.ui.TrainingSessionPanel.ui.dateTimeLabel.text = dateLabel
+    self.ui.TrainingSessionPanel.ui.hardwareSetUpLabel.text = f'{selectedUltrasoundDevice} / {selectedTrackingSystem} / {selectedSimulationPhantom}'
 
   #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
@@ -600,7 +758,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       return
 
     # Add observations on referenced nodes
-    if parameterNode:
+    if not self.hasObserver(parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML):
       self.addObserver(parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
 
     # Update widgets
@@ -1082,87 +1240,134 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Update UI widgets texts from language file
     ## Home
     self.moduleWidget.ui.languageLabel.setText(languageTexts['Home.languageLabel'])
-    self.moduleWidget.ui.dashboardTabWidget.setTabText(0, languageTexts['Home.dashboardTab'])
-    self.moduleWidget.ui.dashboardTabWidget.setTabText(1, languageTexts['Home.participantsTab'])
-    self.moduleWidget.ui.dashboardTabWidget.setTabText(2, languageTexts['Home.recordingsTab'])
-    self.moduleWidget.ui.dashboardTabWidget.setTabText(3, languageTexts['Home.configurationTab'])
     self.moduleWidget.ui.backToSlicerButton.setText(languageTexts['Home.backToSlicerButton'])
     self.moduleWidget.ui.exitAppButton.setText(languageTexts['Home.exitAppButton'])
-    self.moduleWidget.ui.trainingTabWidget.setTabText(0, languageTexts['Home.basicTrainingTab'])
-    self.moduleWidget.ui.trainingTabWidget.setTabText(1, languageTexts['Home.advancedTrainingTab'])
-    self.moduleWidget.ui.trainingInfoGroupBox.setTitle(languageTexts['Home.trainingInfoGroupBox'])
-    self.moduleWidget.ui.participantInfoLabel_1.setText(languageTexts['Home.participantInfoLabel_1'])
-    self.moduleWidget.ui.participantInfoLabel_2.setText(languageTexts['Home.participantInfoLabel_2'])
-    self.moduleWidget.ui.participantInfoLabel_3.setText(languageTexts['Home.participantInfoLabel_3'])
-    self.moduleWidget.ui.finishTrainingButton.setText(languageTexts['Home.finishTrainingButton'])
+    self.moduleWidget.ui.trainingModeButton.setText(languageTexts['Home.trainingModeButton'])
+    self.moduleWidget.ui.evaluationModeButton.setText(languageTexts['Home.evaluationModeButton'])
+    self.moduleWidget.ui.configurationButton.setText(languageTexts['Home.configurationButton'])
+    self.moduleWidget.ui.step1NavigationLabel.setText(languageTexts['Home.step1NavigationLabel'])
+    self.moduleWidget.ui.step2NavigationLabel.setText(languageTexts['Home.step2NavigationLabel'])
+    self.moduleWidget.ui.step3NavigationLabel.setText(languageTexts['Home.step3NavigationLabel'])
+    self.moduleWidget.ui.step4NavigationLabel.setText(languageTexts['Home.step4NavigationLabel'])
     self.home_exitAppMessageBoxTitle = languageTexts['Home.exitAppMessageBoxTitle']
     self.home_exitAppMessageBoxLabel = languageTexts['Home.exitAppMessageBoxText_1'] + '\n\n' + languageTexts['Home.exitAppMessageBoxText_2']
-    ## Dashboard
-    self.moduleWidget.ui.DashboardPanel.ui.label_1.setText(languageTexts['Dashboard.label_1'])
-    self.moduleWidget.ui.DashboardPanel.ui.participantGroupBox.setTitle(languageTexts['Dashboard.participantGroupBox'])
-    self.moduleWidget.ui.DashboardPanel.ui.participantNameLabel.setText(languageTexts['Dashboard.participantNameLabel'])
-    self.moduleWidget.ui.DashboardPanel.ui.participantSurnameLabel.setText(languageTexts['Dashboard.participantSurnameLabel'])
-    self.moduleWidget.ui.DashboardPanel.ui.configurationGroupBox.setTitle(languageTexts['Dashboard.configurationGroupBox'])
-    self.moduleWidget.ui.DashboardPanel.ui.ultrasoundDeviceLabel.setText(languageTexts['Dashboard.ultrasoundDeviceLabel'])
-    self.moduleWidget.ui.DashboardPanel.ui.trackingSystemLabel.setText(languageTexts['Dashboard.trackingSystemLabel'])
-    self.moduleWidget.ui.DashboardPanel.ui.simulationPhantomLabel.setText(languageTexts['Dashboard.simulationPhantomLabel'])
-    self.moduleWidget.ui.DashboardPanel.ui.startButton.setText(languageTexts['Dashboard.startButton'])
-    ## Participants
-    self.moduleWidget.ui.ParticipantsPanel.ui.label_1.setText(languageTexts['Participants.label_1'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.label_2.setText(languageTexts['Participants.label_2'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column1']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column2']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column3']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column4']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Participants.participantsTable_column5']))
-    self.moduleWidget.ui.ParticipantsPanel.ui.optionsGroupBox.setTitle(languageTexts['Participants.optionsGroupBox'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.checkRecordingsButton.setText(languageTexts['Participants.checkRecordingsButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantButton.setText(languageTexts['Participants.newParticipantButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantButton.setText(languageTexts['Participants.editParticipantButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.deleteParticipantButton.setText(languageTexts['Participants.deleteParticipantButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantGroupBox.setTitle(languageTexts['Participants.newParticipantGroupBox'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_1.setText(languageTexts['Participants.newParticipantLabel_1'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_2.setText(languageTexts['Participants.newParticipantLabel_2'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_3.setText(languageTexts['Participants.newParticipantLabel_3'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantLabel_4.setText(languageTexts['Participants.newParticipantLabel_4'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantSaveButton.setText(languageTexts['Participants.newParticipantSaveButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.newParticipantCancelButton.setText(languageTexts['Participants.newParticipantCancelButton'])
-    self.newParticipantWarningMessageText = languageTexts['Participants.newParticipantWarningMessageText']
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantGroupBox.setTitle(languageTexts['Participants.editParticipantGroupBox'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_1.setText(languageTexts['Participants.editParticipantLabel_1'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_2.setText(languageTexts['Participants.editParticipantLabel_2'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_3.setText(languageTexts['Participants.editParticipantLabel_3'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantLabel_4.setText(languageTexts['Participants.editParticipantLabel_4'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantSaveButton.setText(languageTexts['Participants.editParticipantSaveButton'])
-    self.moduleWidget.ui.ParticipantsPanel.ui.editParticipantCancelButton.setText(languageTexts['Participants.editParticipantCancelButton'])
-    self.editParticipantWarningMessageText = languageTexts['Participants.editParticipantWarningMessageText']
-    self.participants_deleteMessageBoxTitle = languageTexts['Participants.deleteMessageBoxTitle']
-    self.participants_deleteMessageBoxLabel = languageTexts['Participants.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Participants.deleteMessageBoxText_2']
-    ## Recordings
-    self.moduleWidget.ui.RecordingsPanel.ui.label_1.setText(languageTexts['Recordings.label_1'])
-    self.moduleWidget.ui.RecordingsPanel.ui.label_2.setText(languageTexts['Recordings.label_2'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column1']))
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column2']))
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column3']))
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column4']))
-    self.moduleWidget.ui.RecordingsPanel.ui.optionsGroupBox.setTitle(languageTexts['Recordings.optionsGroupBox'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsButton.setText(languageTexts['Recordings.recordingDetailsButton'])
-    self.moduleWidget.ui.RecordingsPanel.ui.evaluateRecordingButton.setText(languageTexts['Recordings.evaluateRecordingButton'])
-    self.moduleWidget.ui.RecordingsPanel.ui.deleteRecordingButton.setText(languageTexts['Recordings.deleteRecordingButton'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsGroupBox.setTitle(languageTexts['Recordings.recordingDetailsGroupBox'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_1.setText(languageTexts['Recordings.recordingDetailsLabel_1'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_2.setText(languageTexts['Recordings.recordingDetailsLabel_2'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_3.setText(languageTexts['Recordings.recordingDetailsLabel_3'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_4.setText(languageTexts['Recordings.recordingDetailsLabel_4'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_5.setText(languageTexts['Recordings.recordingDetailsLabel_5'])
-    self.moduleWidget.ui.RecordingsPanel.ui.recordingDetailsLabel_6.setText(languageTexts['Recordings.recordingDetailsLabel_6'])
+    ## Configuration
+    self.moduleWidget.ui.ConfigurationPanel.ui.label_1.setText(languageTexts['Configuration.label_1'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.label_2.setText(languageTexts['Configuration.label_2'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.label_3.setText(languageTexts['Configuration.label_3'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.label_4.setText(languageTexts['Configuration.label_4'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.label_5.setText(languageTexts['Configuration.label_5'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.hardwareConnectionGroupBox.setTitle(languageTexts['Configuration.hardwareConnectionGroupBox'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.ultrasoundImagingGroupBox.setTitle(languageTexts['Configuration.ultrasoundImagingGroupBox'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.trackingSystemGrouBox.setTitle(languageTexts['Configuration.trackingSystemGrouBox'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.plusConnectionButton.setText(languageTexts['Configuration.plusConnectionButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.ultrasoundDisplaySettingsButton.setText(languageTexts['Configuration.ultrasoundDisplaySettingsButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.ultrasoundProbeCalibrationButton.setText(languageTexts['Configuration.ultrasoundProbeCalibrationButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.toolTrackingStatusButton.setText(languageTexts['Configuration.toolTrackingStatusButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.toolPivotCalibrationButton.setText(languageTexts['Configuration.toolPivotCalibrationButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.phantomRegistrationButton.setText(languageTexts['Configuration.phantomRegistrationButton'])
+    self.moduleWidget.ui.ConfigurationPanel.ui.previousPageButton.setText(languageTexts['Configuration.previousPageButton'])
+    ## Participant selection
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.label_1.setText(languageTexts['ParticipantSelection.label_1'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.label_2.setText(languageTexts['ParticipantSelection.label_2'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column1']))
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column2']))
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column3']))
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column4']))
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column5']))
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.optionsGroupBox.setTitle(languageTexts['ParticipantSelection.optionsGroupBox'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.checkRecordingsButton.setText(languageTexts['ParticipantSelection.checkRecordingsButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantButton.setText(languageTexts['ParticipantSelection.newParticipantButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantButton.setText(languageTexts['ParticipantSelection.editParticipantButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.deleteParticipantButton.setText(languageTexts['ParticipantSelection.deleteParticipantButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantGroupBox.setTitle(languageTexts['ParticipantSelection.newParticipantGroupBox'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantLabel_1.setText(languageTexts['ParticipantSelection.newParticipantLabel_1'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantLabel_2.setText(languageTexts['ParticipantSelection.newParticipantLabel_2'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantLabel_3.setText(languageTexts['ParticipantSelection.newParticipantLabel_3'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantLabel_4.setText(languageTexts['ParticipantSelection.newParticipantLabel_4'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantSaveButton.setText(languageTexts['ParticipantSelection.newParticipantSaveButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantCancelButton.setText(languageTexts['ParticipantSelection.newParticipantCancelButton'])
+    self.newParticipantWarningMessageText = languageTexts['ParticipantSelection.newParticipantWarningMessageText']
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantGroupBox.setTitle(languageTexts['ParticipantSelection.editParticipantGroupBox'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantLabel_1.setText(languageTexts['ParticipantSelection.editParticipantLabel_1'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantLabel_2.setText(languageTexts['ParticipantSelection.editParticipantLabel_2'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantLabel_3.setText(languageTexts['ParticipantSelection.editParticipantLabel_3'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantLabel_4.setText(languageTexts['ParticipantSelection.editParticipantLabel_4'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantSaveButton.setText(languageTexts['ParticipantSelection.editParticipantSaveButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantCancelButton.setText(languageTexts['ParticipantSelection.editParticipantCancelButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.previousPageButton.setText(languageTexts['ParticipantSelection.previousPageButton'])
+    self.moduleWidget.ui.ParticipantSelectionPanel.ui.nextPageButton.setText(languageTexts['ParticipantSelection.nextPageButton'])
+    self.editParticipantWarningMessageText = languageTexts['ParticipantSelection.editParticipantWarningMessageText']
+    self.participants_deleteMessageBoxTitle = languageTexts['ParticipantSelection.deleteMessageBoxTitle']
+    self.participants_deleteMessageBoxLabel = languageTexts['ParticipantSelection.deleteMessageBoxText_1'] + '\n\n' + languageTexts['ParticipantSelection.deleteMessageBoxText_2']
+    ## Hardware selection
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.label_1.setText(languageTexts['HardwareSelection.label_1'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.label_2.setText(languageTexts['HardwareSelection.label_2'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.label_3.setText(languageTexts['HardwareSelection.label_3'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.label_4.setText(languageTexts['HardwareSelection.label_4'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.label_5.setText(languageTexts['HardwareSelection.label_5'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.previousPageButton.setText(languageTexts['HardwareSelection.previousPageButton'])
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.nextPageButton.setText(languageTexts['HardwareSelection.nextPageButton'])    
+    ## Review selection
+    ## Plug and play
+    ## Training session
+    ## Evaluation
+    self.moduleWidget.ui.EvaluationPanel.ui.label_1.setText(languageTexts['ParticipantSelection.label_1'])
+    self.moduleWidget.ui.EvaluationPanel.ui.label_2.setText(languageTexts['ParticipantSelection.label_2'])
+    self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column1']))
+    self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column2']))
+    self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column3']))
+    self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column4']))
+    self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column5']))
+    self.moduleWidget.ui.EvaluationPanel.ui.optionsGroupBox.setTitle(languageTexts['ParticipantSelection.optionsGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.checkRecordingsButton.setText(languageTexts['ParticipantSelection.checkRecordingsButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantButton.setText(languageTexts['ParticipantSelection.newParticipantButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantButton.setText(languageTexts['ParticipantSelection.editParticipantButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.deleteParticipantButton.setText(languageTexts['ParticipantSelection.deleteParticipantButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantGroupBox.setTitle(languageTexts['ParticipantSelection.newParticipantGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantLabel_1.setText(languageTexts['ParticipantSelection.newParticipantLabel_1'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantLabel_2.setText(languageTexts['ParticipantSelection.newParticipantLabel_2'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantLabel_3.setText(languageTexts['ParticipantSelection.newParticipantLabel_3'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantLabel_4.setText(languageTexts['ParticipantSelection.newParticipantLabel_4'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantSaveButton.setText(languageTexts['ParticipantSelection.newParticipantSaveButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.newParticipantCancelButton.setText(languageTexts['ParticipantSelection.newParticipantCancelButton'])
+    self.newParticipantWarningMessageText = languageTexts['ParticipantSelection.newParticipantWarningMessageText']
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantGroupBox.setTitle(languageTexts['ParticipantSelection.editParticipantGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantLabel_1.setText(languageTexts['ParticipantSelection.editParticipantLabel_1'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantLabel_2.setText(languageTexts['ParticipantSelection.editParticipantLabel_2'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantLabel_3.setText(languageTexts['ParticipantSelection.editParticipantLabel_3'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantLabel_4.setText(languageTexts['ParticipantSelection.editParticipantLabel_4'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantSaveButton.setText(languageTexts['ParticipantSelection.editParticipantSaveButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.editParticipantCancelButton.setText(languageTexts['ParticipantSelection.editParticipantCancelButton'])
+    self.editParticipantWarningMessageText = languageTexts['ParticipantSelection.editParticipantWarningMessageText']
+    self.participants_deleteMessageBoxTitle = languageTexts['ParticipantSelection.deleteMessageBoxTitle']
+    self.participants_deleteMessageBoxLabel = languageTexts['ParticipantSelection.deleteMessageBoxText_1'] + '\n\n' + languageTexts['ParticipantSelection.deleteMessageBoxText_2']
+    self.moduleWidget.ui.EvaluationPanel.ui.label_3.setText(languageTexts['Recordings.label_3'])
+    self.moduleWidget.ui.EvaluationPanel.ui.label_4.setText(languageTexts['Recordings.label_4'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column1']))
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column2']))
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column3']))
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column4']))
+    self.moduleWidget.ui.EvaluationPanel.ui.optionsGroupBox.setTitle(languageTexts['Recordings.optionsGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsButton.setText(languageTexts['Recordings.recordingDetailsButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.evaluateRecordingButton.setText(languageTexts['Recordings.evaluateRecordingButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.deleteRecordingButton.setText(languageTexts['Recordings.deleteRecordingButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsGroupBox.setTitle(languageTexts['Recordings.recordingDetailsGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_1.setText(languageTexts['Recordings.recordingDetailsLabel_1'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_2.setText(languageTexts['Recordings.recordingDetailsLabel_2'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_3.setText(languageTexts['Recordings.recordingDetailsLabel_3'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_4.setText(languageTexts['Recordings.recordingDetailsLabel_4'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_5.setText(languageTexts['Recordings.recordingDetailsLabel_5'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_6.setText(languageTexts['Recordings.recordingDetailsLabel_6'])
     self.recordings_deleteMessageBoxTitle = languageTexts['Recordings.deleteMessageBoxTitle']
     self.recordings_deleteMessageBoxLabel = languageTexts['Recordings.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Recordings.deleteMessageBoxText_2'] 
-
+    self.moduleWidget.ui.EvaluationPanel.ui.previousPageButton.setText(languageTexts['Evaluation.previousPageButton'])
+    self.moduleWidget.ui.EvaluationPanel.ui.nextPageButton.setText(languageTexts['Evaluation.nextPageButton'])
+    
     # Adjust width of table columns to new horizontal headers
     COLUMN_H_MARGIN = 50
-    self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantsPanel.ui.participantsTable, COLUMN_H_MARGIN)
-    self.addMarginToColumnWidth(self.moduleWidget.ui.RecordingsPanel.ui.recordingsTable, COLUMN_H_MARGIN)
+    self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable, COLUMN_H_MARGIN)
+    self.addMarginToColumnWidth(self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable, COLUMN_H_MARGIN)
 
   #------------------------------------------------------------------------------
   def addMarginToColumnWidth(self, tableWidget, margin):
@@ -1172,6 +1377,18 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     for col in range(numColumns):
       tableWidget.setColumnWidth(col, tableWidget.columnWidth(col) + margin)
     tableWidget.horizontalHeader().stretchLastSection = True
+
+  #------------------------------------------------------------------------------
+  def switchAppMode(self, mode):
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Store app mode in parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedAppModeParameterName, mode)
+
 
 #------------------------------------------------------------------------------
 #

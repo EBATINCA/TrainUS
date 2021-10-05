@@ -4,13 +4,13 @@ import os
 
 #------------------------------------------------------------------------------
 #
-# AdvancedTraining
+# TrainingSession
 #
 #------------------------------------------------------------------------------
-class AdvancedTraining(qt.QWidget):
+class TrainingSession(qt.QWidget):
 
   def __init__(self, parent=None):
-    super(AdvancedTraining, self).__init__(parent)
+    super(TrainingSession, self).__init__(parent)
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
@@ -18,17 +18,17 @@ class AdvancedTraining(qt.QWidget):
   #------------------------------------------------------------------------------
   # Clean up when application is closed
   def cleanup(self):
-    logging.debug('AdvancedTraining.cleanup')
+    logging.debug('TrainingSession.cleanup')
 
     self.disconnect()
 
   #------------------------------------------------------------------------------
   def setupUi(self):
-    logging.debug('AdvancedTraining.setupUi')
+    logging.debug('TrainingSession.setupUi')
 
     # Load widget from .ui file (created by Qt Designer).
     # Additional widgets can be instantiated manually and added to self.layout.
-    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'AdvancedTraining.ui')
+    uiFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'UI', 'TrainingSession.ui')
     uiWidget = slicer.util.loadUI(uiFilePath)
     self.sectionLayout = qt.QVBoxLayout(self)
     self.sectionLayout.setContentsMargins(0, 0, 0, 0)
@@ -42,15 +42,15 @@ class AdvancedTraining(qt.QWidget):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    logging.debug('AdvancedTraining.setupConnections')
+    logging.debug('TrainingSession.setupConnections')
 
-    pass
+    self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    logging.debug('AdvancedTraining.disconnect')
+    logging.debug('TrainingSession.disconnect')
 
-    pass
+    self.ui.finishTrainingButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -73,10 +73,12 @@ class AdvancedTraining(qt.QWidget):
   #
   #------------------------------------------------------------------------------
   
+  #------------------------------------------------------------------------------
+  def onFinishTrainingButtonClicked(self):
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 0) # switch back to welcome page
 
-
-
-
+  
   #------------------------------------------------------------------------------
   #
   # Logic functions

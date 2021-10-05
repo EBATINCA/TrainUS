@@ -62,6 +62,7 @@ class Configuration(qt.QWidget):
     self.ui.simulationPhantomComboBox.currentTextChanged.connect(self.onSimulationPhantomComboBoxTextChanged)
     self.ui.plusConnectionButton.clicked.connect(self.onPlusConnectionButton)
     self.ui.ultrasoundDisplaySettingsButton.clicked.connect(self.onUltrasoundDisplaySettingsButton)
+    self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
@@ -72,6 +73,7 @@ class Configuration(qt.QWidget):
     self.ui.simulationPhantomComboBox.currentTextChanged.disconnect()
     self.ui.plusConnectionButton.clicked.disconnect()
     self.ui.ultrasoundDisplaySettingsButton.clicked.disconnect()
+    self.ui.previousPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -147,7 +149,11 @@ class Configuration(qt.QWidget):
     # Change to UltrasoundDisplaySettings module
     slicer.util.selectModule('UltrasoundDisplaySettings')
 
-
+  #------------------------------------------------------------------------------
+  def onPreviousPageButtonClicked(self):
+    
+    # Update UI page
+    self.homeWidget.updateUIforMode(modeID = 0)
 
   #------------------------------------------------------------------------------
   #
