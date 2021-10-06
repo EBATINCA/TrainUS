@@ -85,12 +85,16 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
+    self.ui.plusServerPath.currentPathChanged.connect(self.onPlusServerPathChanged)
+    self.ui.configFilePath.currentPathChanged.connect(self.onConfigFilePathChanged)
     self.ui.startConnectionButton.clicked.connect(self.onStartConnectionButtonClicked)
     self.ui.stopConnectionButton.clicked.connect(self.onStopConnectionButtonClicked)
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
+    self.ui.plusServerPath.currentPathChanged.disconnect()
+    self.ui.configFilePath.currentPathChanged.disconnect()
     self.ui.startConnectionButton.clicked.disconnect()
     self.ui.stopConnectionButton.clicked.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
@@ -134,6 +138,38 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
       nodeTypeTableItem = qt.QTableWidgetItem(self.logic.incomingNodesTypes[nodeIndex])
       tableWidget.setItem(nodeIndex, 0, nodeNameTableItem)
       tableWidget.setItem(nodeIndex, 1, nodeTypeTableItem)
+
+    # Update directory
+    self.ui.plusServerPath.setCurrentPath(parameterNode.GetParameter(self.trainUsWidget.logic.plusServerPathParameterName))
+    self.ui.configFilePath.setCurrentPath(parameterNode.GetParameter(self.trainUsWidget.logic.plusConfigPathParameterName))
+
+  #------------------------------------------------------------------------------
+  def onPlusServerPathChanged(self):
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('updateGUIFromMRML: Failed to get parameter node')
+      return
+
+    # Set wait cursor
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerPathParameterName, self.ui.plusServerPath.currentPath)
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onConfigFilePathChanged(self):
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('updateGUIFromMRML: Failed to get parameter node')
+      return
+
+    # Set wait cursor
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusConfigPathParameterName, self.ui.configFilePath.currentPath) 
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onStartConnectionButtonClicked(self):
@@ -223,10 +259,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     # PLUS connection variables
     self.connector = None
     self.isRunning = False
-    self.plusLauncherPath = 'C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServer.exe'
-    self.plusConfigFilePath = 'C:/D/TUS/US simulation data/l20171207_113513_config.xml'
-    #self.plusLauncherPath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/bin/PlusServer.exe'
-    #self.plusConfigFilePath = 'C:/PLUS TOOLKIT/PlusApp-2.3.0.4272-Win32/config/PlusDeviceSet_Server_Sim_NwirePhantom.xml'
     self.incomingNodesNames = list()
     self.incomingNodesTypes = list()
 
@@ -334,8 +366,11 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       logging.error('getIGTLConnectionStatus: Failed to get parameter node')
       return
 
-    # Location of PLUS configuration file    
-    plusConfigPath = self.plusConfigFilePath #self.writeConfigFile(plusConfigTemplatePath, plusDataPath)
+    # Location of PLUS server and configuration file configuration file    
+    plusLauncherPath = parameterNode.GetParameter(self.trainUsWidget.logic.plusServerPathParameterName)
+    plusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.plusConfigPathParameterName)
+    logging.debug(' - PLUS server path: %s' % plusLauncherPath)
+    logging.debug(' - PLUS config path: %s' % plusConfigPath)    
 
     # Start connection PLUS server is not running already
     if not self.isRunning:
@@ -344,7 +379,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       info = subprocess.STARTUPINFO()
       info.dwFlags = 1
       info.wShowWindow = 0
-      self.p = subprocess.Popen([self.plusLauncherPath, '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
+      self.p = subprocess.Popen([plusLauncherPath, '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
 
       # Wait
       if progressDialog:

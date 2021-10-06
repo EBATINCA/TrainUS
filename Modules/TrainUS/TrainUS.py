@@ -265,6 +265,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[1]
     self.defaultParameters["SelectedSimulationPhantom"] = self.trackingSystemOptions[0]
     self.defaultParameters["USImageName"] = 'Image_Image'
+    self.defaultParameters["PlusServerPath"] = 'C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServer.exe'
+    self.defaultParameters["PlusConfigPath"] = 'C:/D/TUS/US simulation data/l20171207_113513_config.xml'
     self.defaultParameters["PlusConnectionStatus"] = 'OFF'
     self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
     self.defaultParameters["IGTLConnectorNodeID"] = ''
@@ -280,6 +282,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.selectedTrackingSystemParameterName = 'SelectedTrackingSystem'
     self.selectedSimulationPhantomParameterName = 'SelectedSimulationPhantom'
     self.usImageNameParameterName = 'USImageName'
+    self.plusServerPathParameterName = 'PlusServerPath'
+    self.plusConfigPathParameterName = 'PlusConfigPath'
     self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
     self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
     self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
