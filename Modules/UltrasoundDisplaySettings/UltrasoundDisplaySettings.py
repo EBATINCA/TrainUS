@@ -213,6 +213,11 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):
+    # Deactivate custom brightness-contrast interaction mode
+    self.ui.brightnessContrastCustomButton.checked = False
+    self.logic.updateBrightnessContrastInteraction(False)
+    self.updateGUIFromMRML()
+
     # Go back to Home module
     slicer.util.selectModule('Home') 
       
