@@ -144,17 +144,16 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     self.ui.startConnectionButton.enabled = False
 
     # Create message window to indicate to user what is happening
-    [dialog, progressLabel] = self.showProgressDialog()
-    dialog.show()
-    slicer.app.processEvents()
+    progressDialog = self.showProgressDialog()
+    progressDialog.show()
 
     # Start connection with PLUS server
-    self.logic.startPlusConnection(progressLabel)
+    self.logic.startPlusConnection(progressDialog)
 
     # Restore cursor and hide dialog
     qt.QApplication.restoreOverrideCursor()
-    dialog.hide()
-    dialog.deleteLater()
+    progressDialog.hide()
+    progressDialog.deleteLater()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -185,24 +184,16 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
   def showProgressDialog(self):
     """
     Show progress dialog with label for long processes.
-    #TODO: Use context manager
-    #TODO: Use an actual progress bar (at least progress by processing the scans)
     """
-    progressDialog = qt.QDialog(slicer.util.mainWindow(), qt.Qt.FramelessWindowHint | qt.Qt.Dialog)
-    layout = qt.QVBoxLayout()
-    progressDialog.setLayout(layout)
-    frame = qt.QFrame()
-    frame.setFrameStyle(qt.QFrame.Panel | qt.QFrame.Sunken)
-    layout.addWidget(frame)
-    innerLayout = qt.QVBoxLayout()
-    frame.setLayout(innerLayout)
-    innerLayout.setMargin(20)
-    label = qt.QLabel()
-    label.text = '                         Please wait...                                     '
-    innerLayout.addWidget(label)
+    progressDialog = qt.QProgressDialog('Loading...', 'Cancel', 0, 100, slicer.util.mainWindow())
+    progressDialog.setCancelButton(None) # hide cancel button in dialog
+    progressDialog.setMinimumWidth(300) # dialog size
+    font = qt.QFont()
+    font.setPointSize(12)
+    progressDialog.setFont(font) # font size
     progressDialog.show()
     slicer.app.processEvents()
-    return [progressDialog, label]
+    return progressDialog
 
 
 #---------------------------------------------------------------------------------------------#
@@ -331,7 +322,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
         shortcut.connect('activated()', callback)
 
   #------------------------------------------------------------------------------
-  def startPlusConnection(self, progressLabel=None):
+  def startPlusConnection(self, progressDialog=None):
     """
     Start connection with PLUS server.
     """
@@ -342,11 +333,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     if not parameterNode:
       logging.error('getIGTLConnectionStatus: Failed to get parameter node')
       return
-
-    # Update progress label
-    if progressLabel:
-      progressLabel.text = 'Launching PLUS server. Please wait...'
-      slicer.app.processEvents()
 
     # Location of PLUS configuration file    
     plusConfigPath = self.plusConfigFilePath #self.writeConfigFile(plusConfigTemplatePath, plusDataPath)
@@ -361,7 +347,10 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.p = subprocess.Popen([self.plusLauncherPath, '--config-file='+plusConfigPath ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=info)
 
       # Wait
-      time.sleep(10)
+      if progressDialog:
+        self.sleepWithProgressDialog(10, progressDialog, 'Launching PLUS server. Please wait...')
+      else:
+        time.sleep(10)
 
       # Create IGTL connector node if it does not exist
       if not self.connector:
@@ -380,13 +369,11 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       # Start connector
       self.connector.Start()
 
-      # Update progress label
-      if progressLabel:
-        progressLabel.text = 'Starting IGTL connector. Please wait...'
-        slicer.app.processEvents()
-
       # Wait
-      time.sleep(5)
+      if progressDialog:
+        self.sleepWithProgressDialog(5, progressDialog, 'Starting IGTL connector. Please wait...')
+      else:
+        time.sleep(5)
 
       # Get state of connector      
       slicer.app.processEvents()
@@ -512,6 +499,18 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
         node = self.connector.GetIncomingMRMLNode(nodeIndex)
         self.incomingNodesNames.append(node.GetName())
         self.incomingNodesTypes.append(node.GetClassName())
+
+  #------------------------------------------------------------------------------
+  def sleepWithProgressDialog(self, totalTime, progressDialog, progressLabel, numSteps = 10):
+    # Update label
+    progressDialog.setLabelText(progressLabel)
+
+    # Iterate
+    for i in range(numSteps):
+      progress = i * (progressDialog.maximum - progressDialog.minimum) / numSteps
+      progressDialog.setValue(progress)
+      time.sleep(totalTime/numSteps)
+      slicer.app.processEvents()
 
 
 #------------------------------------------------------------------------------
