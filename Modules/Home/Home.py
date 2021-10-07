@@ -189,13 +189,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       mainWindow.setGeometry(self.popupGeometry)
       if self.homeWidget.isFullScreen():
         mainWindow.showFullScreen()
-      #if self.homeWidget.isMaximized():
-      #  mainWindow.showMaximized()
+      if self.homeWidget.isMaximized():
+        mainWindow.showMaximized()
       self.homeWidget.hide()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
     # Welcome page
+    self.ui.fullScreenButton.clicked.connect(self.onFullScreenButtonClicked)
     self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
     self.ui.exitAppButton.clicked.connect(self.onExitAppButtonClicked)
     self.ui.languageComboBox.currentIndexChanged.connect(self.onLanguageComboBoxIndexChanged)
@@ -206,12 +207,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   #------------------------------------------------------------------------------
   def disconnect(self):    
     # Welcome page
+    self.ui.fullScreenButton.clicked.disconnect()
     self.ui.backToSlicerButton.clicked.disconnect()
     self.ui.exitAppButton.clicked.disconnect()
     self.ui.languageComboBox.currentIndexChanged.disconnect()
     self.ui.trainingModeButton.clicked.disconnect()
     self.ui.evaluationModeButton.clicked.disconnect()
     self.ui.configurationButton.clicked.disconnect()
+    
+  #------------------------------------------------------------------------------
+  def onFullScreenButtonClicked(self):
+    mainWindow = slicer.util.mainWindow()    
+    if self.homeWidget.isFullScreen():
+      mainWindow.showMaximized()
+      self.homeWidget.showMaximized()
+    else:
+      mainWindow.showFullScreen()
+      self.homeWidget.showFullScreen()
     
   #------------------------------------------------------------------------------
   def onBackToSlicerButtonClicked(self):    
