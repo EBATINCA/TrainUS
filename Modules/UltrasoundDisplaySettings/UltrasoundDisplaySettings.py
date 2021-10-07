@@ -148,6 +148,10 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.brightnessContrastGroupBox.enabled = usImageAvailable
     self.ui.controlGroupBox.enabled = usImageAvailable
 
+    # Current US device
+    deviceName = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
+    self.ui.deviceNameLabel.text = deviceName
+
     # Connection status
     connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     self.ui.connectionStatusLabel.text = connectorStatus
