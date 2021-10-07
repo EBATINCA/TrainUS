@@ -92,6 +92,12 @@ class Configuration(qt.QWidget):
     self.ui.trackingSystemComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
     self.ui.simulationPhantomComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
 
+    # Disable configuration combo boxes if PLUS is connected
+    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    self.ui.ultrasoundDeviceComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
+    self.ui.trackingSystemComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
+    self.ui.simulationPhantomComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
+
   #------------------------------------------------------------------------------
   #
   # Event handler functions

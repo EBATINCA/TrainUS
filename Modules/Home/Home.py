@@ -326,6 +326,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update training session panel
     self.updateTrainingSessionPanel()
 
+    # Update configuration panel
+    self.updateConfigurationPanel()
+
   #------------------------------------------------------------------------------
   def setupUi(self):
     logging.debug('Home.setupUi')
@@ -684,6 +687,26 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.TrainingSessionPanel.ui.dateTimeLabel.text = dateLabel
     self.ui.TrainingSessionPanel.ui.hardwareSetUpLabel.text = f'{selectedUltrasoundDevice} / {selectedTrackingSystem} / {selectedSimulationPhantom}'
 
+  #------------------------------------------------------------------------------
+  def updateConfigurationPanel(self):
+    """
+    Update configuration panel to indicate connection status.
+    """    
+    # Parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get PLUS connection status
+    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+
+    # Update GUI in training session info box    
+    self.ui.ConfigurationPanel.ui.connectionStatusText.text = plusConnectionStatus
+
+    # Update GUI config panel
+    self.ui.ConfigurationPanel.updateGUIFromMRML()
+    
   #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
     """

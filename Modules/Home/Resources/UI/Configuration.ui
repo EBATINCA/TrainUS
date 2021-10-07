@@ -139,20 +139,6 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QPushButton" name="ultrasoundDisplaySettingsButton">
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Display Settings</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="2">
           <widget class="QLabel" name="label_6">
            <property name="font">
@@ -164,6 +150,20 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="ultrasoundDisplaySettingsButton">
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Display Settings</string>
            </property>
           </widget>
          </item>
@@ -192,64 +192,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item row="7" column="0" colspan="6">
-       <widget class="QGroupBox" name="hardwareConnectionGroupBox">
-        <property name="font">
-         <font>
-          <pointsize>13</pointsize>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="title">
-         <string>Hardware connection</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="plusConnectionButton">
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>PLUS Server Connection</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_40">
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_50">
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
       </item>
       <item row="3" column="2">
        <widget class="QLabel" name="label_4">
@@ -420,6 +362,107 @@
             </size>
            </property>
           </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="6">
+       <widget class="QGroupBox" name="hardwareConnectionGroupBox">
+        <property name="font">
+         <font>
+          <pointsize>13</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="title">
+         <string>Hardware connection</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="plusConnectionButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>PLUS Server Connection</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_50">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QFrame" name="frame_2">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="connectionStatusLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Status:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="connectionStatusText">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </widget>
