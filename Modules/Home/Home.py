@@ -1275,6 +1275,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Update UI widgets texts from language file
     ## Home
     self.moduleWidget.ui.languageLabel.setText(languageTexts['Home.languageLabel'])
+    self.moduleWidget.ui.fullScreenButton.setText(languageTexts['Home.fullScreenButton'])
     self.moduleWidget.ui.backToSlicerButton.setText(languageTexts['Home.backToSlicerButton'])
     self.moduleWidget.ui.exitAppButton.setText(languageTexts['Home.exitAppButton'])
     self.moduleWidget.ui.trainingModeButton.setText(languageTexts['Home.trainingModeButton'])
@@ -1310,8 +1311,8 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column3']))
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column4']))
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column5']))
-    self.moduleWidget.ui.ParticipantSelectionPanel.ui.optionsGroupBox.setTitle(languageTexts['ParticipantSelection.optionsGroupBox'])
-    self.moduleWidget.ui.ParticipantSelectionPanel.ui.checkRecordingsButton.setText(languageTexts['ParticipantSelection.checkRecordingsButton'])
+    #self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantOptionsGroupBox.setTitle(languageTexts['ParticipantSelection.participantOptionsGroupBox'])
+    #self.moduleWidget.ui.ParticipantSelectionPanel.ui.checkRecordingsButton.setText(languageTexts['ParticipantSelection.checkRecordingsButton'])
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.newParticipantButton.setText(languageTexts['ParticipantSelection.newParticipantButton'])
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.editParticipantButton.setText(languageTexts['ParticipantSelection.editParticipantButton'])
     self.moduleWidget.ui.ParticipantSelectionPanel.ui.deleteParticipantButton.setText(languageTexts['ParticipantSelection.deleteParticipantButton'])
@@ -1344,9 +1345,37 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.HardwareSelectionPanel.ui.previousPageButton.setText(languageTexts['HardwareSelection.previousPageButton'])
     self.moduleWidget.ui.HardwareSelectionPanel.ui.nextPageButton.setText(languageTexts['HardwareSelection.nextPageButton'])    
     ## Review selection
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.label_1.setText(languageTexts['ReviewSelection.label_1'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.participantGroupBox.setTitle(languageTexts['ReviewSelection.participantGroupBox'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.participantNameLabel.setText(languageTexts['ReviewSelection.participantNameLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.participantSurnameLabel.setText(languageTexts['ReviewSelection.participantSurnameLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.participantIDLabel.setText(languageTexts['ReviewSelection.participantIDLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.editParticipantSelectionButton.setText(languageTexts['ReviewSelection.editParticipantSelectionButton'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.configurationGroupBox.setTitle(languageTexts['ReviewSelection.configurationGroupBox'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.ultrasoundDeviceLabel.setText(languageTexts['ReviewSelection.ultrasoundDeviceLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.trackingSystemLabel.setText(languageTexts['ReviewSelection.trackingSystemLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.simulationPhantomLabel.setText(languageTexts['ReviewSelection.simulationPhantomLabel'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.editHardwareSelectionButton.setText(languageTexts['ReviewSelection.editHardwareSelectionButton'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.previousPageButton.setText(languageTexts['ReviewSelection.previousPageButton'])
+    self.moduleWidget.ui.ReviewSelectionPanel.ui.nextPageButton.setText(languageTexts['ReviewSelection.nextPageButton'])
     ## Plug and play
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.label_1.setText(languageTexts['PlugAndPlay.label_1'])
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.hardwareConnectionGroupBox.setTitle(languageTexts['PlugAndPlay.hardwareConnectionGroupBox'])
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.connectHardwareButton.setText(languageTexts['PlugAndPlay.connectHardwareButton'])
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.connectionStatusLabel.setText(languageTexts['PlugAndPlay.connectionStatusLabel'])
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.previousPageButton.setText(languageTexts['PlugAndPlay.previousPageButton'])
+    self.moduleWidget.ui.PlugAndPlayPanel.ui.nextPageButton.setText(languageTexts['PlugAndPlay.nextPageButton'])
     ## Training session
+    self.moduleWidget.ui.TrainingSessionPanel.ui.trainingInfoGroupBox.setTitle(languageTexts['TrainingSession.trainingInfoGroupBox'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.participantInfoLabel_1.setText(languageTexts['TrainingSession.participantInfoLabel_1'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.participantInfoLabel_2.setText(languageTexts['TrainingSession.participantInfoLabel_2'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.participantInfoLabel_3.setText(languageTexts['TrainingSession.participantInfoLabel_3'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.trainingTabWidget.setTabText(0, languageTexts['TrainingSession.basicTrainingTab'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.trainingTabWidget.setTabText(1, languageTexts['TrainingSession.advancedTrainingTab'])
+    self.moduleWidget.ui.TrainingSessionPanel.ui.finishTrainingButton.setText(languageTexts['TrainingSession.finishTrainingButton'])
     ## Evaluation
+    self.moduleWidget.ui.EvaluationPanel.ui.tabWidget.setTabText(0, languageTexts['Evaluation.participantsTab'])
+    self.moduleWidget.ui.EvaluationPanel.ui.tabWidget.setTabText(1, languageTexts['Evaluation.recordingsTab'])
     self.moduleWidget.ui.EvaluationPanel.ui.label_1.setText(languageTexts['ParticipantSelection.label_1'])
     self.moduleWidget.ui.EvaluationPanel.ui.label_2.setText(languageTexts['ParticipantSelection.label_2'])
     self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(0, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column1']))
@@ -1354,7 +1383,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column3']))
     self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column4']))
     self.moduleWidget.ui.EvaluationPanel.ui.participantsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['ParticipantSelection.participantsTable_column5']))
-    self.moduleWidget.ui.EvaluationPanel.ui.optionsGroupBox.setTitle(languageTexts['ParticipantSelection.optionsGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.participantOptionsGroupBox.setTitle(languageTexts['ParticipantSelection.participantOptionsGroupBox'])
     self.moduleWidget.ui.EvaluationPanel.ui.checkRecordingsButton.setText(languageTexts['ParticipantSelection.checkRecordingsButton'])
     self.moduleWidget.ui.EvaluationPanel.ui.newParticipantButton.setText(languageTexts['ParticipantSelection.newParticipantButton'])
     self.moduleWidget.ui.EvaluationPanel.ui.editParticipantButton.setText(languageTexts['ParticipantSelection.editParticipantButton'])
@@ -1383,7 +1412,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column2']))
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column3']))
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column4']))
-    self.moduleWidget.ui.EvaluationPanel.ui.optionsGroupBox.setTitle(languageTexts['Recordings.optionsGroupBox'])
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingOptionsGroupBox.setTitle(languageTexts['Recordings.recordingOptionsGroupBox'])
     self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsButton.setText(languageTexts['Recordings.recordingDetailsButton'])
     self.moduleWidget.ui.EvaluationPanel.ui.evaluateRecordingButton.setText(languageTexts['Recordings.evaluateRecordingButton'])
     self.moduleWidget.ui.EvaluationPanel.ui.deleteRecordingButton.setText(languageTexts['Recordings.deleteRecordingButton'])
@@ -1397,7 +1426,6 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.recordings_deleteMessageBoxTitle = languageTexts['Recordings.deleteMessageBoxTitle']
     self.recordings_deleteMessageBoxLabel = languageTexts['Recordings.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Recordings.deleteMessageBoxText_2'] 
     self.moduleWidget.ui.EvaluationPanel.ui.previousPageButton.setText(languageTexts['Evaluation.previousPageButton'])
-    self.moduleWidget.ui.EvaluationPanel.ui.nextPageButton.setText(languageTexts['Evaluation.nextPageButton'])
     
     # Adjust width of table columns to new horizontal headers
     COLUMN_H_MARGIN = 50
