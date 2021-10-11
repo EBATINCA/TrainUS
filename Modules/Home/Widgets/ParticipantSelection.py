@@ -133,7 +133,7 @@ class ParticipantSelection(qt.QWidget):
       return
 
     # Participant selection
-    participantSelected = self.homeWidget.logic.isParticipantSelected()
+    participantSelected = self.trainUsWidget.logic.dataManager.isParticipantSelected()
     self.ui.newParticipantButton.enabled = (not self.newParticipantVisible) and (not self.editParticipantVisible)
     self.ui.editParticipantButton.enabled = participantSelected and (not self.newParticipantVisible) and (not self.editParticipantVisible)
     self.ui.deleteParticipantButton.enabled = participantSelected and (not self.newParticipantVisible) and (not self.editParticipantVisible)
@@ -144,7 +144,7 @@ class ParticipantSelection(qt.QWidget):
     self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
 
     # Edit participant text
-    participantInfo = self.homeWidget.logic.getParticipantInfoFromSelection()
+    participantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromSelection()
     if participantInfo:
       self.ui.editParticipantNameText.text = participantInfo['name']
       self.ui.editParticipantSurnameText.text = participantInfo['surname']
@@ -184,7 +184,7 @@ class ParticipantSelection(qt.QWidget):
           participantID = item.text()
 
     # Update selected participant
-    self.updateSelectedParticipant(participantID)
+    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(participantID)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -210,7 +210,9 @@ class ParticipantSelection(qt.QWidget):
     deleteFlag = self.deleteParticipantMessageBox()
     if deleteFlag:
       # Delete selected participant
-      self.deleteSelectedParticipant()
+      self.trainUsWidget.logic.dataManager.deleteSelectedParticipant()
+      # Update tables    
+      self.homeWidget.updateParticipantsTable()
 
   #------------------------------------------------------------------------------
   def onNewParticipantSaveButtonClicked(self):
@@ -227,7 +229,19 @@ class ParticipantSelection(qt.QWidget):
     newParticipantEmail = self.ui.newParticipantEmailText.text
 
     # Create new participant
-    self.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
+    self.trainUsWidget.logic.dataManager.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
+
+    # Get selected participant ID
+    selectedParticipantID = self.trainUsWidget.logic.dataManager.getSelectedParticipantID()
+
+    # Update table
+    self.homeWidget.updateParticipantsTable()
+
+    # Set selected participant ID
+    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(selectedParticipantID)
+
+    # Update table selection
+    self.homeWidget.updateParticipantsTableSelection()
 
     # Reset input text fields
     self.ui.newParticipantNameText.text = ''
@@ -269,8 +283,20 @@ class ParticipantSelection(qt.QWidget):
     editParticipantBirthDate = self.ui.editParticipantBirthDateEdit.date.toString('yyyy-MM-dd') 
     editParticipantEmail = self.ui.editParticipantEmailText.text    
 
-    # Modify participant's info  
-    self.editParticipantInfo(editParticipantName, editParticipantSurname, editParticipantBirthDate, editParticipantEmail) 
+    # Modify selected participant's info  
+    self.trainUsWidget.logic.dataManager.editParticipantInfo(editParticipantName, editParticipantSurname, editParticipantBirthDate, editParticipantEmail) 
+
+    # Get selected participant ID
+    selectedParticipantID = self.trainUsWidget.logic.dataManager.getSelectedParticipantID()
+
+    # Update table
+    self.homeWidget.updateParticipantsTable()
+
+    # Set selected participant ID
+    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(selectedParticipantID)
+
+    # Update table selection
+    self.homeWidget.updateParticipantsTableSelection()
 
     # Update group box visibility
     self.editParticipantVisible = False
@@ -310,43 +336,6 @@ class ParticipantSelection(qt.QWidget):
   #------------------------------------------------------------------------------
 
   #------------------------------------------------------------------------------
-  def updateSelectedParticipant(self, participantID):
-    """
-    Update selected participant from ID.
-    """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-
-  #------------------------------------------------------------------------------
-  def deleteSelectedParticipant(self):
-    """
-    Delete selected participant from root directory.
-    """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
-
-    # Delete participant
-    self.homeWidget.logic.deleteParticipant(selectedParticipantID)
-    
-    # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, '')
-
-    # Update tables    
-    self.homeWidget.updateParticipantsTable()
-
-  #------------------------------------------------------------------------------
   def deleteParticipantMessageBox(self):
     """
     Display message box for the user to confirm if the partipant data must be deleted.
@@ -364,72 +353,6 @@ class ParticipantSelection(qt.QWidget):
       return True
     else:
       return False
-  
-  #------------------------------------------------------------------------------
-  def createNewParticipant(self, participantName, participantSurname, participantBirthDate, participantEmail):
-    """
-    Adds new participant to table from the input data and selects it.
-
-    :param participantName: participant name (string)
-    :param participantSurname: participant surname (string)
-    :param participantBirthDate: participant birth date (string)
-    :param participantEmail: participant email (string)
-    """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Create new participant
-    newParticipantInfo = self.homeWidget.logic.createNewParticipant(participantName, participantSurname, participantBirthDate, participantEmail)
-
-    # Update table
-    self.homeWidget.updateParticipantsTable()
-
-    # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, newParticipantInfo['id'])
-
-    # Update table selection
-    self.homeWidget.updateParticipantsTableSelection()
-
-  #------------------------------------------------------------------------------
-  def editParticipantInfo(self, participantName, participantSurname, participantBirthDate, participantEmail):
-    """
-    Edit name and surname of the selected participant in the JSON info file.
-    :param participantName: new name for partipant (string)
-    :param participantSurname: new surname for participant (string)
-    """    
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant info
-    selectedParticipantInfo = self.homeWidget.logic.getParticipantInfoFromSelection() 
-
-    # Get JSON info file path
-    selectedParticipantID = selectedParticipantInfo['id']
-    participantInfoFilePath = self.homeWidget.logic.getParticipantInfoFilePath(selectedParticipantID)
-
-    # Edit participant info
-    selectedParticipantInfo['name'] = participantName
-    selectedParticipantInfo['surname'] = participantSurname
-    selectedParticipantInfo['birthdate'] = participantBirthDate
-    selectedParticipantInfo['email'] = participantEmail
-
-    # Write new file
-    self.homeWidget.logic.writeParticipantInfoFile(participantInfoFilePath, selectedParticipantInfo)
-
-    # Update table content
-    self.homeWidget.updateParticipantsTable()
-
-    # Update participant selection
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName, selectedParticipantID)
-
-    # Update table selection
-    self.homeWidget.updateParticipantsTableSelection()
     
   #------------------------------------------------------------------------------
   def isNewParticipantInputValid(self):    

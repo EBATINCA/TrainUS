@@ -7,6 +7,8 @@ from slicer.util import VTKObservationMixin
 
 import logging
 
+import Managers
+
 try:
   #TODO: Contribute this to PerkTutor (PerkTutorCouchDB.py, line 8)
   import couchdb # For PerkTutor
@@ -250,6 +252,10 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Constants
     self.DATA_PATH = self.setupRootDirectory()
+
+    # Data manager to handle participants and recordings
+    self.dataManager = Managers.DataManager()
+    self.dataManager.setRootDirectory(self.DATA_PATH)
 
     # Hardware configurations
     self.ultrasoundDeviceOptions = ['None', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
