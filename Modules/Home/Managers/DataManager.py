@@ -17,11 +17,29 @@ class DataManager():
     self.rootDirectory = ''
 
   #------------------------------------------------------------------------------
+  #
+  # Read root directory
+  #
+  #------------------------------------------------------------------------------
+  
+  #------------------------------------------------------------------------------
   def setRootDirectory(self, dataPath):
+    """
+    Sets the directory of the database where participants' info and recordings' data is stored.
+    """
+    logging.debug('DataManager.setRootDirectory')
+
     self.rootDirectory = dataPath
 
   #------------------------------------------------------------------------------
   def getRootDirectory(self):
+    """
+    Gets the directory of the database where participants' info and recordings' data is stored.
+
+    :return directory to root directory (string)
+    """
+    logging.debug('DataManager.getRootDirectory')
+
     return self.rootDirectory
 
   #------------------------------------------------------------------------------
@@ -29,84 +47,44 @@ class DataManager():
     """
     Reads all the files in the root directory to get the list of participants in the database.
 
-    :return list: list of dictionaries containing the information of all participants in the database
+    :return list of dictionaries containing the information of all participants in the database (list)
     """
     logging.debug('DataManager.readRootDirectory')
 
-    # Get root directory
-    dataPath = self.rootDirectory
+    # Get list of participant IDs
+    participantID_list = self.getListOfFoldersInDirectory(self.rootDirectory)
 
-    # Get participants
-    participantID_list = self.getListOfFoldersInDirectory(dataPath)
-
-    # Get participant info
+    # Get individial participant info and store in list of dictionaries
     participantInfo_list = list() # list of dictionaries
     for participantID in participantID_list:
-      # Participant info file
+      # Participant info file path
       participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
-
       # Get participant info
       participantInfo = self.readParticipantInfoFile(participantInfoFilePath)
       participantInfo_list.append(participantInfo)
 
     # Display
     print('\n>>>>>Home.readRootDirectory<<<<<<<<<<<<')
-    print('\nDirectory: ', dataPath)
+    print('\nDirectory: ', self.rootDirectory)
     print('\nParticipants in directory: ', participantID_list)
     print('\nInfo JSON: ', participantInfo_list)
 
     return participantInfo_list
 
   #------------------------------------------------------------------------------
-  def filterParticipantInfoListFromSearchText(self, participantInfo_list, searchText):
-    """
-    Filters participant information list of dictionaries to keep only those participant matching the search criteria.
-
-    :param participantInfo_list: list of dictionaries containing the information of all participants in the database (list)
-    :param searchText: input text in search box (string)
-
-    :return list: list of dictionaries containing the information of all participants matching search criteria
-    """
-    logging.debug('DataManager.filterParticipantInfoListFromSearchText')
-
-    # Get number of participants in input list
-    numParticipants = len(participantInfo_list)
-
-    # Convert input search text to lower case
-    searchText = searchText.lower()
-
-    # Create filtered list
-    participantInfoFiltered_list = list()
-    if numParticipants >= 0:
-      for participantPos in range(numParticipants):
-        participantName = participantInfo_list[participantPos]['name'] # Get name
-        participantSurname = participantInfo_list[participantPos]['surname'] # Get surname
-        participantString = participantName + ' ' + participantSurname # Create single string with participant name and surname
-        participantString = participantString.lower() # convert to lower case
-        if searchText in participantString: # keep participants meeting search criteria
-          participantInfoFiltered_list.append(participantInfo_list[participantPos])
-    return participantInfoFiltered_list  
-
-  #------------------------------------------------------------------------------
   def readParticipantDirectory(self, participantID):
     """
-    Reads participant directory to get the list of recordings in the database.
+    Reads participant directory to get the list of recordings in the database for a given participant.
 
-    :return tuple: participant IDs (list), participant names (list), participant surnames (list), and participant
-                  number of recordings (list)
+    :return list of dictionaries containing the information of all recordings in the database (list)
     """
     logging.debug('DataManager.readParticipantDirectory')
 
-    # Get root directory
-    dataPath = self.rootDirectory
+    # Get participant directory
+    participantDirectory = os.path.join(self.rootDirectory, participantID)
 
-    # Participant directory
-    participantDirectory = os.path.join(dataPath, participantID)
-    print('DataManager.readParticipantDirectory: participant directory: ', participantDirectory)
-
-    # Get recordings
+    # Get list of recordings for participant
     recordingID_list = self.getListOfFoldersInDirectory(participantDirectory)
-    print('DataManager.readParticipantDirectory: participant directory: ', recordingID_list)
 
     # Get participant info
     recordingInfo_list = list() # list of dictionaries
@@ -133,6 +111,8 @@ class DataManager():
 
     :return list of folder names (list)
     """
+    logging.debug('DataManager.getListOfFoldersInDirectory')
+
     dirfiles = os.listdir(directory)
     fullpaths = map(lambda name: os.path.join(directory, name), dirfiles)
     folderList = []
@@ -142,6 +122,44 @@ class DataManager():
     return list(folderList)
 
   #------------------------------------------------------------------------------
+  def filterParticipantInfoListFromSearchText(self, participantInfo_list, searchText):
+    """
+    Filters participant information list of dictionaries to keep only those participant matching the search criteria.
+
+    :param participantInfo_list: list of dictionaries containing the information of all participants in the database (list)
+    :param searchText: filter input text (string)
+
+    :return list of dictionaries containing the information of all participants matching search criteria (list)
+    """
+    logging.debug('DataManager.filterParticipantInfoListFromSearchText')
+
+    # Convert input search text to lower case
+    ## TODO: Convert text to account for accents and other symbols
+    searchText = searchText.lower()
+
+    # Get number of participants in input list
+    numParticipants = len(participantInfo_list)
+
+    # Create filtered list
+    participantInfoFiltered_list = list()
+    if numParticipants >= 0:
+      for participantPos in range(numParticipants):
+        participantName = participantInfo_list[participantPos]['name'] # Get name
+        participantSurname = participantInfo_list[participantPos]['surname'] # Get surname
+        participantString = participantName + ' ' + participantSurname # Create single string with participant name and surname
+        participantString = participantString.lower() # convert to lower case
+        if searchText in participantString: # keep participants meeting search criteria
+          participantInfoFiltered_list.append(participantInfo_list[participantPos])
+    return participantInfoFiltered_list  
+
+  
+  #------------------------------------------------------------------------------
+  #
+  # Read/write JSON info files
+  #
+  #------------------------------------------------------------------------------
+  
+  #------------------------------------------------------------------------------
   def readParticipantInfoFile(self, filePath):
     """
     Reads participant's information from .json file.
@@ -150,6 +168,8 @@ class DataManager():
 
     :return participant info (dict)
     """
+    logging.debug('DataManager.readParticipantInfoFile')
+    
     try:
       with open(filePath, 'r') as inputFile:
         participantInfo =  json.loads(inputFile.read())
@@ -167,6 +187,8 @@ class DataManager():
 
     :return recording info (dict)
     """
+    logging.debug('DataManager.readRecordingInfoFile')
+    
     try:
       with open(filePath, 'r') as inputFile:
         recordingInfo =  json.loads(inputFile.read())
@@ -178,14 +200,42 @@ class DataManager():
   #------------------------------------------------------------------------------
   def writeParticipantInfoFile(self, filePath, participantInfo):
     """
-    Writes participant's information (name and surname) to .txt file.
+    Writes participant's information into a .json file.
 
     :param filePath: path to file (string)
     :param participantInfo: participant information (dict)
     """
-    with open(filePath, "w") as outputFile:
-      json.dump(participantInfo, outputFile, indent = 4)
+    logging.debug('DataManager.writeParticipantInfoFile')
+    
+    try:
+      with open(filePath, "w") as outputFile:
+        json.dump(participantInfo, outputFile, indent = 4)
+    except:
+      logging.error('Cannot write participant information into JSON file at ' + filePath)      
 
+  #------------------------------------------------------------------------------
+  def writeRecordingInfoFile(self, filePath, recordingInfo):
+    """
+    Writes recording's information into a .json file.
+
+    :param filePath: path to file (string)
+    :param recordingInfo: recording information (dict)
+    """
+    logging.debug('DataManager.writeRecordingInfoFile')
+
+    try:
+      with open(filePath, "w") as outputFile:
+        json.dump(recordingInfo, outputFile, indent = 4)
+    except:
+      logging.error('Cannot write recording information into JSON file at ' + filePath)
+
+
+  #------------------------------------------------------------------------------
+  #
+  # Get participant/recording info from ID
+  #
+  #------------------------------------------------------------------------------
+  
   #------------------------------------------------------------------------------
   def getParticipantInfoFromID(self, participantID):
     """
@@ -195,11 +245,13 @@ class DataManager():
 
     :return participant info (dict)
     """
-    # Abort if participant ID is not invalid
+    logging.debug('DataManager.getParticipantInfoFromID')
+    
+    # Abort if participant ID is not valid
     if participantID == '':
       return
 
-    # Participant info file
+    # Get participant info file path
     participantInfoFilePath = self.getParticipantInfoFilePath(participantID)
     
     # Read participant info
@@ -217,6 +269,8 @@ class DataManager():
 
     :return recording info (dict)
     """
+    logging.debug('DataManager.getRecordingInfoFromID')
+    
     # Abort if recording ID is not invalid
     if (participantID == '') or (recordingID == ''):
       return
@@ -238,11 +292,10 @@ class DataManager():
 
     :return participant info (dict)
     """
-    # Set root directory
-    dataPath = self.rootDirectory
-
+    logging.debug('DataManager.getParticipantInfoFilePath')
+    
     # Participant directory
-    participantDirectory = os.path.join(dataPath, participantID)
+    participantDirectory = os.path.join(self.rootDirectory, participantID)
 
     # Participant info file
     participantInfoFilePath = os.path.join(participantDirectory, 'Participant_Info.json')
@@ -259,11 +312,10 @@ class DataManager():
 
     :return recording info (dict)
     """
-    # Set root directory
-    dataPath = self.rootDirectory
-
+    logging.debug('DataManager.getRecordingInfoFilePath')
+    
     # Participant directory
-    participantDirectory = os.path.join(dataPath, participantID)
+    participantDirectory = os.path.join(self.rootDirectory, participantID)
 
     # Recording directory
     recordingDirectory = os.path.join(participantDirectory, recordingID)
@@ -273,13 +325,126 @@ class DataManager():
 
     return recordingInfoFilePath
 
+
+  #------------------------------------------------------------------------------
+  #
+  # Handle selected participant/recording using app parameter node
+  #
+  #------------------------------------------------------------------------------
+
+  #------------------------------------------------------------------------------
+  def isParticipantSelected(self):
+    """
+    Check if a valid participant is selected.
+
+    :return bool: True if valid participant is selected, False otherwise
+    """    
+    logging.debug('DataManager.isParticipantSelected')
+    
+    # Get selected participant
+    selectedParticipantID = self.getSelectedParticipantID()
+
+    # Check valid selection
+    if (selectedParticipantID == '') :
+      participantSelected = False
+    else:
+      participantSelected = True
+    return participantSelected
+
+  #------------------------------------------------------------------------------
+  def isRecordingSelected(self):
+    """
+    Check if a valid recording is selected.
+
+    :return bool: True if valid recording is selected, False otherwise
+    """    
+    logging.debug('DataManager.isRecordingSelected')
+    
+    # Get selected recording
+    selectedRecordingID = self.getSelectedRecordingID()
+
+    # Check valid selection
+    if (selectedRecordingID == '') :
+      recordingSelected = False
+    else:
+      recordingSelected = True
+    return recordingSelected
+
+  #------------------------------------------------------------------------------
+  def getSelectedParticipantID(self):
+    """
+    Get selected participant ID.
+    """
+    logging.debug('DataManager.getSelectedParticipantID')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedParticipantID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName)
+    return selectedParticipantID
+
+  #------------------------------------------------------------------------------
+  def setSelectedParticipantID(self, participantID):
+    """
+    Set selected participant ID.
+    """
+    logging.debug('DataManager.setSelectedParticipantID')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Update parameter node
+    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)  
+
+  #------------------------------------------------------------------------------
+  def getSelectedRecordingID(self):
+    """
+    Get selected recording ID.
+    """
+    logging.debug('DataManager.getSelectedRecordingID')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected participant
+    selectedRecordingID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName)
+    return selectedRecordingID
+
+  #------------------------------------------------------------------------------
+  def setSelectedRecordingID(self, recordingID):
+    """
+    Set selected recording ID.
+    """
+    logging.debug('DataManager.setSelectedRecordingID')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Update parameter node
+    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName, recordingID)
+  
   #------------------------------------------------------------------------------
   def getParticipantInfoFromSelection(self):
     """
-    Get participant's information from selection stored in parameter node.
+    Get information for selected participant.
 
     :return participant info (dict)
     """
+    logging.debug('DataManager.getParticipantInfoFromSelection')
+    
     # Get selected participant
     selectedParticipantID = self.getSelectedParticipantID()
 
@@ -291,10 +456,12 @@ class DataManager():
   #------------------------------------------------------------------------------
   def getRecordingInfoFromSelection(self):
     """
-    Get recording's information from selection stored in parameter node.
+    Get information for selected recording.
 
     :return recording info (dict)
     """
+    logging.debug('DataManager.getRecordingInfoFromSelection')
+    
     # Get selected participant and recording
     selectedParticipantID = self.getSelectedParticipantID()
     selectedRecordingID = self.getSelectedRecordingID()
@@ -303,6 +470,13 @@ class DataManager():
     selectedRecordingInfo = self.getRecordingInfoFromID(selectedParticipantID, selectedRecordingID)
 
     return selectedRecordingInfo
+
+
+  #------------------------------------------------------------------------------
+  #
+  # Delete participant/recording from database
+  #
+  #------------------------------------------------------------------------------    
 
   #------------------------------------------------------------------------------
   def deleteParticipant(self, participantID):
@@ -313,27 +487,33 @@ class DataManager():
     """
     logging.debug('DataManager.deleteParticipant')
 
-    # Set root directory
-    dataPath = self.rootDirectory
+    # Abort if input ID is not valid
+    if (participantID == ''):
+      return
 
     # Participant directory
-    participantDirectory = os.path.join(dataPath, participantID)
+    participantDirectory = os.path.join(self.rootDirectory, participantID)
 
     # Delete folder
-    shutil.rmtree(participantDirectory, ignore_errors=True)
+    try:
+      shutil.rmtree(participantDirectory, ignore_errors=True)
+    except:
+      logging.error('ERROR: Participant folder could not be deleted.')
 
   #------------------------------------------------------------------------------
   def deleteSelectedParticipant(self):
     """
-    Delete selected participant from root directory.
+    Delete selected participant from root directory and resets selection.
     """
+    logging.debug('DataManager.deleteSelectedParticipant')
+    
     # Get selected participant
     selectedParticipantID = self.getSelectedParticipantID()
 
     # Delete participant
     self.deleteParticipant(selectedParticipantID)
     
-    # Unselect participant
+    # Unselect deleted participant
     self.setSelectedParticipantID('')
 
   #------------------------------------------------------------------------------
@@ -346,21 +526,27 @@ class DataManager():
     """
     logging.debug('DataManager.deleteRecording')
 
-    # Set root directory
-    dataPath = self.rootDirectory
+    # Abort if input IDs are not valid
+    if (participantID == '') or (recordingID == ''):
+      return
 
-    # Recording directory
-    participantDirectory = os.path.join(dataPath, participantID)
+    # Get recording directory
+    participantDirectory = os.path.join(self.rootDirectory, participantID)
     recordingDirectory = os.path.join(participantDirectory, recordingID)
 
     # Delete folder
-    shutil.rmtree(recordingDirectory, ignore_errors=True)
+    try:
+      shutil.rmtree(recordingDirectory, ignore_errors=True)
+    except:
+      logging.error('ERROR: Recording folder could not be deleted.')
 
   #------------------------------------------------------------------------------
   def deleteSelectedRecording(self):
     """
     Delete selected recording from root directory.
     """
+    logging.debug('DataManager.deleteSelectedRecording')
+    
     # Get selected participant and recording
     selectedParticipantID = self.getSelectedParticipantID()
     selectedRecordingID = self.getSelectedRecordingID()
@@ -372,10 +558,16 @@ class DataManager():
     self.setSelectedRecordingID('')
 
   #------------------------------------------------------------------------------
+  #
+  # Create new participant/recording
+  #
+  #------------------------------------------------------------------------------    
+
+  #------------------------------------------------------------------------------
   def createNewParticipant(self, participantName, participantSurname, participantBirthDate, participantEmail):
     """
     Adds new participant to database by generating a unique ID, creating a new folder, 
-    and creating a new .txt file containing participant information.
+    and creating a new .json file containing participant information.
 
     :param participantName: participant name (string)
     :param participantSurname: participant surname (string)
@@ -403,16 +595,13 @@ class DataManager():
       maxParticipantID = 0
     newParticipantID = str("{:05d}".format(maxParticipantID + 1)) # leading zeros, 5 digits
 
-    # Set root directory
-    dataPath = self.rootDirectory
-
     # Create participant folder
-    participantDirectory = os.path.join(dataPath, str(newParticipantID))
+    participantDirectory = os.path.join(self.rootDirectory, str(newParticipantID))
     try:
       os.makedirs(participantDirectory)    
-      logging.debug('Participant directory was created')
+      logging.debug('Participant folder was created.')
     except FileExistsError:
-      logging.debug('Participant directory already exists')
+      logging.error('New participant folder could not be created.')
 
     # Create participant info dictionary
     participantInfo = {}
@@ -422,7 +611,7 @@ class DataManager():
     participantInfo['birthdate'] = participantBirthDate
     participantInfo['email'] = participantEmail
 
-    # Create info file
+    # Create participant info file
     participantInfoFilePath = self.getParticipantInfoFilePath(newParticipantID)
     self.writeParticipantInfoFile(participantInfoFilePath, participantInfo)
 
@@ -432,12 +621,30 @@ class DataManager():
     return participantInfo
 
   #------------------------------------------------------------------------------
+  def createNewRecording(self):
+    """
+    TODO
+    """
+    logging.debug('DataManager.createNewRecording')
+
+  #------------------------------------------------------------------------------
+  #
+  # Edit existing participant info
+  #
+  #------------------------------------------------------------------------------    
+
+  #------------------------------------------------------------------------------
   def editParticipantInfo(self, participantName, participantSurname, participantBirthDate, participantEmail):
     """
-    Edit name and surname of the selected participant in the JSON info file.
+    Edit info of the selected participant in the JSON info file.
+
     :param participantName: new name for partipant (string)
     :param participantSurname: new surname for participant (string)
+    :param participantBirthDate: new birth date for participant (string)
+    :param participantEmail: new email for participant (string)
     """    
+    logging.debug('DataManager.editParticipantInfo')
+    
     # Get selected participant info
     selectedParticipantInfo = self.getParticipantInfoFromSelection() 
 
@@ -457,97 +664,4 @@ class DataManager():
     # Update participant selection
     self.setSelectedParticipantID(selectedParticipantID)
 
-  #------------------------------------------------------------------------------
-  def isParticipantSelected(self):
-    """
-    Check if a participant is selected.
-    :return bool: True if valid participant is selected, False otherwise
-    """    
-    # Get selected participant
-    selectedParticipantID = self.getSelectedParticipantID()
-
-    # Check valid selection
-    if (selectedParticipantID == '') :
-      participantSelected = False
-    else:
-      participantSelected = True
-    return participantSelected
-
-  #------------------------------------------------------------------------------
-  def getSelectedParticipantID(self):
-    """
-    Get selected participant ID.
-    """
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName)
-    return selectedParticipantID
-
-  #------------------------------------------------------------------------------
-  def setSelectedParticipantID(self, participantID):
-    """
-    Set selected participant ID.
-    """
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)
-
-  #------------------------------------------------------------------------------
-  def isRecordingSelected(self):
-    """
-    Check if a recording is selected.
-    :return bool: True if valid recording is selected, False otherwise
-    """    
-    # Get selected recording
-    selectedRecordingID = self.getSelectedRecordingID()
-
-    # Check valid selection
-    if (selectedRecordingID == '') :
-      recordingSelected = False
-    else:
-      recordingSelected = True
-    return recordingSelected
-
-  #------------------------------------------------------------------------------
-  def getSelectedRecordingID(self):
-    """
-    Get selected recording ID.
-    """
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Get selected participant
-    selectedRecordingID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName)
-    return selectedRecordingID
-
-  #------------------------------------------------------------------------------
-  def setSelectedRecordingID(self, recordingID):
-    """
-    Set selected recording ID.
-    """
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName, recordingID)
-
-  
-
-  
   
