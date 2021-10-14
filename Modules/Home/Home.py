@@ -599,12 +599,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         for recordingPos in range(numRecordings):
           recordingIDTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['id'])
           recordingDateTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['date'])
+          recordingTimeTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['time'])
           recordingExerciseTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['exercise'])
           recordingDurationTableItem = qt.QTableWidgetItem(recordingInfo_list[recordingPos]['duration'])
           tableWidget.setItem(recordingPos, 0, recordingIDTableItem)
           tableWidget.setItem(recordingPos, 1, recordingDateTableItem)
-          tableWidget.setItem(recordingPos, 2, recordingExerciseTableItem)
-          tableWidget.setItem(recordingPos, 3, recordingDurationTableItem)
+          tableWidget.setItem(recordingPos, 2, recordingTimeTableItem)
+          tableWidget.setItem(recordingPos, 3, recordingExerciseTableItem)
+          tableWidget.setItem(recordingPos, 4, recordingDurationTableItem)
       else:
         tableWidget.setRowCount(0)
         logging.debug('Home.updateRecordingsTable: No recordings found in database...')
@@ -1002,6 +1004,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(1, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column2']))
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(2, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column3']))
     self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(3, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column4']))
+    self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable.setHorizontalHeaderItem(4, qt.QTableWidgetItem(languageTexts['Recordings.recordingsTable_column5']))
     self.moduleWidget.ui.EvaluationPanel.ui.recordingOptionsGroupBox.setTitle(languageTexts['Recordings.recordingOptionsGroupBox'])
     self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsButton.setText(languageTexts['Recordings.recordingDetailsButton'])
     self.moduleWidget.ui.EvaluationPanel.ui.evaluateRecordingButton.setText(languageTexts['Recordings.evaluateRecordingButton'])
@@ -1018,7 +1021,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.EvaluationPanel.ui.previousPageButton.setText(languageTexts['Evaluation.previousPageButton'])
     
     # Adjust width of table columns to new horizontal headers
-    COLUMN_H_MARGIN = 50
+    COLUMN_H_MARGIN = 100
     self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable, COLUMN_H_MARGIN)
     self.addMarginToColumnWidth(self.moduleWidget.ui.EvaluationPanel.ui.recordingsTable, COLUMN_H_MARGIN)
 

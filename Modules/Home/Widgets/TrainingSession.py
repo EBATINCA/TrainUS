@@ -14,6 +14,7 @@ class TrainingSession(qt.QWidget):
 
     # Define member variables
     self.homeWidget = None # Set externally after creation
+    self.trainUsWidget = slicer.trainUsWidget
 
   #------------------------------------------------------------------------------
   # Clean up when application is closed
@@ -44,12 +45,24 @@ class TrainingSession(qt.QWidget):
   def setupConnections(self):
     logging.debug('TrainingSession.setupConnections')
 
+    self.ui.basicExercise1Button.clicked.connect(self.onBasicExercise1ButtonClicked)
+    self.ui.basicExercise2Button.clicked.connect(self.onBasicExercise2ButtonClicked)
+    self.ui.basicExercise3Button.clicked.connect(self.onBasicExercise3ButtonClicked)
+    self.ui.advancedExercise1Button.clicked.connect(self.onAdvancedExercise1ButtonClicked)
+    self.ui.advancedExercise2Button.clicked.connect(self.onAdvancedExercise2ButtonClicked)
+    self.ui.advancedExercise3Button.clicked.connect(self.onAdvancedExercise3ButtonClicked)
     self.ui.finishTrainingButton.clicked.connect(self.onFinishTrainingButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     logging.debug('TrainingSession.disconnect')
 
+    self.ui.basicExercise1Button.clicked.disconnect()
+    self.ui.basicExercise2Button.clicked.disconnect()
+    self.ui.basicExercise3Button.clicked.disconnect()
+    self.ui.advancedExercise1Button.clicked.disconnect()
+    self.ui.advancedExercise2Button.clicked.disconnect()
+    self.ui.advancedExercise3Button.clicked.disconnect()
     self.ui.finishTrainingButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -72,6 +85,48 @@ class TrainingSession(qt.QWidget):
   # Event handler functions
   #
   #------------------------------------------------------------------------------
+  
+  #------------------------------------------------------------------------------
+  def onBasicExercise1ButtonClicked(self):
+    print('Basic training - Exercise 1')
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 1')
+  
+  #------------------------------------------------------------------------------
+  def onBasicExercise2ButtonClicked(self):
+    print('Basic training - Exercise 2')    
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 2')
+  
+  #------------------------------------------------------------------------------
+  def onBasicExercise3ButtonClicked(self):
+    print('Basic training - Exercise 3')    
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 3')
+  
+  #------------------------------------------------------------------------------
+  def onAdvancedExercise1ButtonClicked(self):
+    print('Advanced training - Exercise 1')
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 1')
+  
+  #------------------------------------------------------------------------------
+  def onAdvancedExercise2ButtonClicked(self):
+    print('Advanced training - Exercise 2')    
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 2')
+  
+  #------------------------------------------------------------------------------
+  def onAdvancedExercise3ButtonClicked(self):
+    print('Advanced training - Exercise 3')    
+
+    # Create new recording
+    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 3')
   
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):

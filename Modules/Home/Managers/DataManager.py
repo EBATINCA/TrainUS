@@ -621,11 +621,67 @@ class DataManager():
     return participantInfo
 
   #------------------------------------------------------------------------------
-  def createNewRecording(self):
+  def createNewRecording(self, exerciseName):
     """
-    TODO
+    Adds new recording to database by generating a unique ID, creating a new folder, 
+    and creating a new .json file containing the recording information.
+
+    :param exerciseName: exercise name for recording (string)
+
+    :return new recording info (dict)
     """
     logging.debug('DataManager.createNewRecording')
+
+    # Get selected participant and recording
+    selectedParticipantID = self.getSelectedParticipantID()
+
+    # Get existing recordings from directory
+    recordingInfo_list = self.readParticipantDirectory(selectedParticipantID)
+
+    # Get existing recording IDs
+    numRecordings = len(recordingInfo_list)
+    recordingID_list = []
+    for recording in range(numRecordings):
+      recordingID_list.append(recordingInfo_list[recording]['id'][1:])
+
+    # Generate new recording ID (TODO: improve to ensure uniqueness)
+    recordingID_array = np.array(recordingID_list).astype(int)
+    try:
+      maxRecordingID = np.max(recordingID_array)
+    except:
+      maxRecordingID = 0
+    newRecordingID = str("R{:05d}".format(maxRecordingID + 1)) # leading zeros, 5 digits
+
+    # Get current date and time
+    from datetime import datetime
+    dateLabel = datetime.now().strftime('%Y-%m-%d')
+    timeLabel = datetime.now().strftime('%H:%M:%S')
+
+    # Create recording folder
+    participantDirectory = os.path.join(self.rootDirectory, selectedParticipantID)
+    recordingDirectory = os.path.join(participantDirectory, newRecordingID)
+    try:
+      os.makedirs(recordingDirectory)    
+      logging.debug('Recording folder was created.')
+    except FileExistsError:
+      logging.error('New recording folder could not be created.')
+
+    # Create recording info dictionary
+    recordingInfo = {}
+    recordingInfo['id'] = newRecordingID
+    recordingInfo['date'] = dateLabel
+    recordingInfo['time'] = timeLabel
+    recordingInfo['exercise'] = exerciseName
+    recordingInfo['duration'] = '0 min 0 s'
+
+    # Create recording info file
+    recordingInfoFilePath = self.getRecordingInfoFilePath(selectedParticipantID, newRecordingID)
+    self.writeRecordingInfoFile(recordingInfoFilePath, recordingInfo)
+
+    # Update recording selection
+    self.setSelectedRecordingID(recordingInfo['id'])
+
+    return recordingInfo
 
   #------------------------------------------------------------------------------
   #

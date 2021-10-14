@@ -758,6 +758,11 @@
                </column>
                <column>
                 <property name="text">
+                 <string>Time</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
                  <string>Exercise</string>
                 </property>
                </column>
