@@ -586,6 +586,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Reset table
     tableWidget.clearContents()
+    tableWidget.sortingEnabled = False
 
     # Update table if participant is selected
     if selectedParticipantID is not '':
@@ -612,7 +613,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         logging.debug('Home.updateRecordingsTable: No recordings found in database...')
     else:
       tableWidget.setRowCount(0)
-      logging.debug('Home.updateRecordingsTable: No participant is selected')
+      logging.debug('Home.updateRecordingsTable: No participant is selected')    
+    tableWidget.sortingEnabled = True
 
   #------------------------------------------------------------------------------
   def updateReviewSelectionPanel(self):
