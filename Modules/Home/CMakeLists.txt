@@ -4,10 +4,14 @@ set(MODULE_NAME Home)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
-  TabWidgets/Dashboard.py
-  TabWidgets/Participants.py
-  TabWidgets/Recordings.py
-  TabWidgets/Configuration.py
+  Widgets/Configuration.py
+  Widgets/Evaluation.py
+  Widgets/HardwareSelection.py
+  Widgets/ParticipantSelection.py
+  Widgets/PlugAndPlay.py
+  Widgets/ReviewSelection.py
+  Widgets/TrainingSession.py
+  Managers/DataManager.py
   )
 
 set(MODULE_PYTHON_RESOURCES
