@@ -1,6 +1,6 @@
 /* GENERAL */
 QWidget {
-	font-size: 18px;
+	font-size: 20px;
 	color: #093426; 
 }
 
@@ -32,21 +32,22 @@ QTabBar::tab:!selected {
 
 /* TABLE */
 QTableView {
-    selection-background-color: #cde534;
-	font-size: 15px;
+	/*color: #093426;*/
+	font-size: 18px;
+	alternate-background-color: #f8f9f8;
 }
-QTreeView {
-    alternate-background-color: #f8f9f8;
-    background: #fefefe;
-}
+QTableWidget::item:selected { background-color:#7FBD32; 
+	color: #fff;}
+
+
 
 /* BUTTON */
 QAbstractButton,
 QPushButton {
     border-style: outset; 
     border-width: 3px; 
-    border-radius: 10px; 
-    background-color: #7FBD32; 
+    border-radius: 5px; 
+    background-color: #7FBD32;
     border-color: #093426; 
 	height: 40px;
 	margin: 5px;
@@ -63,14 +64,50 @@ QPushButton:checked {
 QAbstractButton:hover,
 QPushButton:hover {
 	color: white;
-    border-color: #ffffff; 
+    border-color: #000000; 
+}
+QPushButton:enabled {
+	
 }  
+
+
+/* BOTON ESPECIFICO */
+/* CLASE main */
+QPushButton[objectName^="main"] 
+{	height: 100px;
+	margin: 25px;
+	padding: 28px; }
+
+/* CLASE configuration */
+QPushButton[objectName^="configuration"] 
+{ background: transparent;
+	border-width: 0px;
+	font-size: 15px;	}
+
+/* Qlabel, step3 */
+QLabel[objectName^="participant"] 
+{	background: transparent}
+QLabel[objectName^="label_"] 
+{	background: transparent}
+QLabel[objectName^="ultrasound"] 
+{	background: transparent}
+QLabel[objectName^="tracking"] 
+{	background: transparent}
+QLabel[objectName^="simulation"] 
+{	background: transparent}
+
 
 /* RADIO BUTTON */
 QRadioButton::indicator {
     width: 13px;
     height: 13px;
 }
+
+QCheckBox 
+{ background: transparent;
+	border-width: 0px;
+	font-size: 15px;	}
+
 
 
 /* MISC */
@@ -123,3 +160,5 @@ QComboBox QAbstractItemView {
     selection-background-color: #cde534;
     selection-color: black;
 }
+
+
