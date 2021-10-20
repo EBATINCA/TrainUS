@@ -200,8 +200,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
     self.ui.exitAppButton.clicked.connect(self.onExitAppButtonClicked)
     self.ui.languageComboBox.currentIndexChanged.connect(self.onLanguageComboBoxIndexChanged)
-    self.ui.trainingModeButton.clicked.connect(self.onTrainingModeButtonClicked)
-    self.ui.evaluationModeButton.clicked.connect(self.onEvaluationModeButtonClicked)
+    self.ui.mainTrainingModeButton.clicked.connect(self.onMainTrainingModeButtonClicked)
+    self.ui.mainEvaluationModeButton.clicked.connect(self.onMainEvaluationModeButtonClicked)
     self.ui.configurationButton.clicked.connect(self.onConfigurationButtonClicked)
 
   #------------------------------------------------------------------------------
@@ -211,8 +211,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.backToSlicerButton.clicked.disconnect()
     self.ui.exitAppButton.clicked.disconnect()
     self.ui.languageComboBox.currentIndexChanged.disconnect()
-    self.ui.trainingModeButton.clicked.disconnect()
-    self.ui.evaluationModeButton.clicked.disconnect()
+    self.ui.mainTrainingModeButton.clicked.disconnect()
+    self.ui.mainEvaluationModeButton.clicked.disconnect()
     self.ui.configurationButton.clicked.disconnect()
     
   #------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.logic.updateLanguageUI(self.ui.languageComboBox.currentIndex)
     
   #------------------------------------------------------------------------------
-  def onTrainingModeButtonClicked(self):
+  def onMainTrainingModeButtonClicked(self):
     # Update mode
     self.logic.switchAppMode('TRAINING')
 
@@ -265,7 +265,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateRecordingsTable()
 
   #------------------------------------------------------------------------------
-  def onEvaluationModeButtonClicked(self):
+  def onMainEvaluationModeButtonClicked(self):
 
     # Update mode
     self.logic.switchAppMode('EVALUATION')
@@ -872,8 +872,8 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.fullScreenButton.setText(languageTexts['Home.fullScreenButton'])
     self.moduleWidget.ui.backToSlicerButton.setText(languageTexts['Home.backToSlicerButton'])
     self.moduleWidget.ui.exitAppButton.setText(languageTexts['Home.exitAppButton'])
-    self.moduleWidget.ui.trainingModeButton.setText(languageTexts['Home.trainingModeButton'])
-    self.moduleWidget.ui.evaluationModeButton.setText(languageTexts['Home.evaluationModeButton'])
+    self.moduleWidget.ui.mainTrainingModeButton.setText(languageTexts['Home.mainTrainingModeButton'])
+    self.moduleWidget.ui.mainEvaluationModeButton.setText(languageTexts['Home.mainEvaluationModeButton'])
     self.moduleWidget.ui.configurationButton.setText(languageTexts['Home.configurationButton'])
     self.moduleWidget.ui.step1NavigationLabel.setText(languageTexts['Home.step1NavigationLabel'])
     self.moduleWidget.ui.step2NavigationLabel.setText(languageTexts['Home.step2NavigationLabel'])

@@ -271,7 +271,7 @@
           </spacer>
          </item>
          <item row="1" column="1" rowspan="2">
-          <widget class="QPushButton" name="trainingModeButton">
+          <widget class="QPushButton" name="mainTrainingModeButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -348,7 +348,7 @@
           </spacer>
          </item>
          <item row="1" column="3" rowspan="2">
-          <widget class="QPushButton" name="evaluationModeButton">
+          <widget class="QPushButton" name="mainEvaluationModeButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
