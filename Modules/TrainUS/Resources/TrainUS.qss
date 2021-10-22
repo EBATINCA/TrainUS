@@ -3,7 +3,6 @@ QWidget {
 	font-size: 20px;
 	color: #093426; 
 }
-
 /* TAB BAR */
 QTabWidget::pane { /* The tab widget frame */
     border-top: 2px solid #093426;
@@ -38,52 +37,8 @@ QTableView {
 }
 QTableWidget::item:selected { background-color:#7FBD32; 
 	color: #fff;}
-
-
-
-/* BUTTON */
-QAbstractButton,
-QPushButton {
-    border-style: outset; 
-    border-width: 3px; 
-    border-radius: 5px; 
-    background-color: #7FBD32;
-    border-color: #093426; 
-	height: 40px;
-	margin: 5px;
-	padding: 8px;
-}
-QAbstractButton:pressed,
-QPushButton:pressed {
-    background-color: #cde534; 
-}
-QAbstractButton:checked,
-QPushButton:checked {
-    background-color: #cde534; 
-}
-QAbstractButton:hover,
-QPushButton:hover {
-	color: white;
-    border-color: #000000; 
-}
-QPushButton:enabled {
 	
-}  
-
-
-/* BOTON ESPECIFICO */
-/* CLASE main */
-QPushButton[objectName^="main"] 
-{	height: 100px;
-	margin: 25px;
-	padding: 28px; }
-
-/* CLASE configuration */
-QPushButton[objectName^="configuration"] 
-{ background: transparent;
-	border-width: 0px;
-	font-size: 15px;	}
-
+/* LABEL */
 /* Qlabel, step3 */
 QLabel[objectName^="participant"] 
 {	background: transparent}
@@ -96,69 +51,74 @@ QLabel[objectName^="tracking"]
 QLabel[objectName^="simulation"] 
 {	background: transparent}
 
-
-/* RADIO BUTTON */
-QRadioButton::indicator {
-    width: 13px;
-    height: 13px;
+/* BUTTON */
+QAbstractButton,
+QPushButton {
+    border-style: solid;
+    border-width: 3px; 
+    border-radius: 5px; 
+    background-color: #7FBD32;
+    border-color: #093426; 
+	height: 40px;
+	margin: 8px;
+	padding: 5px;
+	
 }
-
-QCheckBox 
+QAbstractButton:pressed,
+QPushButton:pressed {
+    background-color: #cde534; 
+}
+QAbstractButton:hover,
+QPushButton:hover {
+	color: white;
+    border-color: #000000; 
+}
+/* BOTON ESPECIFICO */
+/* CLASE main */
+QPushButton[objectName^="main"] 
+{	height: 130px;
+	margin: 10px;
+	padding: 5px;
+	font-size: 35px;
+	}
+/* CLASE configuration */
+QPushButton[objectName^="configuration"] 
 { background: transparent;
 	border-width: 0px;
-	font-size: 15px;	}
+	font-size: 15px;}
+	
+/*DISABLED*/	
+QPushButton:disabled {
+background-color:#BFDE99;/* GREEN WITH 50% TRANSPARENCY BACKGROUND*/
+/*background-color:#B9B6B6; GREY BACKGROUND*/
+color: #9A9797;
+border-color: #9A9797;
 
 
-
-/* MISC */
-QFrame {
-    background-color: #E6EBE9;
-    border-color: #093426;
-}
-
-QDockWidget:title {
-    background-color: yellow;
-}
-QTabWidget{
-    background-color: #833d6d;
 }
 
 
-
-
+/* COMBOBOX */
 QComboBox {
     border: 1px solid gray;
     border-radius: 3px;
     padding: 1px 18px 1px 3px;
     min-width: 6em;
+	background-color: #f8f9f8;
+	color: black;
 }
-
 QComboBox::drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 15px;
 }
-/* ----------------------------------------------------------------------------------- */
-QListView {
-	background-color: #f8f9f8;
-	color: black;
-}
-/*
-QComboBox {
-	background-color: #f8f9f8;
-	color: black;
-}
 QComboBox::on {
         background-color: #f3f7d4;
         color: black;
 }
-*/
 QComboBox QAbstractItemView {
     background-color: #f3f7d4;
     color: #093426;
-
     selection-background-color: #cde534;
     selection-color: black;
 }
-
-
