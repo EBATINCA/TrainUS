@@ -92,6 +92,12 @@ class Configuration(qt.QWidget):
     self.ui.trackingSystemComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
     self.ui.simulationPhantomComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
 
+    # Update Plus config file and server paths according to selected devices
+    plusServerPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerPathFromSelection()
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerPathParameterName, plusServerPath)
+    configFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusConfigPathParameterName, configFilePath)
+
     # Disable configuration combo boxes if PLUS is connected
     plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     self.ui.ultrasoundDeviceComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
@@ -115,6 +121,9 @@ class Configuration(qt.QWidget):
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName, text)
 
+    # Update GUI
+    self.updateGUIFromMRML()
+
   #------------------------------------------------------------------------------
   def onTrackingSystemComboBoxTextChanged(self, text):
     # Parameter node
@@ -126,6 +135,9 @@ class Configuration(qt.QWidget):
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName, text)
 
+    # Update GUI
+    self.updateGUIFromMRML()
+
   #------------------------------------------------------------------------------
   def onSimulationPhantomComboBoxTextChanged(self, text):
     # Parameter node
@@ -136,6 +148,9 @@ class Configuration(qt.QWidget):
 
     # Update parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName, text)
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onPlusConnectionButton(self):

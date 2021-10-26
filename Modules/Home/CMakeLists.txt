@@ -12,6 +12,7 @@ set(MODULE_PYTHON_SCRIPTS
   Widgets/ReviewSelection.py
   Widgets/TrainingSession.py
   Managers/DataManager.py
+  Managers/DeviceManager.py
   )
 
 set(MODULE_PYTHON_RESOURCES

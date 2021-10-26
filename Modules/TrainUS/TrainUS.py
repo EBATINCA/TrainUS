@@ -252,13 +252,18 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Constants
     self.DATA_PATH = self.setupRootDirectory()
+    self.DEVICES_DATA_PATH = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
 
     # Data manager to handle participants and recordings
     self.dataManager = Managers.DataManager()
     self.dataManager.setRootDirectory(self.DATA_PATH)
 
+    # Device manager to access device info
+    self.deviceManager = Managers.DeviceManager()
+    self.deviceManager.setMainDirectory(self.DEVICES_DATA_PATH)
+
     # Hardware configurations
-    self.ultrasoundDeviceOptions = ['None', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
+    self.ultrasoundDeviceOptions = ['None', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
     self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
@@ -268,11 +273,11 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.defaultParameters["SelectedParticipantID"] = ''
     self.defaultParameters["SelectedRecordingID"] = ''
     self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]
-    self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[1]
-    self.defaultParameters["SelectedSimulationPhantom"] = self.trackingSystemOptions[0]
-    self.defaultParameters["USImageName"] = 'Image_Image'
-    self.defaultParameters["PlusServerPath"] = 'C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServer.exe'
-    self.defaultParameters["PlusConfigPath"] = 'C:/D/TUS/US simulation data/l20171207_113513_config.xml'
+    self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[0]
+    self.defaultParameters["SelectedSimulationPhantom"] = self.simulationPhantomOptions[0]
+    self.defaultParameters["USImageName"] = 'Image_Reference'
+    self.defaultParameters["PlusServerPath"] = ''
+    self.defaultParameters["PlusConfigPath"] = ''
     self.defaultParameters["PlusConnectionStatus"] = 'OFF'
     self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
     self.defaultParameters["IGTLConnectorNodeID"] = ''
