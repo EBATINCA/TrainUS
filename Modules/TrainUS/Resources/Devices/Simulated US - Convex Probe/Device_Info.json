@@ -1,0 +1,8 @@
+{
+    "label": "Simulated US - Convex Probe",
+    "name": "Recording1",
+    "type": "VideoDevice",
+    "config": "Config/l20171207_113513_config.xml",
+    "plus server": "C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServer.exe",    
+    "plus launcher": "C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Win32/bin/PlusServerLauncher.exe"
+}

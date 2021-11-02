@@ -95,6 +95,8 @@ class Configuration(qt.QWidget):
     # Update Plus config file and server paths according to selected devices
     plusServerPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerPathFromSelection()
     parameterNode.SetParameter(self.trainUsWidget.logic.plusServerPathParameterName, plusServerPath)
+    plusServerLauncherPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerLauncherPathFromSelection()
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerLauncherPathParameterName, plusServerLauncherPath)
     configFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
     parameterNode.SetParameter(self.trainUsWidget.logic.plusConfigPathParameterName, configFilePath)
 

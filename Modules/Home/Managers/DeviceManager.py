@@ -286,3 +286,27 @@ class DeviceManager():
       plusServerPath = ''
 
     return plusServerPath
+
+  #------------------------------------------------------------------------------
+  def getUltrasoundDevicePlusServerLauncherPathFromSelection(self):
+    """
+    Get Plus server path for selected ultrasound device.
+
+    :return plus server path (string)
+    """
+    logging.debug('DeviceManager.getUltrasoundDevicePlusServerLauncherPathFromSelection')
+    
+    # Get selected device
+    selectedUltrasoundDevice = self.getSelectedUltrasoundDevice()
+
+    # Get device info from ID
+    selectedUltrasoundDeviceInfo = self.getUltrasoundDeviceInfoFromSelection()
+
+    # Get config file path
+    if selectedUltrasoundDeviceInfo:
+      devicePath = os.path.join(self.mainDirectory, selectedUltrasoundDevice)
+      plusServerLauncherPath = os.path.join(devicePath, selectedUltrasoundDeviceInfo['plus launcher'])
+    else:
+      plusServerLauncherPath = ''
+
+    return plusServerLauncherPath

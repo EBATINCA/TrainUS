@@ -3,5 +3,6 @@
     "name": "TelemedVideo",
     "type": "VideoDevice",
     "config": "Config/PlusDeviceSet_Server_TelemedVideoCapture.xml",
-    "plus server": "C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Telemed-Win32/bin/PlusServer.exe"
+    "plus server": "C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Telemed-Win32/bin/PlusServer.exe",
+    "plus launcher": "C:/PLUS TOOLKIT/PlusApp-2.8.0.20191105-Telemed-Win32/bin/PlusServerLauncher.exe"
 }
