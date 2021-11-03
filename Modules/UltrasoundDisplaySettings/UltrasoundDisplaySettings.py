@@ -571,7 +571,9 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Get US volume from name
     try:
       usImageVolumeNode = slicer.util.getNode(usImageName)
+      self.updateSliceViewText('') # Delete corner annotation within slice view
     except:
+      self.updateSliceViewText('No image is available.') # Show corner annotation within slice view
       return False
     return True
 
@@ -581,6 +583,15 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     for name in slicer.app.layoutManager().sliceViewNames():
       sliceWidget = slicer.app.layoutManager().sliceWidget(name)
       sliceWidget.sliceController().setVisible(visible)
+
+  #------------------------------------------------------------------------------
+  def updateSliceViewText(self, text):
+    # Update visibility of slice controllers
+    for name in slicer.app.layoutManager().sliceViewNames():
+      view = slicer.app.layoutManager().sliceWidget(name).sliceView()
+      view.cornerAnnotation().SetText(vtk.vtkCornerAnnotation.UpperLeft, text)
+      view.cornerAnnotation().GetTextProperty().SetColor(1,1,1)
+      view.forceRender()
 
   #------------------------------------------------------------------------------
   def freezeUltrasoundImage(self):
