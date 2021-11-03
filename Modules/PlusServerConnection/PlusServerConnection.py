@@ -173,7 +173,7 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     progressDialog.show()
 
     # Execute Plus Server Launcher if not running
-    windowVisible = False
+    windowVisible = True
     if not self.logic.plusServerLauncherRunning:
       # Start connection with PLUS server
       self.logic.startPlusServerLauncher(windowVisible, progressDialog)
@@ -380,7 +380,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       slicer.mrmlScene.RemoveNode(self.plusConfigTextNode)
     self.plusConfigTextNode = slicer.util.loadText(plusConfigPath) # load XML as text node
     self.plusConfigTextNode.SetName('Plus_Config_File')
-    slicer.mrmlScene.AddNode(self.plusConfigTextNode)
 
     # Add node ID to parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.plusConfigTextNodeIDParameterName, self.plusConfigTextNode.GetID())
@@ -468,10 +467,11 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       return
 
     # Add observer to connector
-    self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
-    self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
-    self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
-    self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
+    if not self.connector.HasObserver(slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent):
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
 
     # Save connector node ID into parameter node
     parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.connector.GetID())
@@ -489,10 +489,13 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     # Get Plus server state
     if (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().On):
       plusConnectionStatus ='SUCCESSFUL'
+      plusServerRunning = 'True'
     else:
       logging.error('ERROR: Plus Server is not connected.')
       plusConnectionStatus ='FAILED'
+      plusServerRunning = 'False'
     parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, plusConnectionStatus)
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
 
   #------------------------------------------------------------------------------
   def stopPlusConnection(self, progressDialog=None):
@@ -512,17 +515,27 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
     # Wait
     if progressDialog:
-      self.sleepWithProgressDialog(3, progressDialog, 'Stopping Plus Server. Please wait...')
+      self.sleepWithProgressDialog(5, progressDialog, 'Stopping Plus Server. Please wait...')
     else:
-      time.sleep(3)
+      time.sleep(5)
 
     # Save PLUS connection status
     if (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().Off) or (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().Stopping):
       plusConnectionStatus ='OFF'
+      plusServerRunning = 'False'      
     else:
       logging.error('ERROR: Plus Server was not successfully disconnected.')
       plusConnectionStatus ='FAILED'    
+      plusServerRunning = 'False'
     parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, plusConnectionStatus)
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
+
+    # Remove previous incoming MRML nodes
+    incomingNodes = list()
+    for i in range(self.connector.GetNumberOfIncomingMRMLNodes()):
+      incomingNodes.append(self.connector.GetIncomingMRMLNode(i))
+    for incomingNode in incomingNodes:
+      slicer.mrmlScene.RemoveNode(incomingNode)
 
     # Get IGTL connection status
     slicer.app.processEvents()
@@ -531,6 +544,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
   #------------------------------------------------------------------------------
   def getIGTLConnectionStatus(self, caller=None, event=None):
     logging.debug('PlusServerConnection.getIGTLConnectionStatus')
+    print('PlusServerConnection.getIGTLConnectionStatus')
 
     # Connector
     if not self.connector:

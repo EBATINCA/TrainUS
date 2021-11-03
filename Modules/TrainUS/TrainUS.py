@@ -263,7 +263,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.deviceManager.setMainDirectory(self.DEVICES_DATA_PATH)
 
     # Hardware configurations
-    self.ultrasoundDeviceOptions = ['None', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
+    self.ultrasoundDeviceOptions = ['None', 'Simulated US - Linear Probe', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
     self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
@@ -276,6 +276,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[0]
     self.defaultParameters["SelectedSimulationPhantom"] = self.simulationPhantomOptions[0]
     self.defaultParameters["USImageName"] = 'Image_Reference'
+    self.defaultParameters["PlusServerRunning"] = 'False'
     self.defaultParameters["PlusServerPath"] = ''
     self.defaultParameters["PlusServerLauncherPath"] = ''
     self.defaultParameters["PlusConfigPath"] = ''
@@ -295,6 +296,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.selectedTrackingSystemParameterName = 'SelectedTrackingSystem'
     self.selectedSimulationPhantomParameterName = 'SelectedSimulationPhantom'
     self.usImageNameParameterName = 'USImageName'
+    self.plusServerRunningParameterName = 'PlusServerRunning'
     self.plusServerPathParameterName = 'PlusServerPath'
     self.plusServerLauncherPathParameterName = 'PlusServerLauncherPath'
     self.plusConfigPathParameterName = 'PlusConfigPath'
