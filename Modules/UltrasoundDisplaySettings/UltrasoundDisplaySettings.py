@@ -1,5 +1,6 @@
 import vtk, qt, ctk, slicer
 import os
+import numpy as np
 
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
@@ -79,6 +80,11 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     if usImageDisplayed:
       remoteControlAvailable = self.setupPlusRemote()
       self.updateUltrasoundParametersGroupBoxState(remoteControlAvailable)
+
+    # Setup brightness slider range
+    if usImageDisplayed:
+      [minVal, maxVal] = self.logic.getImageMinMaxIntensity()
+      self.updateBrightnessSliderRange(minVal, maxVal)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -169,6 +175,13 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   #------------------------------------------------------------------------------
   def updateUltrasoundParametersGroupBoxState(self, active):
     self.ui.parametersGroupBox.visible = active
+
+  #------------------------------------------------------------------------------
+  def updateBrightnessSliderRange(self, minVal, maxVal):
+    absRange = abs(maxVal - minVal)
+    intensityMargin = 0.25 * absRange # 25% margin
+    self.ui.brightnessSliderWidget.minimum = minVal - intensityMargin
+    self.ui.brightnessSliderWidget.maximum = maxVal + intensityMargin
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
@@ -706,6 +719,36 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       # Remove observer to mouse movement
       if self.crosshairNode and self.mouseObserverID:
         self.crosshairNode.RemoveObserver(self.mouseObserverID)
+
+  #------------------------------------------------------------------------------
+  def getImageMinMaxIntensity(self):    
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('getImageMinMaxLevel: Failed to get parameter node')
+      return
+
+    # Get image name from parameter node
+    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+
+    # Get volume and display node
+    try:
+      # Get volume node
+      usImageVolumeNode = slicer.util.getNode(usImageName)
+      # Get display node
+      usImageDisplayNode = usImageVolumeNode.GetDisplayNode()
+    except:
+      logging.error('Ultrasound image not found in current scene...')
+      return
+
+    # Get image array
+    usImageArray = slicer.util.arrayFromVolume(usImageVolumeNode)
+
+    # Get max and min intensity values
+    minVal = np.min(usImageArray)
+    maxVal = np.max(usImageArray)
+
+    return (minVal, maxVal)
     
 
 #------------------------------------------------------------------------------
