@@ -73,7 +73,12 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.logic.setParameterNode(self.logic.getParameterNode())
 
     # Display US image
-    self.logic.displayUSImage()
+    usImageDisplayed = self.logic.displayUSImage()
+
+    # Setup plus remote node
+    if usImageDisplayed:
+      remoteControlAvailable = self.setupPlusRemote()
+      self.updateUltrasoundParametersGroupBoxState(remoteControlAvailable)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -86,12 +91,84 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.layout.addWidget(uiWidget)
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
+    # Create parameter sliders
+    ultrasoundParametersFrame = qt.QFrame()
+    ultrasoundParametersLayout = qt.QFormLayout(ultrasoundParametersFrame)
+    self.ui.parametersGroupBox.layout().addWidget(ultrasoundParametersFrame)
+
+    self.depthSlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.depthSlider.setParameterName("DepthMm")
+    self.depthSlider.setSuffix(" mm")
+    self.depthSlider.setMinimum(10.0)
+    self.depthSlider.setMaximum(150.0)
+    self.depthSlider.setSingleStep(1.0)
+    self.depthSlider.setPageStep(10.0)
+    ultrasoundParametersLayout.addRow("Depth:",  self.depthSlider)
+
+    self.gainSlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.gainSlider.setParameterName("GainPercent")
+    self.gainSlider.setSuffix("%")
+    self.gainSlider.setMinimum(0.0)
+    self.gainSlider.setMaximum(100.0)
+    self.gainSlider.setSingleStep(1.0)
+    self.gainSlider.setPageStep(10.0)
+    ultrasoundParametersLayout.addRow("Gain:", self.gainSlider)
+
+    self.frequencySlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.frequencySlider.setParameterName("FrequencyMhz")
+    self.frequencySlider.setSuffix(" MHz")
+    self.frequencySlider.setMinimum(2.0)
+    self.frequencySlider.setMaximum(5.0)
+    self.frequencySlider.setSingleStep(0.5)
+    self.frequencySlider.setPageStep(1.0)
+    ultrasoundParametersLayout.addRow("Frequency:", self.frequencySlider)
+
+    self.dynamicRangeSlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.dynamicRangeSlider.setParameterName("DynRangeDb")
+    self.dynamicRangeSlider.setSuffix(" dB")
+    self.dynamicRangeSlider.setMinimum(10.0)
+    self.dynamicRangeSlider.setMaximum(100.0)
+    self.dynamicRangeSlider.setSingleStep(1.0)
+    self.dynamicRangeSlider.setPageStep(10.0)
+    ultrasoundParametersLayout.addRow("Dynamic Range:", self.dynamicRangeSlider)
+
+    self.powerSlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.powerSlider.setParameterName("PowerDb")
+    self.powerSlider.setSuffix("Db")
+    self.powerSlider.setMinimum(-20.0)
+    self.powerSlider.setMaximum(0.0)
+    self.powerSlider.setSingleStep(1.0)
+    self.powerSlider.setPageStep(5.0)
+    ultrasoundParametersLayout.addRow("Power:", self.powerSlider)
+
+    self.focusDepthSlider = slicer.qSlicerUltrasoundDoubleParameterSlider()
+    self.focusDepthSlider.setParameterName("FocusDepthPercent")
+    self.focusDepthSlider.setSuffix("%")
+    self.focusDepthSlider.setMinimum(0)
+    self.focusDepthSlider.setMaximum(100)
+    self.focusDepthSlider.setSingleStep(3)
+    self.focusDepthSlider.setPageStep(10)
+    ultrasoundParametersLayout.addRow("Focus Zone:", self.focusDepthSlider)
+
+    self.parameterWidgets = [
+    self.depthSlider,
+    self.gainSlider,
+    self.frequencySlider,
+    self.dynamicRangeSlider,
+    self.powerSlider,
+    self.focusDepthSlider
+    ]
+
     # Customize widgets
     self.ui.connectionStatusLabel.text = '-'
     self.ui.sliceControllerVisibilityCheckBox.checked = True
     self.ui.freezeUltrasoundButton.setText('Un-freeze')
     self.ui.fitUltrasoundButton.setText('Fit')
     self.ui.flipUltrasoundButton.setText('Un-flip')
+
+  #------------------------------------------------------------------------------
+  def updateUltrasoundParametersGroupBoxState(self, active):
+    self.ui.parametersGroupBox.visible = active
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
@@ -118,6 +195,57 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.brightnessSliderWidget.valuesChanged.disconnect()
     self.ui.sliceControllerVisibilityCheckBox.toggled.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
+
+  #------------------------------------------------------------------------------
+  def setupPlusRemote(self):
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('setupPlusRemote: Failed to get parameter node')
+      return
+
+    # Get IGTL connector node
+    igtlConnectorNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName)  
+    self.igtlConnectorNode = slicer.mrmlScene.GetNodeByID(igtlConnectorNodeID)
+    if self.igtlConnectorNode is None:
+      logging.error('setupPlusRemote: IGTL connector node was not found')
+      return
+
+    # Plus remote node
+    self.plusRemoteNode = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLPlusRemoteNode')
+    if self.plusRemoteNode is None:
+      self.plusRemoteNode = slicer.vtkMRMLPlusRemoteNode()
+      self.plusRemoteNode.SetName("PlusRemoteNode")
+      slicer.mrmlScene.AddNode(self.plusRemoteNode)
+
+    # Observe connector node
+    self.plusRemoteNode.SetAndObserveOpenIGTLinkConnectorNode(self.igtlConnectorNode)
+    for widget in self.parameterWidgets:
+      widget.setConnectorNode(self.igtlConnectorNode)
+
+    # Search for video device for remote control
+    if (self.igtlConnectorNode.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected):
+      self.plusRemoteNode.SetDeviceIDType("")
+      slicer.modules.plusremote.logic().RequestDeviceIDs(self.plusRemoteNode)
+    deviceIDs = vtk.vtkStringArray()
+    self.plusRemoteNode.GetDeviceIDs(deviceIDs)
+    ultrasoundDeviceID = 'VideoDevice'
+    remoteControlAvailable = False
+    for valueIndex in range(deviceIDs.GetNumberOfValues()):
+      deviceID = deviceIDs.GetValue(valueIndex)
+      if deviceID == ultrasoundDeviceID:
+        remoteControlAvailable = True
+
+    # Set ultrasound device ID for remote control
+    if remoteControlAvailable:
+      self.plusRemoteNode.SetCurrentDeviceID(ultrasoundDeviceID)
+      for widget in self.parameterWidgets:
+        widget.setDeviceID(ultrasoundDeviceID)
+    else:
+      slicer.mrmlScene.RemoveNode(self.plusRemoteNode)
+      logging.warning('WARNING: Current device is not compatible with US remote control.')
+
+    return remoteControlAvailable
 
   #------------------------------------------------------------------------------
   def getParameterNode(self):
@@ -363,8 +491,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     layoutManager.setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
 
     # Modify slice viewers
-    for name in slicer.app.layoutManager().sliceViewNames():
-      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+    for name in layoutManager.sliceViewNames():
+      sliceWidget = layoutManager.sliceWidget(name)
       self.showViewerPinButton(sliceWidget, show = True)
 
   #------------------------------------------------------------------------------
@@ -396,7 +524,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
       logging.error('displayUSImage: Failed to get parameter node')
-      return
+      return False
 
     # Get image name from parameter node
     usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
@@ -406,31 +534,35 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
     except:
       logging.error('Volume Reslice Driver module was not found.')
-      return
+      return False
 
-    # Set US image display
-    if self.isUSImageAvailable():
-      # Get volume node from image name
-      usImageVolumeNode = slicer.util.getNode(usImageName)
+    # Check US image availability
+    if not self.isUSImageAvailable():
+      return False
 
-      # Set ultrasound image as background in slice view
-      redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
-      redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(usImageVolumeNode.GetID())
+    # Get volume node from image name
+    usImageVolumeNode = slicer.util.getNode(usImageName)
 
-      # Volume reslice driver
-      redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
-      volumeResliceDriverLogic.SetDriverForSlice(usImageVolumeNode.GetID(), redSliceNode)
-      volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, redSliceNode)
+    # Set ultrasound image as background in slice view
+    redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+    redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(usImageVolumeNode.GetID())
+
+    # Volume reslice driver
+    redSliceNode = slicer.util.getNode('vtkMRMLSliceNodeRed')
+    volumeResliceDriverLogic.SetDriverForSlice(usImageVolumeNode.GetID(), redSliceNode)
+    volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, redSliceNode)
 
     # Fit to view      
     self.fitUltrasoundImage()
+
+    return True
 
   #------------------------------------------------------------------------------
   def isUSImageAvailable(self):    
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
+      logging.error('isUSImageAvailable: Failed to get parameter node')
       return
 
     # Get image name from parameter node
@@ -455,7 +587,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
+      logging.error('freezeUltrasoundImage: Failed to get parameter node')
       return
 
     # Get IGTL connector node ID from parameter node
@@ -503,7 +635,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
+      logging.error('setImageMinMaxLevel: Failed to get parameter node')
       return
 
     # Get image name from parameter node
@@ -525,7 +657,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
+      logging.error('getImageMinMaxLevel: Failed to get parameter node')
       return
 
     # Get image name from parameter node
