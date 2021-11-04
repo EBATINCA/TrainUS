@@ -537,29 +537,35 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     for incomingNode in incomingNodes:
       slicer.mrmlScene.RemoveNode(incomingNode)
 
+    # Remove connector node
+    if self.connector:
+      slicer.mrmlScene.RemoveNode(self.connector)
+      # Reset connector node ID into parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, '')
+
     # Get IGTL connection status
     slicer.app.processEvents()
-    self.getIGTLConnectionStatus()   
+    self.getIGTLConnectionStatus()
 
   #------------------------------------------------------------------------------
   def getIGTLConnectionStatus(self, caller=None, event=None):
     logging.debug('PlusServerConnection.getIGTLConnectionStatus')
-    print('PlusServerConnection.getIGTLConnectionStatus')
 
     # Connector
-    if not self.connector:
-      logging.error('getIGTLConnectionStatus: No IGTL connector was found')
-
-    # Get state from connector
-    connectorState = self.connector.GetState()
-    if connectorState == slicer.vtkMRMLIGTLConnectorNode.StateOff:
-      status = 'OFF'
-    elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
-      status = 'ON'
-    elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateWaitConnection:
-      status = 'WAIT'
+    if self.connector:
+      # Get state from connector
+      connectorState = self.connector.GetState()
+      if connectorState == slicer.vtkMRMLIGTLConnectorNode.StateOff:
+        status = 'OFF'
+      elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+        status = 'ON'
+      elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateWaitConnection:
+        status = 'WAIT'
+      else:
+        status = 'UNKNOWN'
     else:
-      status = 'UNKNOWN'
+      logging.debug('getIGTLConnectionStatus: No IGTL connector was found')
+      status = 'OFF'    
 
     # Get parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
@@ -574,16 +580,17 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectionStatusParameterName, status)
 
   #------------------------------------------------------------------------------
-  def getListOfIncomingNodes(self):    
+  def getListOfIncomingNodes(self):
+    # Reset lists of node info
+    self.incomingNodesNames = list()
+    self.incomingNodesTypes = list()
+    
+    # Get number of incoming MRML nodes
     if not self.connector:
       return
-
-    # Get number of incoming MRML nodes
     numIncomingNodes = self.connector.GetNumberOfIncomingMRMLNodes()
 
     # Get name and type of each node
-    self.incomingNodesNames = list()
-    self.incomingNodesTypes = list()
     if self.connector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
       for nodeIndex in range(numIncomingNodes):
         node = self.connector.GetIncomingMRMLNode(nodeIndex)
