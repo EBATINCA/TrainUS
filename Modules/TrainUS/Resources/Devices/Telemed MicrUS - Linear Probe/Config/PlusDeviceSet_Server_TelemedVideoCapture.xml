@@ -6,7 +6,13 @@
     />
     <Device
       Id="VideoDevice"
-      Type="TelemedVideo" >
+      Type="TelemedVideo"
+      DepthMm= "50"
+      FrequencyMhz= "12"
+      DynRangeDb= "72"
+      GainPercent= "100"
+      PowerDb= "0"
+      FocusDepthPercent= "50" >
       <DataSources>
         <DataSource Type="Video" Id="Video" PortUsImageOrientation="UN"  />
       </DataSources>
