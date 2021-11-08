@@ -9,7 +9,9 @@ import json
 #
 #------------------------------------------------------------------------------
 class DeviceManager():
-
+  """
+  TODO: Verbose description abotu the purpose of this class
+  """
   def __init__(self):
   	# Main directory
     self.mainDirectory = ''
