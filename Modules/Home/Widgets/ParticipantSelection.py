@@ -321,12 +321,12 @@ class ParticipantSelection(qt.QWidget):
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 0)
+    self.homeWidget.logic.setMode(modeID = 0)
 
   #------------------------------------------------------------------------------
   def onNextPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 2)
+    self.homeWidget.logic.setMode(modeID = 2)
 
 
   #------------------------------------------------------------------------------

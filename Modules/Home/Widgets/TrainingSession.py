@@ -131,7 +131,7 @@ class TrainingSession(qt.QWidget):
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 0) # switch back to welcome page
+    self.homeWidget.logic.setMode(modeID = 0) # switch back to welcome page
 
   
   #------------------------------------------------------------------------------
