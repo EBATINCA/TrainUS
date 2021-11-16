@@ -3,6 +3,9 @@ import logging
 import os
 import json
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # DeviceManager
@@ -198,14 +201,8 @@ class DeviceManager():
     """
     logging.debug('DeviceManager.getSelectedUltrasoundDevice')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get selected ultrasound device
-    selectedUltrasoundDevice = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
+    selectedUltrasoundDevice = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
     return selectedUltrasoundDevice
 
   #------------------------------------------------------------------------------
@@ -214,15 +211,9 @@ class DeviceManager():
     Set selected ultrasound device.
     """
     logging.debug('DeviceManager.setSelectedUltrasoundDevice')
-    
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
 
     # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedUltrasoundDeviceParameterName, deviceLabel)
+    Parameters.instance.setParameter(Parameters.SELECTED_ULTRASOUND, deviceLabel)
 
   #------------------------------------------------------------------------------
   def getUltrasoundDeviceInfoFromSelection(self):

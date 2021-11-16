@@ -2,6 +2,9 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import os
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # HardwareSelection
@@ -80,15 +83,11 @@ class HardwareSelection(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
+    
     # Update combo box selection from parameter node
-    self.ui.ultrasoundDeviceComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
-    self.ui.trackingSystemComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
-    self.ui.simulationPhantomComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+    self.ui.ultrasoundDeviceComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
+    self.ui.trackingSystemComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
+    self.ui.simulationPhantomComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_PHANTOM)
 
   #------------------------------------------------------------------------------
   #
@@ -98,36 +97,18 @@ class HardwareSelection(qt.QWidget):
   
   #------------------------------------------------------------------------------
   def onUltrasoundDeviceComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_ULTRASOUND, text)
 
   #------------------------------------------------------------------------------
   def onTrackingSystemComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_TRACKER, text)
 
   #------------------------------------------------------------------------------
   def onSimulationPhantomComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_PHANTOM, text)
 
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
