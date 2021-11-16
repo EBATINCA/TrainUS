@@ -123,7 +123,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.setupConnections()
 
     # Dark palette does not propagate on its own?
-    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())   
+    self.uiWidget.setPalette(slicer.util.mainWindow().style().standardPalette())
 
     # Setup user interface
     self.setupUi()
@@ -136,6 +136,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateGUIFromMRML()
 
     # Update UI mode
+    #TODO: Include the content of this function in updateGUIFromMRML, and use the parameter node
+    # to identify the current mode instead of the argument. The mode is set to the logic already
+    # (see the current switchAppMode function).
     self.updateUIforMode(modeID = 0)
 
   #------------------------------------------------------------------------------
@@ -194,7 +197,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.homeWidget.hide()
 
   #------------------------------------------------------------------------------
-  def setupConnections(self):    
+  def setupConnections(self):
     # Welcome page
     self.ui.fullScreenButton.clicked.connect(self.onFullScreenButtonClicked)
     self.ui.backToSlicerButton.clicked.connect(self.onBackToSlicerButtonClicked)
@@ -205,7 +208,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.configurationButton.clicked.connect(self.onConfigurationButtonClicked)
 
   #------------------------------------------------------------------------------
-  def disconnect(self):    
+  def disconnect(self):
     # Welcome page
     self.ui.fullScreenButton.clicked.disconnect()
     self.ui.backToSlicerButton.clicked.disconnect()
@@ -214,30 +217,30 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.mainTrainingModeButton.clicked.disconnect()
     self.ui.mainEvaluationModeButton.clicked.disconnect()
     self.ui.configurationButton.clicked.disconnect()
-    
+
   #------------------------------------------------------------------------------
   def onFullScreenButtonClicked(self):
-    mainWindow = slicer.util.mainWindow()    
+    mainWindow = slicer.util.mainWindow()
     if self.homeWidget.isFullScreen():
       mainWindow.showMaximized()
       self.homeWidget.showMaximized()
     else:
       mainWindow.showFullScreen()
       self.homeWidget.showFullScreen()
-    
+
   #------------------------------------------------------------------------------
-  def onBackToSlicerButtonClicked(self):    
+  def onBackToSlicerButtonClicked(self):
     # Shows slicer interface
     self.hideHome()
 
     # Change to TrainUS module
     slicer.util.selectModule('TrainUS')
-    
+
   #------------------------------------------------------------------------------
   def onExitAppButtonClicked(self):
     # Confirm exit message box
     exitFlag = self.exitApplicationMessageBox()
-    if exitFlag:    
+    if exitFlag:
       # Shows slicer interface
       self.hideHome()
 
@@ -246,18 +249,22 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
       # Exit application
       self.trainUsWidget.logic.exitApplication()
-    
+
   #------------------------------------------------------------------------------
   def onLanguageComboBoxIndexChanged(self):
     # Update UI
     self.logic.updateLanguageUI(self.ui.languageComboBox.currentIndex)
-    
+
   #------------------------------------------------------------------------------
   def onMainTrainingModeButtonClicked(self):
     # Update mode
+    #TODO: Rename logic function to setMode
     self.logic.switchAppMode('TRAINING')
 
     # Update UI
+    #TODO: No need to call this explicitly after having implemented the
+    # updateGUIFromMRML function properly, because it will be called as
+    # a callback to the parameter node Modified event
     self.updateUIforMode(modeID = 1) # switch to training mode
 
     # Update UI tables
@@ -359,14 +366,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.PlugAndPlayPanel = Widgets.PlugAndPlay(self.ui.step4Page)
     self.ui.PlugAndPlayPanel.homeWidget = self
     self.ui.PlugAndPlayPanel.setupUi()
-    self.ui.step4Page.layout().addWidget(self.ui.PlugAndPlayPanel) 
+    self.ui.step4Page.layout().addWidget(self.ui.PlugAndPlayPanel)
 
     # Evaluation page
     self.ui.EvaluationPanel = Widgets.Evaluation(self.ui.evaluationWidget)
     self.ui.EvaluationPanel.homeWidget = self
     self.ui.EvaluationPanel.setupUi()
     self.ui.evaluationWidget.layout().addWidget(self.ui.EvaluationPanel)
-    
+
     # Training session page
     self.ui.TrainingSessionPanel = Widgets.TrainingSession(self.ui.trainingSessionWidget)
     self.ui.TrainingSessionPanel.homeWidget = self
@@ -392,13 +399,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Switch mode
     if modeID == 0: # home page
-      self.ui.welcomePage.visible = True 
+      self.ui.welcomePage.visible = True
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = False
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = False
     if modeID == 1: # start training - step 1
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = True
       self.ui.stackedWidget.currentIndex = 0
@@ -407,7 +414,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = False
     if modeID == 2: # start training - step 2
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = True
       self.ui.stackedWidget.currentIndex = 1
@@ -416,7 +423,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = False
     if modeID == 3: # start training - step 3
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = True
       self.ui.stackedWidget.currentIndex = 2
@@ -425,7 +432,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = False
     if modeID == 4: # start training - step 4
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = True
       self.ui.stackedWidget.currentIndex = 3
@@ -434,23 +441,23 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = False
     if modeID == 5: # Training session
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = False
       self.ui.trainingSessionPage.visible = True
       self.ui.evaluationPage.visible = False
     if modeID == 6: # Recording management
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = False
       self.ui.trainingPage.visible = False
       self.ui.trainingSessionPage.visible = False
       self.ui.evaluationPage.visible = True
     if modeID == 7: # configuration
-      self.ui.welcomePage.visible = False 
+      self.ui.welcomePage.visible = False
       self.ui.configurationPage.visible = True
       self.ui.trainingPage.visible = False
       self.ui.trainingSessionPage.visible = False
-      self.ui.evaluationPage.visible = False    
+      self.ui.evaluationPage.visible = False
 
   #------------------------------------------------------------------------------
   def updateParticipantsTable(self):
@@ -477,7 +484,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Get data from directory
     participantInfo_list = self.trainUsWidget.logic.dataManager.readRootDirectory()
-    
+
     # Filter participants according to search text
     searchText = uiPanel.ui.participantSearchText.text
     if searchText is not '':
@@ -488,7 +495,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     ## Reset table
     tableWidget.clearContents()
-    
+
     ## Update table content
     if len(participantInfo_list) >= 0:
       numParticipants = len(participantInfo_list)
@@ -580,7 +587,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #
     # Update table content
     #
-    
+
     # Get table widget
     tableWidget = self.ui.EvaluationPanel.ui.recordingsTable
 
@@ -613,14 +620,14 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         logging.debug('Home.updateRecordingsTable: No recordings found in database...')
     else:
       tableWidget.setRowCount(0)
-      logging.debug('Home.updateRecordingsTable: No participant is selected')    
+      logging.debug('Home.updateRecordingsTable: No participant is selected')
     tableWidget.sortingEnabled = True
 
   #------------------------------------------------------------------------------
   def updateReviewSelectionPanel(self):
     """
     Update review selection panel indicating selected participant and configuration.
-    """    
+    """
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -634,7 +641,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       selectedParticipantID = selectedParticipantInfo['id']
       selectedParticipantName = selectedParticipantInfo['name']
       selectedParticipantSurname = selectedParticipantInfo['surname']
-    else:      
+    else:
       selectedParticipantID = ''
       selectedParticipantName = ''
       selectedParticipantSurname = ''
@@ -656,8 +663,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def updateTrainingSessionPanel(self):
     """
     Update training session panel indicating selected participant, configuration, and date.
-    """    
-    
+    """
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -671,7 +677,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       selectedParticipantID = selectedParticipantInfo['id']
       selectedParticipantName = selectedParticipantInfo['name']
       selectedParticipantSurname = selectedParticipantInfo['surname']
-    else:      
+    else:
       selectedParticipantID = ''
       selectedParticipantName = ''
       selectedParticipantSurname = ''
@@ -685,7 +691,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
     selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
 
-    # Update GUI in training session info box    
+    # Update GUI in training session info box
     self.ui.TrainingSessionPanel.ui.participantLabel.text = f'[{selectedParticipantID}] {selectedParticipantSurname}, {selectedParticipantName}'
     self.ui.TrainingSessionPanel.ui.dateTimeLabel.text = dateLabel
     self.ui.TrainingSessionPanel.ui.hardwareSetUpLabel.text = f'{selectedUltrasoundDevice} / {selectedTrackingSystem} / {selectedSimulationPhantom}'
@@ -694,7 +700,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def updateConfigurationPanel(self):
     """
     Update configuration panel to indicate connection status.
-    """    
+    """
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -705,20 +711,20 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
     plusServerRunning = parameterNode.GetParameter(self.trainUsWidget.logic.plusServerRunningParameterName)
 
-    # Update GUI in training session info box    
+    # Update GUI in training session info box
     self.ui.ConfigurationPanel.ui.connectionStatusText.text = plusConnectionStatus
     if plusServerRunning == 'True':
       self.ui.ConfigurationPanel.ui.ultrasoundDeviceComboBox.enabled = False
       self.ui.ConfigurationPanel.ui.trackingSystemComboBox.enabled = False
       self.ui.ConfigurationPanel.ui.simulationPhantomComboBox.enabled = False
-    else:      
+    else:
       self.ui.ConfigurationPanel.ui.ultrasoundDeviceComboBox.enabled = True
       self.ui.ConfigurationPanel.ui.trackingSystemComboBox.enabled = True
       self.ui.ConfigurationPanel.ui.simulationPhantomComboBox.enabled = True
 
     # Update GUI config panel
     self.ui.ConfigurationPanel.updateGUIFromMRML()
-    
+
   #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
     """
@@ -727,7 +733,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     confirmExit = qt.QMessageBox()
     confirmExit.setIcon(qt.QMessageBox.Warning)
-    confirmExit.setWindowTitle(self.logic.home_exitAppMessageBoxTitle)
+    confirmExit.setWindowTitle(self.logic.home_exitAppMessageBoxTitle) #TODO: Use class constants instead
     confirmExit.setText(self.logic.home_exitAppMessageBoxLabel)
     confirmExit.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
     confirmExit.setDefaultButton(qt.QMessageBox.No)
@@ -737,6 +743,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return True
     else:
       return False
+
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -765,7 +772,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget = widgetInstance
     self.trainUsWidget = self.moduleWidget.trainUsWidget
     # Pointer to the parameter node so that we have access to the old one before setting the new one
-    self.parameterNode = None
+    self.parameterNode = None #TODO: Remove parameter node handling from this class. Each class should use the main TrainUS parameter node. I see other classes do that, great, but they still have their set/getParameterNode functions. Please remove those to reduce confusion.
 
     # Store whether python console was floating so that it is restored when hidden
     self.pythonConsoleWasFloating = False
@@ -774,7 +781,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     #TODO:
 
     # UI variables
-    self.home_exitAppMessageBoxTitle = ''
+    self.home_exitAppMessageBoxTitle = '' #TODO: Define these not as member variables but class variables, outside the body of the constructor. Use capital letters like HOME_EXIT_APP...
     self.home_exitAppMessageBoxLabel = ''
     self.newParticipantWarningMessageText = ''
     self.editParticipantWarningMessageText = ''
@@ -783,6 +790,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.recordings_deleteMessageBoxTitle = ''
     self.recordings_deleteMessageBoxLabel = ''
 
+    #TODO: Remove parameter node related things
     # Default parameters map
     self.defaultParameters = {}
     # self.defaultParameters["DecimationFactor"] = 0.85
@@ -831,7 +839,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       self.pythonConsoleWasFloating = pythonConsoleDockWidget.floating
       pythonConsoleDockWidget.floating = True
     else:
-      pythonConsoleDockWidget.floating = self.pythonConsoleWasFloating  
+      pythonConsoleDockWidget.floating = self.pythonConsoleWasFloating
 
   #------------------------------------------------------------------------------
   def readLanguageFile(self, filePath):
@@ -946,7 +954,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.HardwareSelectionPanel.ui.label_4.setText(languageTexts['HardwareSelection.label_4'])
     self.moduleWidget.ui.HardwareSelectionPanel.ui.label_5.setText(languageTexts['HardwareSelection.label_5'])
     self.moduleWidget.ui.HardwareSelectionPanel.ui.previousPageButton.setText(languageTexts['HardwareSelection.previousPageButton'])
-    self.moduleWidget.ui.HardwareSelectionPanel.ui.nextPageButton.setText(languageTexts['HardwareSelection.nextPageButton'])    
+    self.moduleWidget.ui.HardwareSelectionPanel.ui.nextPageButton.setText(languageTexts['HardwareSelection.nextPageButton'])
     ## Review selection
     self.moduleWidget.ui.ReviewSelectionPanel.ui.label_1.setText(languageTexts['ReviewSelection.label_1'])
     self.moduleWidget.ui.ReviewSelectionPanel.ui.participantGroupBox.setTitle(languageTexts['ReviewSelection.participantGroupBox'])
@@ -1028,9 +1036,9 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_5.setText(languageTexts['Recordings.recordingDetailsLabel_5'])
     self.moduleWidget.ui.EvaluationPanel.ui.recordingDetailsLabel_6.setText(languageTexts['Recordings.recordingDetailsLabel_6'])
     self.recordings_deleteMessageBoxTitle = languageTexts['Recordings.deleteMessageBoxTitle']
-    self.recordings_deleteMessageBoxLabel = languageTexts['Recordings.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Recordings.deleteMessageBoxText_2'] 
+    self.recordings_deleteMessageBoxLabel = languageTexts['Recordings.deleteMessageBoxText_1'] + '\n\n' + languageTexts['Recordings.deleteMessageBoxText_2']
     self.moduleWidget.ui.EvaluationPanel.ui.previousPageButton.setText(languageTexts['Evaluation.previousPageButton'])
-    
+
     # Adjust width of table columns to new horizontal headers
     COLUMN_H_MARGIN = 100
     self.addMarginToColumnWidth(self.moduleWidget.ui.ParticipantSelectionPanel.ui.participantsTable, COLUMN_H_MARGIN)

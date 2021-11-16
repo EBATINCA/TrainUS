@@ -251,6 +251,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.parameterNode = None
 
     # Constants
+    #TODO: Use normal case for member variables. If you feel the need to distinguish it then make it a configuration entry
+    # (see QSettings) and create functions to set/get them. Also, use one name for one thing (dataPath vs rootDirectoryPath - I suggest the latter)
     self.DATA_PATH = self.setupRootDirectory()
     self.DEVICES_DATA_PATH = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
 
@@ -304,7 +306,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
     self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
     self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
-    
+
     # Setup scene
     self.setupScene()
 
@@ -452,11 +454,11 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     dataFolderName = 'TrainUS_Database'
     rootDirectory = os.path.join(slicerUserSettingsDirectory, dataFolderName)
     try:
-      os.makedirs(rootDirectory)    
-      logging.debug('Root directory was created at: ' , rootDirectory)
+      os.makedirs(rootDirectory)
+      logging.debug('Root directory was created at %s' % rootDirectory)
     except FileExistsError:
       logging.debug('Root directory already exists...')
-    return rootDirectory 
+    return rootDirectory
 
 
 #------------------------------------------------------------------------------

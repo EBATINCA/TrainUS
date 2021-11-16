@@ -11,7 +11,9 @@ import shutil
 #
 #------------------------------------------------------------------------------
 class DataManager():
-
+  """
+  TODO: Verbose description abotu the purpose of this class
+  """
   def __init__(self):
   	# Root directory
     self.rootDirectory = ''
