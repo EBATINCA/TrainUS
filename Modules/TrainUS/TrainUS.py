@@ -255,8 +255,8 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.deviceDirectoryPath = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
 
     # Data manager to handle participants and recordings
-    self.dataManager = Managers.DataManager()
-    self.dataManager.setRootDirectory(self.rootDirectoryPath)
+    self.recordingManager = Managers.RecordingManager()
+    self.recordingManager.setRootDirectory(self.rootDirectoryPath)
 
     # Device manager to access device info
     self.deviceManager = Managers.DeviceManager()
