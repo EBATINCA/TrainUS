@@ -251,18 +251,16 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.parameterNode = None
 
     # Constants
-    #TODO: Use normal case for member variables. If you feel the need to distinguish it then make it a configuration entry
-    # (see QSettings) and create functions to set/get them. Also, use one name for one thing (dataPath vs rootDirectoryPath - I suggest the latter)
-    self.DATA_PATH = self.setupRootDirectory()
-    self.DEVICES_DATA_PATH = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
+    self.rootDirectoryPath = self.setupRootDirectory()
+    self.deviceDirectoryPath = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
 
     # Data manager to handle participants and recordings
     self.dataManager = Managers.DataManager()
-    self.dataManager.setRootDirectory(self.DATA_PATH)
+    self.dataManager.setRootDirectory(self.rootDirectoryPath)
 
     # Device manager to access device info
     self.deviceManager = Managers.DeviceManager()
-    self.deviceManager.setMainDirectory(self.DEVICES_DATA_PATH)
+    self.deviceManager.setMainDirectory(self.deviceDirectoryPath)
 
     # Hardware configurations
     self.ultrasoundDeviceOptions = ['None', 'Simulated US - Linear Probe', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
