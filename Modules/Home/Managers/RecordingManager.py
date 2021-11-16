@@ -7,12 +7,16 @@ import shutil
 
 #------------------------------------------------------------------------------
 #
-# DataManager
+# RecordingManager
 #
 #------------------------------------------------------------------------------
-class DataManager():
+class RecordingManager():
   """
-  TODO: Verbose description abotu the purpose of this class
+  Manages data associated with participants and recordings. This class is responsible
+  for creating, selecting, editing, and deleting participants and recordings. 
+
+  Data is stored in a root directory where different subfolders are created for parti-
+  cipants and recordings, with JSON files to store participant and recording details.
   """
   def __init__(self):
   	# Root directory
@@ -29,7 +33,7 @@ class DataManager():
     """
     Sets the directory of the database where participants' info and recordings' data is stored.
     """
-    logging.debug('DataManager.setRootDirectory')
+    logging.debug('RecordingManager.setRootDirectory')
 
     self.rootDirectory = dataPath
 
@@ -40,7 +44,7 @@ class DataManager():
 
     :return directory to root directory (string)
     """
-    logging.debug('DataManager.getRootDirectory')
+    logging.debug('RecordingManager.getRootDirectory')
 
     return self.rootDirectory
 
@@ -51,7 +55,7 @@ class DataManager():
 
     :return list of dictionaries containing the information of all participants in the database (list)
     """
-    logging.debug('DataManager.readRootDirectory')
+    logging.debug('RecordingManager.readRootDirectory')
 
     # Get list of participant IDs
     participantID_list = self.getListOfFoldersInDirectory(self.rootDirectory)
@@ -80,7 +84,7 @@ class DataManager():
 
     :return list of dictionaries containing the information of all recordings in the database (list)
     """
-    logging.debug('DataManager.readParticipantDirectory')
+    logging.debug('RecordingManager.readParticipantDirectory')
 
     # Get participant directory
     participantDirectory = os.path.join(self.rootDirectory, participantID)
@@ -113,7 +117,7 @@ class DataManager():
 
     :return list of folder names (list)
     """
-    logging.debug('DataManager.getListOfFoldersInDirectory')
+    logging.debug('RecordingManager.getListOfFoldersInDirectory')
 
     dirfiles = os.listdir(directory)
     fullpaths = map(lambda name: os.path.join(directory, name), dirfiles)
@@ -133,7 +137,7 @@ class DataManager():
 
     :return list of dictionaries containing the information of all participants matching search criteria (list)
     """
-    logging.debug('DataManager.filterParticipantInfoListFromSearchText')
+    logging.debug('RecordingManager.filterParticipantInfoListFromSearchText')
 
     # Convert input search text to lower case
     ## TODO: Convert text to account for accents and other symbols
@@ -170,7 +174,7 @@ class DataManager():
 
     :return participant info (dict)
     """
-    logging.debug('DataManager.readParticipantInfoFile')
+    logging.debug('RecordingManager.readParticipantInfoFile')
     
     try:
       with open(filePath, 'r') as inputFile:
@@ -189,7 +193,7 @@ class DataManager():
 
     :return recording info (dict)
     """
-    logging.debug('DataManager.readRecordingInfoFile')
+    logging.debug('RecordingManager.readRecordingInfoFile')
     
     try:
       with open(filePath, 'r') as inputFile:
@@ -207,7 +211,7 @@ class DataManager():
     :param filePath: path to file (string)
     :param participantInfo: participant information (dict)
     """
-    logging.debug('DataManager.writeParticipantInfoFile')
+    logging.debug('RecordingManager.writeParticipantInfoFile')
     
     try:
       with open(filePath, "w") as outputFile:
@@ -223,7 +227,7 @@ class DataManager():
     :param filePath: path to file (string)
     :param recordingInfo: recording information (dict)
     """
-    logging.debug('DataManager.writeRecordingInfoFile')
+    logging.debug('RecordingManager.writeRecordingInfoFile')
 
     try:
       with open(filePath, "w") as outputFile:
@@ -247,7 +251,7 @@ class DataManager():
 
     :return participant info (dict)
     """
-    logging.debug('DataManager.getParticipantInfoFromID')
+    logging.debug('RecordingManager.getParticipantInfoFromID')
     
     # Abort if participant ID is not valid
     if participantID == '':
@@ -271,7 +275,7 @@ class DataManager():
 
     :return recording info (dict)
     """
-    logging.debug('DataManager.getRecordingInfoFromID')
+    logging.debug('RecordingManager.getRecordingInfoFromID')
     
     # Abort if recording ID is not invalid
     if (participantID == '') or (recordingID == ''):
@@ -294,7 +298,7 @@ class DataManager():
 
     :return participant info (dict)
     """
-    logging.debug('DataManager.getParticipantInfoFilePath')
+    logging.debug('RecordingManager.getParticipantInfoFilePath')
     
     # Participant directory
     participantDirectory = os.path.join(self.rootDirectory, participantID)
@@ -314,7 +318,7 @@ class DataManager():
 
     :return recording info (dict)
     """
-    logging.debug('DataManager.getRecordingInfoFilePath')
+    logging.debug('RecordingManager.getRecordingInfoFilePath')
     
     # Participant directory
     participantDirectory = os.path.join(self.rootDirectory, participantID)
@@ -341,7 +345,7 @@ class DataManager():
 
     :return bool: True if valid participant is selected, False otherwise
     """    
-    logging.debug('DataManager.isParticipantSelected')
+    logging.debug('RecordingManager.isParticipantSelected')
     
     # Get selected participant
     selectedParticipantID = self.getSelectedParticipantID()
@@ -360,7 +364,7 @@ class DataManager():
 
     :return bool: True if valid recording is selected, False otherwise
     """    
-    logging.debug('DataManager.isRecordingSelected')
+    logging.debug('RecordingManager.isRecordingSelected')
     
     # Get selected recording
     selectedRecordingID = self.getSelectedRecordingID()
@@ -377,7 +381,7 @@ class DataManager():
     """
     Get selected participant ID.
     """
-    logging.debug('DataManager.getSelectedParticipantID')
+    logging.debug('RecordingManager.getSelectedParticipantID')
     
     # Parameter node
     parameterNode = slicer.trainUsWidget.getParameterNode()
@@ -394,7 +398,7 @@ class DataManager():
     """
     Set selected participant ID.
     """
-    logging.debug('DataManager.setSelectedParticipantID')
+    logging.debug('RecordingManager.setSelectedParticipantID')
     
     # Parameter node
     parameterNode = slicer.trainUsWidget.getParameterNode()
@@ -410,7 +414,7 @@ class DataManager():
     """
     Get selected recording ID.
     """
-    logging.debug('DataManager.getSelectedRecordingID')
+    logging.debug('RecordingManager.getSelectedRecordingID')
     
     # Parameter node
     parameterNode = slicer.trainUsWidget.getParameterNode()
@@ -427,7 +431,7 @@ class DataManager():
     """
     Set selected recording ID.
     """
-    logging.debug('DataManager.setSelectedRecordingID')
+    logging.debug('RecordingManager.setSelectedRecordingID')
     
     # Parameter node
     parameterNode = slicer.trainUsWidget.getParameterNode()
@@ -445,7 +449,7 @@ class DataManager():
 
     :return participant info (dict)
     """
-    logging.debug('DataManager.getParticipantInfoFromSelection')
+    logging.debug('RecordingManager.getParticipantInfoFromSelection')
     
     # Get selected participant
     selectedParticipantID = self.getSelectedParticipantID()
@@ -462,7 +466,7 @@ class DataManager():
 
     :return recording info (dict)
     """
-    logging.debug('DataManager.getRecordingInfoFromSelection')
+    logging.debug('RecordingManager.getRecordingInfoFromSelection')
     
     # Get selected participant and recording
     selectedParticipantID = self.getSelectedParticipantID()
@@ -487,7 +491,7 @@ class DataManager():
 
     :param participantID: participant ID (string)
     """
-    logging.debug('DataManager.deleteParticipant')
+    logging.debug('RecordingManager.deleteParticipant')
 
     # Abort if input ID is not valid
     if (participantID == ''):
@@ -507,7 +511,7 @@ class DataManager():
     """
     Delete selected participant from root directory and resets selection.
     """
-    logging.debug('DataManager.deleteSelectedParticipant')
+    logging.debug('RecordingManager.deleteSelectedParticipant')
     
     # Get selected participant
     selectedParticipantID = self.getSelectedParticipantID()
@@ -526,7 +530,7 @@ class DataManager():
     :param participantID: participant ID (string)
     :param recordingID: recording ID (string)
     """
-    logging.debug('DataManager.deleteRecording')
+    logging.debug('RecordingManager.deleteRecording')
 
     # Abort if input IDs are not valid
     if (participantID == '') or (recordingID == ''):
@@ -547,7 +551,7 @@ class DataManager():
     """
     Delete selected recording from root directory.
     """
-    logging.debug('DataManager.deleteSelectedRecording')
+    logging.debug('RecordingManager.deleteSelectedRecording')
     
     # Get selected participant and recording
     selectedParticipantID = self.getSelectedParticipantID()
@@ -578,7 +582,7 @@ class DataManager():
 
     :return new participant info (dict)
     """
-    logging.debug('DataManager.createNewParticipant')
+    logging.debug('RecordingManager.createNewParticipant')
 
     # Get data from directory
     participantInfo_list = self.readRootDirectory()
@@ -632,7 +636,7 @@ class DataManager():
 
     :return new recording info (dict)
     """
-    logging.debug('DataManager.createNewRecording')
+    logging.debug('RecordingManager.createNewRecording')
 
     # Get selected participant and recording
     selectedParticipantID = self.getSelectedParticipantID()
@@ -701,7 +705,7 @@ class DataManager():
     :param participantBirthDate: new birth date for participant (string)
     :param participantEmail: new email for participant (string)
     """    
-    logging.debug('DataManager.editParticipantInfo')
+    logging.debug('RecordingManager.editParticipantInfo')
     
     # Get selected participant info
     selectedParticipantInfo = self.getParticipantInfoFromSelection() 

@@ -91,42 +91,42 @@ class TrainingSession(qt.QWidget):
     print('Basic training - Exercise 1')
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 1')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 1')
   
   #------------------------------------------------------------------------------
   def onBasicExercise2ButtonClicked(self):
     print('Basic training - Exercise 2')    
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 2')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 2')
   
   #------------------------------------------------------------------------------
   def onBasicExercise3ButtonClicked(self):
     print('Basic training - Exercise 3')    
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Basic Exercise 3')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 3')
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise1ButtonClicked(self):
     print('Advanced training - Exercise 1')
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 1')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 1')
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise2ButtonClicked(self):
     print('Advanced training - Exercise 2')    
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 2')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 2')
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise3ButtonClicked(self):
     print('Advanced training - Exercise 3')    
 
     # Create new recording
-    self.trainUsWidget.logic.dataManager.createNewRecording('Advanced Exercise 3')
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 3')
   
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):

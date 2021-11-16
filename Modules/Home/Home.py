@@ -456,12 +456,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     # Get data from directory
-    participantInfo_list = self.trainUsWidget.logic.dataManager.readRootDirectory()
+    participantInfo_list = self.trainUsWidget.logic.recordingManager.readRootDirectory()
 
     # Filter participants according to search text
     searchText = uiPanel.ui.participantSearchText.text
     if searchText is not '':
-      participantInfo_list = self.trainUsWidget.logic.dataManager.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
+      participantInfo_list = self.trainUsWidget.logic.recordingManager.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
 
     ## Get table widget
     tableWidget = uiPanel.ui.participantsTable
@@ -543,7 +543,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
 
     # Get participant info from ID
-    selectedParticipantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromID(selectedParticipantID)
+    selectedParticipantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromID(selectedParticipantID)
 
     # Create string to display in GUI
     if selectedParticipantInfo:
@@ -571,7 +571,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update table if participant is selected
     if selectedParticipantID is not '':
       # Get data from directory
-      recordingInfo_list = self.trainUsWidget.logic.dataManager.readParticipantDirectory(selectedParticipantID)
+      recordingInfo_list = self.trainUsWidget.logic.recordingManager.readParticipantDirectory(selectedParticipantID)
 
       # Update table content
       if len(recordingInfo_list) >= 0:
@@ -608,9 +608,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     # Get information from selected participant
-    participantSelected = self.trainUsWidget.logic.dataManager.isParticipantSelected()
+    participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     if participantSelected:
-      selectedParticipantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromSelection()
+      selectedParticipantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromSelection()
       selectedParticipantID = selectedParticipantInfo['id']
       selectedParticipantName = selectedParticipantInfo['name']
       selectedParticipantSurname = selectedParticipantInfo['surname']
@@ -644,9 +644,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     # Get information from selected participant
-    participantSelected = self.trainUsWidget.logic.dataManager.isParticipantSelected()
+    participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     if participantSelected:
-      selectedParticipantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromSelection()
+      selectedParticipantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromSelection()
       selectedParticipantID = selectedParticipantInfo['id']
       selectedParticipantName = selectedParticipantInfo['name']
       selectedParticipantSurname = selectedParticipantInfo['surname']

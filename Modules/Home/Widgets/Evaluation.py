@@ -86,7 +86,7 @@ class Evaluation(qt.QWidget):
 
     # Customize widgets - recordings tab
     self.ui.recordingDetailsGroupBox.visible = self.ui.recordingDetailsButton.checked
-    self.ui.recordingDetailsButton.enabled = self.trainUsWidget.logic.dataManager.isRecordingSelected()
+    self.ui.recordingDetailsButton.enabled = self.trainUsWidget.logic.recordingManager.isRecordingSelected()
     
     # Setup GUI connections
     self.setupConnections()
@@ -150,7 +150,7 @@ class Evaluation(qt.QWidget):
       return
 
     # Participant selection
-    participantSelected = self.trainUsWidget.logic.dataManager.isParticipantSelected()
+    participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     self.ui.checkRecordingsButton.enabled = participantSelected
     self.ui.newParticipantButton.enabled = (not self.newParticipantVisible) and (not self.editParticipantVisible)
     self.ui.editParticipantButton.enabled = participantSelected and (not self.newParticipantVisible) and (not self.editParticipantVisible)
@@ -161,7 +161,7 @@ class Evaluation(qt.QWidget):
     self.ui.editParticipantGroupBox.visible = self.editParticipantVisible
 
     # Edit participant text
-    participantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromSelection()
+    participantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromSelection()
     if participantInfo:
       self.ui.editParticipantNameText.text = participantInfo['name']
       self.ui.editParticipantSurnameText.text = participantInfo['surname']
@@ -174,14 +174,14 @@ class Evaluation(qt.QWidget):
       self.ui.editParticipantEmailText.text = ''  
 
     # Recording selection
-    self.ui.recordingDetailsButton.enabled = self.trainUsWidget.logic.dataManager.isRecordingSelected()
+    self.ui.recordingDetailsButton.enabled = self.trainUsWidget.logic.recordingManager.isRecordingSelected()
 
     # Recording details groupbox visibility
     self.ui.recordingDetailsGroupBox.visible = self.ui.recordingDetailsButton.checked
 
     # Recording details content
-    participantInfo = self.trainUsWidget.logic.dataManager.getParticipantInfoFromSelection()
-    recordingInfo = self.trainUsWidget.logic.dataManager.getRecordingInfoFromSelection()
+    participantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromSelection()
+    recordingInfo = self.trainUsWidget.logic.recordingManager.getRecordingInfoFromSelection()
     if recordingInfo:
       self.ui.recordingParticipantIDText.text = participantInfo['id']
       self.ui.recordingParticipantNameText.text = participantInfo['name']
@@ -222,7 +222,7 @@ class Evaluation(qt.QWidget):
           participantID = item.text()
 
     # Update selected participant
-    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(participantID)
+    self.trainUsWidget.logic.recordingManager.setSelectedParticipantID(participantID)
 
     # Update recordings table
     self.homeWidget.updateRecordingsTable()
@@ -257,7 +257,7 @@ class Evaluation(qt.QWidget):
     deleteFlag = self.deleteParticipantMessageBox()
     if deleteFlag:
       # Delete selected participant
-      self.trainUsWidget.logic.dataManager.deleteSelectedParticipant()
+      self.trainUsWidget.logic.recordingManager.deleteSelectedParticipant()
 
       # Update tables    
       self.homeWidget.updateParticipantsTable()
@@ -278,17 +278,17 @@ class Evaluation(qt.QWidget):
     newParticipantEmail = self.ui.newParticipantEmailText.text
 
     # Create new participant
-    self.trainUsWidget.logic.dataManager.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
+    self.trainUsWidget.logic.recordingManager.createNewParticipant(newParticipantName, newParticipantSurname, newParticipantBirthDate, newParticipantEmail)
 
     # Get selected participant ID
-    selectedParticipantID = self.trainUsWidget.logic.dataManager.getSelectedParticipantID()
+    selectedParticipantID = self.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
 
     # Update table
     self.homeWidget.updateParticipantsTable()
     self.homeWidget.updateRecordingsTable()
 
     # Set selected participant ID
-    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(selectedParticipantID)
+    self.trainUsWidget.logic.recordingManager.setSelectedParticipantID(selectedParticipantID)
 
     # Update table selection
     self.homeWidget.updateParticipantsTableSelection()
@@ -334,16 +334,16 @@ class Evaluation(qt.QWidget):
     editParticipantEmail = self.ui.editParticipantEmailText.text    
 
     # Modify participant's info  
-    self.trainUsWidget.logic.dataManager.editParticipantInfo(editParticipantName, editParticipantSurname, editParticipantBirthDate, editParticipantEmail) 
+    self.trainUsWidget.logic.recordingManager.editParticipantInfo(editParticipantName, editParticipantSurname, editParticipantBirthDate, editParticipantEmail) 
 
      # Get selected participant ID
-    selectedParticipantID = self.trainUsWidget.logic.dataManager.getSelectedParticipantID()
+    selectedParticipantID = self.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
 
     # Update table
     self.homeWidget.updateParticipantsTable()
 
     # Set selected participant ID
-    self.trainUsWidget.logic.dataManager.setSelectedParticipantID(selectedParticipantID)
+    self.trainUsWidget.logic.recordingManager.setSelectedParticipantID(selectedParticipantID)
 
     # Update table selection
     self.homeWidget.updateParticipantsTableSelection()
@@ -389,7 +389,7 @@ class Evaluation(qt.QWidget):
           recordingDuration = item.text()
 
     # Update selected recording
-    self.trainUsWidget.logic.dataManager.setSelectedRecordingID(recordingID)
+    self.trainUsWidget.logic.recordingManager.setSelectedRecordingID(recordingID)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -405,7 +405,7 @@ class Evaluation(qt.QWidget):
     deleteFlag = self.deleteRecordingMessageBox()
     if deleteFlag:
       # Delete selected recording
-      self.trainUsWidget.logic.dataManager.deleteSelectedRecording()
+      self.trainUsWidget.logic.recordingManager.deleteSelectedRecording()
 
       # Update tables    
       self.homeWidget.updateRecordingsTable()
