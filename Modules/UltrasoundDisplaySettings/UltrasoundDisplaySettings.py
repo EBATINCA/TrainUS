@@ -13,10 +13,7 @@ import logging
 #
 #------------------------------------------------------------------------------
 class UltrasoundDisplaySettings(ScriptedLoadableModule):
-  """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "UltrasoundDisplaySettings"
@@ -70,9 +67,6 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     """
     Runs whenever the module is reopened
     """
-    # Apply singleton parameter node settings to application
-    self.logic.setParameterNode(self.logic.getParameterNode())
-
     # Display US image
     usImageDisplayed = self.logic.displayUSImage()
 
@@ -261,16 +255,6 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     return remoteControlAvailable
 
   #------------------------------------------------------------------------------
-  def getParameterNode(self):
-    """
-    Convenience function to get the parameter node from the module logic.
-
-    :return vtkMRMLScriptedModuleNode: Parameter node containing the data roles as node references
-      and parameters as Get/SetParameter with parameter name in the style 'Group.Parameter'
-    """
-    return self.logic.getParameterNode()
-
-  #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
     """
     Set selections and other settings on the GUI based on the parameter node.
@@ -388,9 +372,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
     self.trainUsWidget = slicer.trainUsWidget
-    # Pointer to the parameter node so that we have access to the old one before setting the new one
-    self.parameterNode = None
-
+    
     # Default parameters map
     self.defaultParameters = {}
 
@@ -412,63 +394,6 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
-
-  #------------------------------------------------------------------------------
-  def setParameterNode(self, inputParameterNode, force=False):
-    """
-    Set parameter node as main parameter node in the application.
-    - When importing a scene the parameter node from the scene is set
-    - When closing the scene, the parameter node is reset
-    - Handle observations of managed nodes (remove from old ones, add to new ones)
-    - Set default parameters if not specified in the given node
-    """
-    if inputParameterNode == self.parameterNode and not force:
-      return
-
-    # Remove observations from nodes referenced in the old parameter node
-    if self.parameterNode is not None:
-      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set parameter node member variable (so that we have access to the old one before setting the new one)
-    self.parameterNode = inputParameterNode
-    if self.parameterNode is None:
-      return
-
-    # Add observations on referenced nodes
-    if self.parameterNode:
-      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set default parameters if missing
-    self.setDefaultParameters()
-
-    # Add observations on referenced nodes
-    #TODO:
-
-    # Update widgets
-    self.moduleWidget.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def setDefaultParameters(self, force=False):
-    """
-    Set default parameters to the parameter node. The default parameters are stored in the map defaultParameters
-
-    :param bool force: Set default parameter even if the parameter is already set. False by default
-    """
-    parameterNode = self.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to set default parameters due to missing parameter node')
-      return
-
-    existingParameterNames = parameterNode.GetParameterNames()
-
-    wasModified = parameterNode.StartModify()  # Modify all properties in a single batch
-
-    for name, value in self.defaultParameters.items():
-      if not force and name in existingParameterNames:
-        continue
-      parameterNode.SetParameter(name, str(value))
-
-    parameterNode.EndModify(wasModified)
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):

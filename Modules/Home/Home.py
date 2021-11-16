@@ -19,10 +19,7 @@ import Widgets
 #
 #------------------------------------------------------------------------------
 class Home(ScriptedLoadableModule):
-  """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Home"
@@ -88,10 +85,7 @@ class QHomeWidget(qt.QDialog):
 #
 #------------------------------------------------------------------------------
 class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
-  """Uses ScriptedLoadableModuleWidget base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, parent):
     """
     Initialize the window and main GUI for the TrainUS home screen
@@ -734,25 +728,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
 class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
-  """This class should implement all the actual computation done by your module.  The interface
-  should be such that other python code can import this class and make use of the functionality without
-  requiring an instance of the Widget.
-  Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, widgetInstance, parent=None):
     ScriptedLoadableModuleLogic.__init__(self, parent)
     VTKObservationMixin.__init__(self)
 
     # Define member variables
     self.fileDir = os.path.dirname(__file__)
+    
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
     self.trainUsWidget = self.moduleWidget.trainUsWidget
-    # Pointer to the parameter node so that we have access to the old one before setting the new one
-    self.parameterNode = None #TODO: Remove parameter node handling from this class. Each class should use the main TrainUS parameter node. I see other classes do that, great, but they still have their set/getParameterNode functions. Please remove those to reduce confusion.
-
+    
     # Store whether python console was floating so that it is restored when hidden
     self.pythonConsoleWasFloating = False
 
@@ -768,14 +755,6 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.participants_deleteMessageBoxLabel = ''
     self.recordings_deleteMessageBoxTitle = ''
     self.recordings_deleteMessageBoxLabel = ''
-
-    #TODO: Remove parameter node related things
-    # Default parameters map
-    self.defaultParameters = {}
-    # self.defaultParameters["DecimationFactor"] = 0.85
-
-    # Parameter node reference roles
-    # self.modelReferenceRolePrefix = 'Model_'
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
@@ -1063,12 +1042,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 #
 #------------------------------------------------------------------------------
 class HomeTest(ScriptedLoadableModuleTest):
-  """
-  This is the test case for your scripted module.
-  Uses ScriptedLoadableModuleTest base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -1081,17 +1055,6 @@ class HomeTest(ScriptedLoadableModuleTest):
     self.test_Home1()
 
   def test_Home1(self):
-    """ Ideally you should have several levels of tests.  At the lowest level
-    tests should exercise the functionality of the logic with different inputs
-    (both valid and invalid).  At higher levels your tests should emulate the
-    way the participant would interact with your code and confirm that it still works
-    the way you intended.
-    One of the most important features of the tests is that it should alert other
-    developers when their changes will have an impact on the behavior of your
-    module.  For example, if a developer removes a feature that you depend on,
-    your test should break so they know that the feature is needed.
-    """
-
     self.delayDisplay("Starting the test")
     #
     # first, get some data

@@ -257,9 +257,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     self.moduleWidget = widgetInstance
     self.trainUsWidget = slicer.trainUsWidget
 
-    # Parameter node
-    self.parameterNode = None
-
     # PLUS connection variables
     self.connector = None
     self.plusServerLauncherRunning = False
@@ -279,18 +276,18 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
   def setParameterNode(self):
     
     # Get parameter node
-    self.parameterNode = self.trainUsWidget.getParameterNode()
-    if not self.parameterNode:
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
       logging.error('setParameterNode: Failed to get parameter node')
       return
 
     # Remove observations from nodes referenced in the old parameter node
-    if self.parameterNode is not None:
-      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
+    if parameterNode is not None:
+      self.removeObserver(parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
 
     # Add observations on referenced nodes
-    if self.parameterNode:
-      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)  
+    if parameterNode:
+      self.addObserver(parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)  
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
