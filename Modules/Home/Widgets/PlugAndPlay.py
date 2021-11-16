@@ -83,12 +83,12 @@ class PlugAndPlay(qt.QWidget):
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 3)
+    self.homeWidget.logic.setMode(modeID = 3)
 
   #------------------------------------------------------------------------------
   def onNextPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 5)
+    self.homeWidget.logic.setMode(modeID = 5)
 
   #------------------------------------------------------------------------------
   #

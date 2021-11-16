@@ -413,7 +413,7 @@ class Evaluation(qt.QWidget):
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 0) # switch to welcome page
+    self.homeWidget.logic.setMode(modeID = 0) # switch to welcome page
 
   #------------------------------------------------------------------------------
   #

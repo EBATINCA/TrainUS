@@ -132,12 +132,12 @@ class HardwareSelection(qt.QWidget):
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 1)
+    self.homeWidget.logic.setMode(modeID = 1)
 
   #------------------------------------------------------------------------------
   def onNextPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 3)
+    self.homeWidget.logic.setMode(modeID = 3)
 
   #------------------------------------------------------------------------------
   #

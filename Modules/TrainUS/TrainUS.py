@@ -271,7 +271,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Default parameters map
     self.defaultParameters = {}
-    self.defaultParameters["AppMode"] = 'TRAINING'
+    self.defaultParameters["AppMode"] = '0'
     self.defaultParameters["SelectedParticipantID"] = ''
     self.defaultParameters["SelectedRecordingID"] = ''
     self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]

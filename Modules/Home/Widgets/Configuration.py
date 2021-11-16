@@ -176,7 +176,7 @@ class Configuration(qt.QWidget):
   def onPreviousPageButtonClicked(self):
     
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 0)
+    self.homeWidget.logic.setMode(modeID = 0)
 
   #------------------------------------------------------------------------------
   #

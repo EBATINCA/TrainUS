@@ -135,12 +135,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
 
-    # Update UI mode
-    #TODO: Include the content of this function in updateGUIFromMRML, and use the parameter node
-    # to identify the current mode instead of the argument. The mode is set to the logic already
-    # (see the current switchAppMode function).
-    self.updateUIforMode(modeID = 0)
-
   #------------------------------------------------------------------------------
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -258,14 +252,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   #------------------------------------------------------------------------------
   def onMainTrainingModeButtonClicked(self):
     # Update mode
-    #TODO: Rename logic function to setMode
-    self.logic.switchAppMode('TRAINING')
-
-    # Update UI
-    #TODO: No need to call this explicitly after having implemented the
-    # updateGUIFromMRML function properly, because it will be called as
-    # a callback to the parameter node Modified event
-    self.updateUIforMode(modeID = 1) # switch to training mode
+    self.logic.setMode(modeID = 1) # switch to training mode
 
     # Update UI tables
     self.updateParticipantsTable()
@@ -275,10 +262,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def onMainEvaluationModeButtonClicked(self):
 
     # Update mode
-    self.logic.switchAppMode('EVALUATION')
-
-    # Update UI
-    self.updateUIforMode(modeID = 6) # switch to evaluation mode
+    self.logic.setMode(modeID = 6) # switch to evaluation mode
 
     # Update UI tables
     self.updateParticipantsTable()
@@ -286,8 +270,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def onConfigurationButtonClicked(self):
-    # Update UI
-    self.updateUIforMode(modeID = 7) # switch to configuration
+    # Update mode
+    self.logic.setMode(modeID = 7) # switch to configuration
 
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):
@@ -336,58 +320,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update configuration panel
     self.updateConfigurationPanel()
 
-  #------------------------------------------------------------------------------
-  def setupUi(self):
-    logging.debug('Home.setupUi')
-
-    # Configuration page
-    self.ui.ConfigurationPanel = Widgets.Configuration(self.ui.configurationWidget)
-    self.ui.ConfigurationPanel.homeWidget = self
-    self.ui.ConfigurationPanel.setupUi()
-    self.ui.configurationWidget.layout().addWidget(self.ui.ConfigurationPanel)
-
-    # Training page
-    ## Step 1
-    self.ui.ParticipantSelectionPanel = Widgets.ParticipantSelection(self.ui.step1Page)
-    self.ui.ParticipantSelectionPanel.homeWidget = self
-    self.ui.ParticipantSelectionPanel.setupUi()
-    self.ui.step1Page.layout().addWidget(self.ui.ParticipantSelectionPanel)
-    ## Step 2
-    self.ui.HardwareSelectionPanel = Widgets.HardwareSelection(self.ui.step2Page)
-    self.ui.HardwareSelectionPanel.homeWidget = self
-    self.ui.HardwareSelectionPanel.setupUi()
-    self.ui.step2Page.layout().addWidget(self.ui.HardwareSelectionPanel)
-    ## Step 3
-    self.ui.ReviewSelectionPanel = Widgets.ReviewSelection(self.ui.step3Page)
-    self.ui.ReviewSelectionPanel.homeWidget = self
-    self.ui.ReviewSelectionPanel.setupUi()
-    self.ui.step3Page.layout().addWidget(self.ui.ReviewSelectionPanel)
-    ## Step 4
-    self.ui.PlugAndPlayPanel = Widgets.PlugAndPlay(self.ui.step4Page)
-    self.ui.PlugAndPlayPanel.homeWidget = self
-    self.ui.PlugAndPlayPanel.setupUi()
-    self.ui.step4Page.layout().addWidget(self.ui.PlugAndPlayPanel)
-
-    # Evaluation page
-    self.ui.EvaluationPanel = Widgets.Evaluation(self.ui.evaluationWidget)
-    self.ui.EvaluationPanel.homeWidget = self
-    self.ui.EvaluationPanel.setupUi()
-    self.ui.evaluationWidget.layout().addWidget(self.ui.EvaluationPanel)
-
-    # Training session page
-    self.ui.TrainingSessionPanel = Widgets.TrainingSession(self.ui.trainingSessionWidget)
-    self.ui.TrainingSessionPanel.homeWidget = self
-    self.ui.TrainingSessionPanel.setupUi()
-    self.ui.trainingSessionWidget.layout().addWidget(self.ui.TrainingSessionPanel)
-
-    # Update UI language
-    self.logic.updateLanguageUI(selectedLanguageIndex = 0) # english by default
-
-  #------------------------------------------------------------------------------
-  def updateUIforMode(self, modeID):
-    logging.debug('Home.updateUIforMode')
-
-    # Reset navigation label style
+    # Switch app mode
+    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
     self.ui.step1NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
     self.ui.step2NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
     self.ui.step3NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
@@ -396,8 +330,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.step2NavigationFrame.lineWidth = 0
     self.ui.step3NavigationFrame.lineWidth = 0
     self.ui.step4NavigationFrame.lineWidth = 0
-
-    # Switch mode
     if modeID == 0: # home page
       self.ui.welcomePage.visible = True
       self.ui.configurationPage.visible = False
@@ -460,6 +392,53 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.ui.evaluationPage.visible = False
 
   #------------------------------------------------------------------------------
+  def setupUi(self):
+    logging.debug('Home.setupUi')
+
+    # Configuration page
+    self.ui.ConfigurationPanel = Widgets.Configuration(self.ui.configurationWidget)
+    self.ui.ConfigurationPanel.homeWidget = self
+    self.ui.ConfigurationPanel.setupUi()
+    self.ui.configurationWidget.layout().addWidget(self.ui.ConfigurationPanel)
+
+    # Training page
+    ## Step 1
+    self.ui.ParticipantSelectionPanel = Widgets.ParticipantSelection(self.ui.step1Page)
+    self.ui.ParticipantSelectionPanel.homeWidget = self
+    self.ui.ParticipantSelectionPanel.setupUi()
+    self.ui.step1Page.layout().addWidget(self.ui.ParticipantSelectionPanel)
+    ## Step 2
+    self.ui.HardwareSelectionPanel = Widgets.HardwareSelection(self.ui.step2Page)
+    self.ui.HardwareSelectionPanel.homeWidget = self
+    self.ui.HardwareSelectionPanel.setupUi()
+    self.ui.step2Page.layout().addWidget(self.ui.HardwareSelectionPanel)
+    ## Step 3
+    self.ui.ReviewSelectionPanel = Widgets.ReviewSelection(self.ui.step3Page)
+    self.ui.ReviewSelectionPanel.homeWidget = self
+    self.ui.ReviewSelectionPanel.setupUi()
+    self.ui.step3Page.layout().addWidget(self.ui.ReviewSelectionPanel)
+    ## Step 4
+    self.ui.PlugAndPlayPanel = Widgets.PlugAndPlay(self.ui.step4Page)
+    self.ui.PlugAndPlayPanel.homeWidget = self
+    self.ui.PlugAndPlayPanel.setupUi()
+    self.ui.step4Page.layout().addWidget(self.ui.PlugAndPlayPanel)
+
+    # Evaluation page
+    self.ui.EvaluationPanel = Widgets.Evaluation(self.ui.evaluationWidget)
+    self.ui.EvaluationPanel.homeWidget = self
+    self.ui.EvaluationPanel.setupUi()
+    self.ui.evaluationWidget.layout().addWidget(self.ui.EvaluationPanel)
+
+    # Training session page
+    self.ui.TrainingSessionPanel = Widgets.TrainingSession(self.ui.trainingSessionWidget)
+    self.ui.TrainingSessionPanel.homeWidget = self
+    self.ui.TrainingSessionPanel.setupUi()
+    self.ui.trainingSessionWidget.layout().addWidget(self.ui.TrainingSessionPanel)
+
+    # Update UI language
+    self.logic.updateLanguageUI(selectedLanguageIndex = 0) # english by default
+
+  #------------------------------------------------------------------------------
   def updateParticipantsTable(self):
     """
     Updates content of participants table by reading the database in root directory.
@@ -471,12 +450,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       return
 
     # Get current app mode
-    appMode = parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName)
+    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
 
     # Select target table to update according to app mode
-    if appMode == 'TRAINING':
+    if (modeID >= 0) and (modeID <= 5): # training mode
       uiPanel = self.ui.ParticipantSelectionPanel
-    elif appMode == 'EVALUATION':
+    elif (modeID == 6): # evaluation mode
       uiPanel = self.ui.EvaluationPanel
     else:
       logging.error('Home.updateParticipantsTable: Unknown app mode')
@@ -530,15 +509,15 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
 
     # Get current app mode
-    appMode = parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName)
+    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
 
     # Select target table to update according to app mode
-    if appMode == 'TRAINING':
+    if (modeID >= 0) and (modeID <= 5): # training mode
       uiPanel = self.ui.ParticipantSelectionPanel
-    elif appMode == 'EVALUATION':
+    elif (modeID == 6): # evaluation mode
       uiPanel = self.ui.EvaluationPanel
     else:
-      logging.error('Home.updateParticipantsTableSelection: Unknown app mode')
+      logging.error('Home.updateParticipantsTable: Unknown app mode')
       return
 
     # Get table widget
@@ -1054,7 +1033,20 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     tableWidget.horizontalHeader().stretchLastSection = True
 
   #------------------------------------------------------------------------------
-  def switchAppMode(self, mode):
+  def setMode(self, modeID):
+    """
+    Store app mode in parameter node
+
+    Available modes include:
+        0 = Home page
+        1 = Start training step 1
+        2 = Start training step 2
+        3 = Start training step 3
+        4 = Start training step 4
+        5 = Training session
+        6 = Recording management
+        7 = Configuration
+    """
     # Parameter node
     parameterNode = self.trainUsWidget.getParameterNode()
     if not parameterNode:
@@ -1062,7 +1054,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       return
 
     # Store app mode in parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedAppModeParameterName, mode)
+    parameterNode.SetParameter(self.trainUsWidget.logic.selectedAppModeParameterName, str(modeID))
 
 
 #------------------------------------------------------------------------------

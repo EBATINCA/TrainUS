@@ -88,23 +88,22 @@ class ReviewSelection(qt.QWidget):
   #------------------------------------------------------------------------------
   def onEditParticipantSelectionButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 1)
+    self.homeWidget.logic.setMode(modeID = 1)
 
   #------------------------------------------------------------------------------
   def onEditHardwareSelectionButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 2)
+    self.homeWidget.logic.setMode(modeID = 2)
 
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 2)
+    self.homeWidget.logic.setMode(modeID = 2)
 
   #------------------------------------------------------------------------------
   def onNextPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.updateUIforMode(modeID = 4)
-
+    self.homeWidget.logic.setMode(modeID = 4)
 
   #------------------------------------------------------------------------------
   #
