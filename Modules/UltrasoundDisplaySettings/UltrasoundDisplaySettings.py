@@ -7,6 +7,9 @@ from slicer.util import VTKObservationMixin
 
 import logging
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # UltrasoundDisplaySettings
@@ -205,14 +208,8 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
 
   #------------------------------------------------------------------------------
   def setupPlusRemote(self):
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('setupPlusRemote: Failed to get parameter node')
-      return
-
     # Get IGTL connector node
-    igtlConnectorNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName)  
+    igtlConnectorNodeID = Parameters.instance.getParameterString(Parameters.IGTL_CONNECTOR_NODE_ID) 
     self.igtlConnectorNode = slicer.mrmlScene.GetNodeByID(igtlConnectorNodeID)
     if self.igtlConnectorNode is None:
       logging.error('setupPlusRemote: IGTL connector node was not found')
@@ -261,12 +258,6 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('updateGUIFromMRML: Failed to get parameter node')
-      return
-
     # Enable buttons only if US image is available in the scene
     usImageAvailable = self.logic.isUSImageAvailable()
     self.ui.parametersGroupBox.enabled = usImageAvailable
@@ -274,11 +265,11 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.controlGroupBox.enabled = usImageAvailable
 
     # Current US device
-    deviceName = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
+    deviceName = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
     self.ui.deviceNameLabel.text = deviceName
 
     # Connection status
-    connectorStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    connectorStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
     self.ui.connectionStatusLabel.text = connectorStatus
 
     # Freeze ultrasound button
@@ -458,14 +449,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
   #------------------------------------------------------------------------------
   def displayUSImage(self):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('displayUSImage: Failed to get parameter node')
-      return False
-
     # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+    usImageName = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IMAGE_NAME)
 
     # Volume reslice driver
     try:
@@ -497,14 +482,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
   #------------------------------------------------------------------------------
   def isUSImageAvailable(self):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('isUSImageAvailable: Failed to get parameter node')
-      return
-
     # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+    usImageName = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IMAGE_NAME)
 
     # Get US volume from name
     try:
@@ -533,14 +512,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
   #------------------------------------------------------------------------------
   def freezeUltrasoundImage(self):
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('freezeUltrasoundImage: Failed to get parameter node')
-      return
-
     # Get IGTL connector node ID from parameter node
-    connectorNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName)
+    connectorNodeID = Parameters.instance.getParameterString(Parameters.IGTL_CONNECTOR_NODE_ID)
 
     # Get IGTL connector node ID
     try:
@@ -581,14 +554,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
   #------------------------------------------------------------------------------
   def setImageMinMaxLevel(self, minLevel, maxLevel):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('setImageMinMaxLevel: Failed to get parameter node')
-      return
-
     # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+    usImageName = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IMAGE_NAME)
 
     # Display US image in slice view
     try:
@@ -603,14 +570,8 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
 
   #------------------------------------------------------------------------------
   def getImageMinMaxLevel(self, caller=None, event=None):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('getImageMinMaxLevel: Failed to get parameter node')
-      return
-
     # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+    usImageName = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IMAGE_NAME)
 
     # Get volume and display node
     try:
@@ -646,15 +607,9 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
         self.crosshairNode.RemoveObserver(self.mouseObserverID)
 
   #------------------------------------------------------------------------------
-  def getImageMinMaxIntensity(self):    
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('getImageMinMaxLevel: Failed to get parameter node')
-      return
-
+  def getImageMinMaxIntensity(self):
     # Get image name from parameter node
-    usImageName = parameterNode.GetParameter(self.trainUsWidget.logic.usImageNameParameterName)
+    usImageName = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IMAGE_NAME)
 
     # Get volume and display node
     try:

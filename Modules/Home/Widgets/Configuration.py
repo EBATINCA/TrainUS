@@ -2,6 +2,9 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import os
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # Configuration
@@ -82,26 +85,22 @@ class Configuration(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
-    # Update combo box selection from parameter node
-    self.ui.ultrasoundDeviceComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
-    self.ui.trackingSystemComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
-    self.ui.simulationPhantomComboBox.currentText = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+    
+    # Update combo box selection from parameter node    
+    self.ui.ultrasoundDeviceComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
+    self.ui.trackingSystemComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
+    self.ui.simulationPhantomComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_PHANTOM)
 
     # Update Plus config file and server paths according to selected devices
     plusServerPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerPathFromSelection()
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerPathParameterName, plusServerPath)
+    Parameters.instance.setParameter(Parameters.PLUS_SERVER_PATH, plusServerPath)
     plusServerLauncherPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerLauncherPathFromSelection()
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerLauncherPathParameterName, plusServerLauncherPath)
+    Parameters.instance.setParameter(Parameters.PLUS_SERVER_LAUNCHER_PATH, plusServerLauncherPath)
     configFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusConfigPathParameterName, configFilePath)
+    Parameters.instance.setParameter(Parameters.PLUS_CONFIG_PATH, configFilePath)
 
     # Disable configuration combo boxes if PLUS is connected
-    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
+    plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
     self.ui.ultrasoundDeviceComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
     self.ui.trackingSystemComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
     self.ui.simulationPhantomComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
@@ -114,42 +113,24 @@ class Configuration(qt.QWidget):
   
   #------------------------------------------------------------------------------
   def onUltrasoundDeviceComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_ULTRASOUND, text)
 
     # Update GUI
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onTrackingSystemComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_TRACKER, text)
 
     # Update GUI
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onSimulationPhantomComboBoxTextChanged(self, text):
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName, text)
+    Parameters.instance.setParameter(Parameters.SELECTED_PHANTOM, text)
 
     # Update GUI
     self.updateGUIFromMRML()

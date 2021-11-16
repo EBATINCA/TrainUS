@@ -5,6 +5,9 @@ import numpy as np
 import json
 import shutil
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # RecordingManager
@@ -383,14 +386,8 @@ class RecordingManager():
     """
     logging.debug('RecordingManager.getSelectedParticipantID')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedParticipantID = Parameters.instance.getParameterString(Parameters.SELECTED_PARTICIPANT_ID)
     return selectedParticipantID
 
   #------------------------------------------------------------------------------
@@ -400,14 +397,8 @@ class RecordingManager():
     """
     logging.debug('RecordingManager.setSelectedParticipantID')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedParticipantIDParameterName, participantID)  
+    Parameters.instance.setParameter(Parameters.SELECTED_PARTICIPANT_ID, participantID) 
 
   #------------------------------------------------------------------------------
   def getSelectedRecordingID(self):
@@ -416,14 +407,8 @@ class RecordingManager():
     """
     logging.debug('RecordingManager.getSelectedRecordingID')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get selected participant
-    selectedRecordingID = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName)
+    selectedRecordingID = Parameters.instance.getParameterString(Parameters.SELECTED_RECORDING_ID)
     return selectedRecordingID
 
   #------------------------------------------------------------------------------
@@ -433,14 +418,8 @@ class RecordingManager():
     """
     logging.debug('RecordingManager.setSelectedRecordingID')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedRecordingIDParameterName, recordingID)
+    Parameters.instance.setParameter(Parameters.SELECTED_RECORDING_ID, recordingID)
   
   #------------------------------------------------------------------------------
   def getParticipantInfoFromSelection(self):

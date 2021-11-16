@@ -9,6 +9,8 @@ import logging
 
 import Managers
 
+import TrainUSLib.TrainUSParameters as Parameters
+
 try:
   #TODO: Contribute this to PerkTutor (PerkTutorCouchDB.py, line 8)
   import couchdb # For PerkTutor
@@ -25,10 +27,7 @@ except: # pylint: disable=w0702
 #
 #------------------------------------------------------------------------------
 class TrainUS(ScriptedLoadableModule):
-  """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "TrainUS"
@@ -45,10 +44,7 @@ class TrainUS(ScriptedLoadableModule):
 #
 #------------------------------------------------------------------------------
 class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
-  """Uses ScriptedLoadableModuleWidget base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
@@ -107,11 +103,11 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Runs whenever the module is reopened
     """
     # Apply singleton parameter node settings to application
-    self.logic.setParameterNode(self.logic.getParameterNode())
+    #self.logic.setParameterNode(self.logic.getParameterNode())
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    pass
+    slicer.app.connect("startupCompleted()", self.onStartupCompleted)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
@@ -199,14 +195,9 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         widget.styleSheet = style
 
   #------------------------------------------------------------------------------
-  def getParameterNode(self):
-    """
-    Convenience function to get the parameter node from the module logic.
-
-    :return vtkMRMLScriptedModuleNode: Parameter node containing the data roles as node references
-      and parameters as Get/SetParameter with parameter name in the style 'Group.Parameter'
-    """
-    return self.logic.getParameterNode()
+  def onStartupCompleted(self):
+    # Apply singleton parameter node settings to application
+    Parameters.instance.setParameterNode(self.logic.getParameterNode())
 
   #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
@@ -215,11 +206,7 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
-    # Get parameter node
-    parameterNode = self.logic.getParameterNode()
-    if not parameterNode:
-      logging.error('updateGUIFromMRML: Failed to get parameter node')
-      return
+    pass
 
 
 #---------------------------------------------------------------------------------------------#
@@ -232,13 +219,7 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
 class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
-  """This class should implement all the actual computation done by your module.  The interface
-  should be such that other python code can import this class and make use of the functionality without
-  requiring an instance of the Widget.
-  Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
+  
   def __init__(self, widgetInstance, parent=None):
     ScriptedLoadableModuleLogic.__init__(self, parent)
     VTKObservationMixin.__init__(self)
@@ -249,6 +230,9 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget = widgetInstance
     # Pointer to the parameter node so that we have access to the old one before setting the new one
     self.parameterNode = None
+
+    # Parameters
+    Parameters.instance = Parameters(widgetInstance)
 
     # Constants
     self.rootDirectoryPath = self.setupRootDirectory()
@@ -267,106 +251,11 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
-    # Default parameters map
-    self.defaultParameters = {}
-    self.defaultParameters["AppMode"] = '0'
-    self.defaultParameters["SelectedParticipantID"] = ''
-    self.defaultParameters["SelectedRecordingID"] = ''
-    self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]
-    self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[0]
-    self.defaultParameters["SelectedSimulationPhantom"] = self.simulationPhantomOptions[0]
-    self.defaultParameters["USImageName"] = 'Image_Reference'
-    self.defaultParameters["PlusServerRunning"] = 'False'
-    self.defaultParameters["PlusServerPath"] = ''
-    self.defaultParameters["PlusServerLauncherPath"] = ''
-    self.defaultParameters["PlusConfigPath"] = ''
-    self.defaultParameters["PlusConfigTextNodeID"] = ''
-    self.defaultParameters["PlusConnectionStatus"] = 'OFF'
-    self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
-    self.defaultParameters["IGTLConnectorNodeID"] = ''
-
-    # Parameter node reference roles
-    # self.modelReferenceRolePrefix = 'Model_'
-
-    # Parameter node parameter names
-    self.selectedAppModeParameterName = 'AppMode'
-    self.selectedParticipantIDParameterName = 'SelectedParticipantID'
-    self.selectedRecordingIDParameterName = 'SelectedRecordingID'
-    self.selectedUltrasoundDeviceParameterName = 'SelectedUltrasoundDevice'
-    self.selectedTrackingSystemParameterName = 'SelectedTrackingSystem'
-    self.selectedSimulationPhantomParameterName = 'SelectedSimulationPhantom'
-    self.usImageNameParameterName = 'USImageName'
-    self.plusServerRunningParameterName = 'PlusServerRunning'
-    self.plusServerPathParameterName = 'PlusServerPath'
-    self.plusServerLauncherPathParameterName = 'PlusServerLauncherPath'
-    self.plusConfigPathParameterName = 'PlusConfigPath'
-    self.plusConfigTextNodeIDParameterName = 'PlusConfigTextNodeID'
-    self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
-    self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
-    self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
-
     # Setup scene
     self.setupScene()
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
-
-  #------------------------------------------------------------------------------
-  def setParameterNode(self, inputParameterNode, force=False):
-    """
-    Set parameter node as main parameter node in the application.
-    - When importing a scene the parameter node from the scene is set
-    - When closing the scene, the parameter node is reset
-    - Handle observations of managed nodes (remove from old ones, add to new ones)
-    - Set default parameters if not specified in the given node
-    """
-    if inputParameterNode == self.parameterNode and not force:
-      return
-
-    # Remove observations from nodes referenced in the old parameter node
-    if self.parameterNode is not None:
-      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set parameter node member variable (so that we have access to the old one before setting the new one)
-    self.parameterNode = inputParameterNode
-    if self.parameterNode is None:
-      return
-
-    # Add observations on referenced nodes
-    if self.parameterNode:
-      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.moduleWidget.updateGUIFromMRML)
-
-    # Set default parameters if missing
-    self.setDefaultParameters()
-
-    # Add observations on referenced nodes
-    #TODO:
-
-    # Update widgets
-    self.moduleWidget.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def setDefaultParameters(self, force=False):
-    """
-    Set default parameters to the parameter node. The default parameters are stored in the map defaultParameters
-
-    :param bool force: Set default parameter even if the parameter is already set. False by default
-    """
-    parameterNode = self.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to set default parameters due to missing parameter node')
-      return
-
-    existingParameterNames = parameterNode.GetParameterNames()
-
-    wasModified = parameterNode.StartModify()  # Modify all properties in a single batch
-
-    for name, value in self.defaultParameters.items():
-      if not force and name in existingParameterNames:
-        continue
-      parameterNode.SetParameter(name, str(value))
-
-    parameterNode.EndModify(wasModified)
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):

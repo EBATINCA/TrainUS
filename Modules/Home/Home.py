@@ -13,6 +13,9 @@ import logging
 # Custom widgets
 import Widgets
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # Home
@@ -299,12 +302,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       # The TrainUS module has not been set up yet
       return
 
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('updateGUIFromMRML: Failed to get parameter node')
-      return
-
     # Update review selection panel
     self.updateReviewSelectionPanel()
 
@@ -315,7 +312,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateConfigurationPanel()
 
     # Switch app mode
-    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
+    modeID = Parameters.instance.getParameterInt(Parameters.APP_MODE)
     self.ui.step1NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
     self.ui.step2NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
     self.ui.step3NavigationLabel.setStyleSheet("QLabel { color : #969696 }")
@@ -437,14 +434,8 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Updates content of participants table by reading the database in root directory.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get current app mode
-    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
+    modeID = Parameters.instance.getParameterInt(Parameters.APP_MODE)
 
     # Select target table to update according to app mode
     if (modeID >= 0) and (modeID <= 5): # training mode
@@ -493,17 +484,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Updates selected item of dashboard table from parameter node.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedParticipantID = Parameters.instance.getParameterString(Parameters.SELECTED_PARTICIPANT_ID)
 
     # Get current app mode
-    modeID = int(parameterNode.GetParameter(self.trainUsWidget.logic.selectedAppModeParameterName))
+    modeID = Parameters.instance.getParameterInt(Parameters.APP_MODE)
 
     # Select target table to update according to app mode
     if (modeID >= 0) and (modeID <= 5): # training mode
@@ -529,18 +514,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Updates selected participant in recordings table.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     #
     # Update selected participant
     #
 
     # Get selected participant
-    selectedParticipantID = parameterNode.GetParameter(self.trainUsWidget.logic.selectedParticipantIDParameterName)
+    selectedParticipantID = Parameters.instance.getParameterString(Parameters.SELECTED_PARTICIPANT_ID)
 
     # Get participant info from ID
     selectedParticipantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromID(selectedParticipantID)
@@ -601,12 +580,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Update review selection panel indicating selected participant and configuration.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get information from selected participant
     participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     if participantSelected:
@@ -620,9 +593,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       selectedParticipantSurname = ''
 
     # Get selected hardware configuration
-    selectedUltrasoundDevice = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
-    selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
-    selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+    selectedUltrasoundDevice = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
+    selectedTrackingSystem = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
+    selectedSimulationPhantom = Parameters.instance.getParameterString(Parameters.SELECTED_PHANTOM)
 
     # Update GUI in dashboard tab
     self.ui.ReviewSelectionPanel.ui.participantNameText.text = selectedParticipantName
@@ -637,12 +610,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Update training session panel indicating selected participant, configuration, and date.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get information from selected participant
     participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     if participantSelected:
@@ -660,9 +627,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     dateLabel = datetime.now().strftime('%Y-%m-%d')
 
     # Get selected hardware configuration
-    selectedUltrasoundDevice = parameterNode.GetParameter(self.trainUsWidget.logic.selectedUltrasoundDeviceParameterName)
-    selectedTrackingSystem = parameterNode.GetParameter(self.trainUsWidget.logic.selectedTrackingSystemParameterName)
-    selectedSimulationPhantom = parameterNode.GetParameter(self.trainUsWidget.logic.selectedSimulationPhantomParameterName)
+    selectedUltrasoundDevice = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
+    selectedTrackingSystem = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
+    selectedSimulationPhantom = Parameters.instance.getParameterString(Parameters.SELECTED_PHANTOM)
 
     # Update GUI in training session info box
     self.ui.TrainingSessionPanel.ui.participantLabel.text = f'[{selectedParticipantID}] {selectedParticipantSurname}, {selectedParticipantName}'
@@ -674,15 +641,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Update configuration panel to indicate connection status.
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Get PLUS connection status
-    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName)
-    plusServerRunning = parameterNode.GetParameter(self.trainUsWidget.logic.plusServerRunningParameterName)
+    plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
+    plusServerRunning = Parameters.instance.getParameterString(Parameters.PLUS_SERVER_RUNNING)
 
     # Update GUI in training session info box
     self.ui.ConfigurationPanel.ui.connectionStatusText.text = plusConnectionStatus
@@ -706,7 +667,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     confirmExit = qt.QMessageBox()
     confirmExit.setIcon(qt.QMessageBox.Warning)
-    confirmExit.setWindowTitle(self.logic.home_exitAppMessageBoxTitle) #TODO: Use class constants instead
+    confirmExit.setWindowTitle(self.logic.home_exitAppMessageBoxTitle)
     confirmExit.setText(self.logic.home_exitAppMessageBoxLabel)
     confirmExit.setStandardButtons(qt.QMessageBox.Yes | qt.QMessageBox.No)
     confirmExit.setDefaultButton(qt.QMessageBox.No)
@@ -747,7 +708,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     #TODO:
 
     # UI variables
-    self.home_exitAppMessageBoxTitle = '' #TODO: Define these not as member variables but class variables, outside the body of the constructor. Use capital letters like HOME_EXIT_APP...
+    self.home_exitAppMessageBoxTitle = ''
     self.home_exitAppMessageBoxLabel = ''
     self.newParticipantWarningMessageText = ''
     self.editParticipantWarningMessageText = ''
@@ -765,9 +726,9 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     Add observe to TrainUS parameter node.
     """
     # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
+    parameterNode = Parameters.instance.getParameterNode()
     if not parameterNode:
-      logging.error('updateGUIFromMRML: Failed to get parameter node')
+      logging.error('observeParameterNode: Failed to get parameter node')
       return
 
     # Add observations on referenced nodes
@@ -1026,14 +987,8 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         6 = Recording management
         7 = Configuration
     """
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Store app mode in parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.selectedAppModeParameterName, str(modeID))
+    Parameters.instance.setParameter(Parameters.APP_MODE, modeID)
 
 
 #------------------------------------------------------------------------------

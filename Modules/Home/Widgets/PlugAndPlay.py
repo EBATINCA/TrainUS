@@ -66,11 +66,7 @@ class PlugAndPlay(qt.QWidget):
     del caller
     del event
 
-    # Parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
+    pass
 
     
 

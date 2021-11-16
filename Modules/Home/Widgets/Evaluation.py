@@ -144,11 +144,7 @@ class Evaluation(qt.QWidget):
     """
     del caller
     del event
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
+    
     # Participant selection
     participantSelected = self.trainUsWidget.logic.recordingManager.isParticipantSelected()
     self.ui.checkRecordingsButton.enabled = participantSelected
