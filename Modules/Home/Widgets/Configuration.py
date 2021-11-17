@@ -96,8 +96,10 @@ class Configuration(qt.QWidget):
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_PATH, plusServerPath)
     plusServerLauncherPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerLauncherPathFromSelection()
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_LAUNCHER_PATH, plusServerLauncherPath)
-    configFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
-    Parameters.instance.setParameter(Parameters.PLUS_CONFIG_PATH, configFilePath)
+    usPlusConfigFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
+    Parameters.instance.setParameter(Parameters.usPlusConfigPathParameterName, usPlusConfigFilePath)
+    trackerPlusConfigFilePath = self.trainUsWidget.logic.deviceManager.getTrackerDeviceConfigFilePathFromSelection()
+    Parameters.instance.setParameter(Parameters.trackerPlusConfigPathParameterName, trackerPlusConfigFilePath)
 
     # Disable configuration combo boxes if PLUS is connected
     plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
