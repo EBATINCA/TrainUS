@@ -369,15 +369,15 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     if not parameterNode:
       logging.error('isUltrasoundDeviceSelectionValid: Failed to get parameter node')
       return
-    parameterNode = Parameters.instance.getParameterNode()
+
 
     # Get config file path
-    ultrasoundPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigPathParameterName) #TODO: Move to parameter class
-    
+    ultrasoundPlusConfigPath = Parameters.instance.getParameterString(Parameters.ULTRASOUND_PLUS_CONFIG_PATH)
     return os.path.isfile(ultrasoundPlusConfigPath)
 
   #------------------------------------------------------------------------------
   def isTrackerDeviceSelectionValid(self):
+    # Get parameter node
     # Get parameter node
     parameterNode = Parameters.instance.getParameterNode()
     if not parameterNode:
@@ -385,8 +385,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       return
 
     # Get config file path
-    trackerPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigPathParameterName) #TODO: To param class
-    
+    trackerPlusConfigPath = Parameters.instance.getParameterString(Parameters.TRACKER_PLUS_CONFIG_PATH)
     return os.path.isfile(trackerPlusConfigPath)
 
   #------------------------------------------------------------------------------
@@ -402,8 +401,8 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     #
     if self.isUltrasoundDeviceSelectionValid():
       # Get config path and text node ID
-      ultrasoundPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigPathParameterName)
-      ultrasoundPlusConfigTextNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigTextNodeIDParameterName)
+      ultrasoundPlusConfigPath = Parameters.instance.getParameterString(Parameters.ULTRASOUND_PLUS_CONFIG_PATH)
+      ultrasoundPlusConfigTextNodeID = Parameters.instance.getParameterString(Parameters.ULTRASOUND_PLUS_CONFIG_TEXTNODEID)
       
       # Get config file text node
       self.ultrasoundPlusConfigTextNode = slicer.mrmlScene.GetNodeByID(ultrasoundPlusConfigTextNodeID)
@@ -413,15 +412,15 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.ultrasoundPlusConfigTextNode.SetName('Ultrasound_Plus_Config_File')
 
       # Add node ID to parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.usPlusConfigTextNodeIDParameterName, self.ultrasoundPlusConfigTextNode.GetID())
+      Parameters.instance.setParameter(Parameters.ULTRASOUND_PLUS_CONFIG_TEXTNODEID, self.ultrasoundPlusConfigTextNode.GetID())
 
     #
     # Tracker device
     #
     if self.isTrackerDeviceSelectionValid():
       # Get config path and text node ID
-      trackerPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigPathParameterName)
-      trackerPlusConfigTextNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigTextNodeIDParameterName)
+      trackerPlusConfigPath = Parameters.instance.getParameterString(Parameters.TRACKER_PLUS_CONFIG_PATH)
+      trackerPlusConfigTextNodeID = Parameters.instance.getParameterString(Parameters.TRACKER_PLUS_CONFIG_TEXTNODEID)
 
       # Get config file text node
       self.trackerPlusConfigTextNode = slicer.mrmlScene.GetNodeByID(trackerPlusConfigTextNodeID)
@@ -431,7 +430,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.trackerPlusConfigTextNode.SetName('Tracker_Plus_Config_File')
 
       # Add node ID to parameter node
-      parameterNode.SetParameter(self.trainUsWidget.logic.trackerPlusConfigTextNodeIDParameterName, self.trackerPlusConfigTextNode.GetID())
+      Parameters.instance.setParameter(Parameters.TRACKER_PLUS_CONFIG_TEXTNODEID, self.trackerPlusConfigTextNode.GetID())
 
   #------------------------------------------------------------------------------
   def startPlusServerLauncher(self, windowVisible = False, progressDialog=None):
@@ -519,7 +518,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
     # Get ultrasound IGTL connector from server port
     if self.isUltrasoundDeviceSelectionValid():
-      usPlusServerPort = int(parameterNode.GetParameter(self.trainUsWidget.logic.usPlusServerPortParameterName))
+      usPlusServerPort = int(Parameters.instance.getParameterString(Parameters.ULTRASOUND_PLUS_SERVER_PORT))
       connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
       ultrasoundConnectorFound = False
       for connectorNode in connectorNodes:
@@ -534,7 +533,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
     # Get tracker IGTL connector from server port
     if self.isTrackerDeviceSelectionValid():
-      trackerPlusServerPort = int(parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusServerPortParameterName))
+      trackerPlusServerPort = int(Parameters.instance.getParameterString(Parameters.TRACKER_PLUS_SERVER_PORT))
       connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
       trackerConnectorFound = False
       for connectorNode in connectorNodes:
@@ -564,11 +563,11 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     # Save connector node ID into parameter node 
     # TODO: Reference both connectors to parameter node
     if self.ultrasoundConnector:
-      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.ultrasoundConnector.GetID())
+      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, self.ultrasoundConnector.GetID())
     elif self.trackerConnector:
-      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.trackerConnector.GetID())
+      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, self.trackerConnector.GetID())
     else:
-      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, '')
+      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, '')
 
     # Wait
     if progressDialog:
@@ -589,7 +588,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
     # Plus servers running
     plusServerRunning = 'False'
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
+    Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
 
   #------------------------------------------------------------------------------
   def stopPlusConnection(self, progressDialog=None):
@@ -619,7 +618,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     
     # Plus server running
     plusServerRunning = 'False'
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
+    Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
 
     # Remove previous incoming MRML nodes
     incomingNodes = list()
@@ -641,7 +640,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.trackerConnector = None
       
     # Reset connector node ID into parameter node
-    parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, '')
+    Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, '')
 
     # Remove Plus server nodes
     if self.ultrasoundPlusServerNode:
@@ -658,12 +657,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
   #------------------------------------------------------------------------------
   def getPlusServerConnectionStatus(self):
     logging.debug('PlusServerConnection.getPlusServerConnectionStatus')
-
-    # Get parameter node
-    parameterNode = self.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('getPlusServerConnectionStatus: Failed to get parameter node')
-      return
 
     # Get state of plus server nodes
     if self.ultrasoundPlusServerNode:
@@ -711,7 +704,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
     parameterNode = Parameters.instance.getParameterNode()
     # Update parameter node    
-    parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, status)
+    Parameters.instance.setParameter(Parameters.PLUS_CONNECTION_STATUS, status)
 
     return status
 

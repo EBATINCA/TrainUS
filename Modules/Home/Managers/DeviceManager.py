@@ -338,15 +338,9 @@ class DeviceManager():
     Get selected tracker device.
     """
     logging.debug('DeviceManager.getSelectedTrackerDevice')
-    
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
 
     # Get selected tracker device
-    selectedTrackerDevice = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedTrackingSystemParameterName)
+    selectedTrackerDevice = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
     return selectedTrackerDevice
 
   #------------------------------------------------------------------------------
@@ -356,15 +350,9 @@ class DeviceManager():
     """
     logging.debug('DeviceManager.setSelectedTrackerDevice')
     
-    # Parameter node
-    parameterNode = slicer.trainUsWidget.getParameterNode()
-    if not parameterNode:
-      logging.error('Failed to get parameter node')
-      return
-
     # Update parameter node
-    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedTrackingSystemParameterName, deviceLabel)
-
+    Parameters.instance.setParameter(Parameters.SELECTED_TRACKER, deviceLabel)
+    
   #------------------------------------------------------------------------------
   def getTrackerDeviceInfoFromSelection(self):
     """
