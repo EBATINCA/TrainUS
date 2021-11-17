@@ -168,7 +168,7 @@ class DeviceManager():
 
   #------------------------------------------------------------------------------
   #
-  # Handle selected devices using app parameter node
+  # Ultrasound device
   #
   #------------------------------------------------------------------------------
 
@@ -308,6 +308,156 @@ class DeviceManager():
     if selectedUltrasoundDeviceInfo:
       devicePath = os.path.join(self.mainDirectory, selectedUltrasoundDevice)
       plusServerLauncherPath = os.path.join(devicePath, selectedUltrasoundDeviceInfo['plus launcher'])
+    else:
+      plusServerLauncherPath = ''
+
+    return plusServerLauncherPath
+
+
+    
+
+  #------------------------------------------------------------------------------
+  #
+  # Tracker device
+  #
+  #------------------------------------------------------------------------------
+
+  #------------------------------------------------------------------------------
+  def isTrackerDeviceSelected(self):
+    """
+    Check if a valid tracker device is selected.
+
+    :return bool: True if valid tracker device is selected, False otherwise
+    """    
+    logging.debug('DeviceManager.isTrackerDeviceSelected')
+    
+    # Get selected tracker device
+    selectedTrackerDeviceLabel = self.getSelectedTrackerDevice()
+
+    # Check valid selection
+    if (selectedTrackerDeviceLabel == '') or (selectedTrackerDeviceLabel == 'None'):
+      trackerDeviceSelected = False
+    else:
+      trackerDeviceSelected = True
+    return trackerDeviceSelected
+
+  #------------------------------------------------------------------------------
+  def getSelectedTrackerDevice(self):
+    """
+    Get selected tracker device.
+    """
+    logging.debug('DeviceManager.getSelectedTrackerDevice')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Get selected tracker device
+    selectedTrackerDevice = parameterNode.GetParameter(slicer.trainUsWidget.logic.selectedTrackingSystemParameterName)
+    return selectedTrackerDevice
+
+  #------------------------------------------------------------------------------
+  def setSelectedTrackerDevice(self, deviceLabel):
+    """
+    Set selected tracker device.
+    """
+    logging.debug('DeviceManager.setSelectedTrackerDevice')
+    
+    # Parameter node
+    parameterNode = slicer.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('Failed to get parameter node')
+      return
+
+    # Update parameter node
+    parameterNode.SetParameter(slicer.trainUsWidget.logic.selectedTrackingSystemParameterName, deviceLabel)
+
+  #------------------------------------------------------------------------------
+  def getTrackerDeviceInfoFromSelection(self):
+    """
+    Get information for selected tracker device.
+
+    :return tracker device info (dict)
+    """
+    logging.debug('DeviceManager.getTrackerDeviceInfoFromSelection')
+    
+    # Get selected device
+    selectedTrackerDevice = self.getSelectedTrackerDevice()
+
+    # Get device info from ID
+    selectedTrackerDeviceInfo = self.getDeviceInfoFromID(selectedTrackerDevice)
+
+    return selectedTrackerDeviceInfo
+
+  #------------------------------------------------------------------------------
+  def getTrackerDeviceConfigFilePathFromSelection(self):
+    """
+    Get config file path for selected tracker device.
+
+    :return config file path (string)
+    """
+    logging.debug('DeviceManager.getTrackerDeviceConfigFilePathFromSelection')
+    
+    # Get selected device
+    selectedTrackerDevice = self.getSelectedTrackerDevice()
+
+    # Get device info from ID
+    selectedTrackerDeviceInfo = self.getTrackerDeviceInfoFromSelection()
+
+    # Get config file path
+    if selectedTrackerDeviceInfo:
+      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
+      configFilePath = os.path.join(devicePath, selectedTrackerDeviceInfo['config'])
+    else:
+      configFilePath = ''
+
+    return configFilePath
+
+  #------------------------------------------------------------------------------
+  def getTrackerDevicePlusServerPathFromSelection(self):
+    """
+    Get Plus server path for selected tracker device.
+
+    :return plus server path (string)
+    """
+    logging.debug('DeviceManager.getTrackerDevicePlusServerPathFromSelection')
+    
+    # Get selected device
+    selectedTrackerDevice = self.getSelectedTrackerDevice()
+
+    # Get device info from ID
+    selectedTrackerDeviceInfo = self.getTrackerDeviceInfoFromSelection()
+
+    # Get config file path
+    if selectedTrackerDeviceInfo:
+      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
+      plusServerPath = os.path.join(devicePath, selectedTrackerDeviceInfo['plus server'])
+    else:
+      plusServerPath = ''
+
+    return plusServerPath
+
+  #------------------------------------------------------------------------------
+  def getTrackerDevicePlusServerLauncherPathFromSelection(self):
+    """
+    Get Plus server path for selected tracker device.
+
+    :return plus server path (string)
+    """
+    logging.debug('DeviceManager.getTrackerDevicePlusServerLauncherPathFromSelection')
+    
+    # Get selected device
+    selectedTrackerDevice = self.getSelectedTrackerDevice()
+
+    # Get device info from ID
+    selectedTrackerDeviceInfo = self.getTrackerDeviceInfoFromSelection()
+
+    # Get config file path
+    if selectedTrackerDeviceInfo:
+      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
+      plusServerLauncherPath = os.path.join(devicePath, selectedTrackerDeviceInfo['plus launcher'])
     else:
       plusServerLauncherPath = ''
 
