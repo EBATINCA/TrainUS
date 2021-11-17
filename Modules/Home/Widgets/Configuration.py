@@ -85,6 +85,7 @@ class Configuration(qt.QWidget):
     """
     del caller
     del event
+    parameterNode = Parameters.instance.getParameterNode()
     
     # Update combo box selection from parameter node    
     self.ui.ultrasoundDeviceComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
@@ -96,8 +97,10 @@ class Configuration(qt.QWidget):
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_PATH, plusServerPath)
     plusServerLauncherPath = self.trainUsWidget.logic.deviceManager.getUltrasoundDevicePlusServerLauncherPathFromSelection()
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_LAUNCHER_PATH, plusServerLauncherPath)
-    configFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
-    Parameters.instance.setParameter(Parameters.PLUS_CONFIG_PATH, configFilePath)
+    usPlusConfigFilePath = self.trainUsWidget.logic.deviceManager.getUltrasoundDeviceConfigFilePathFromSelection()
+    parameterNode.SetParameter(self.trainUsWidget.logic.usPlusConfigPathParameterName, usPlusConfigFilePath)
+    trackerPlusConfigFilePath = self.trainUsWidget.logic.deviceManager.getTrackerDeviceConfigFilePathFromSelection()
+    parameterNode.SetParameter(self.trainUsWidget.logic.trackerPlusConfigPathParameterName, trackerPlusConfigFilePath)
 
     # Disable configuration combo boxes if PLUS is connected
     plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)

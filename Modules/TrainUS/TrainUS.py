@@ -251,6 +251,52 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
+    # Default parameters map
+    self.defaultParameters = {} #TODO: To param class
+    self.defaultParameters["AppMode"] = '0'
+    self.defaultParameters["SelectedParticipantID"] = ''
+    self.defaultParameters["SelectedRecordingID"] = ''
+    self.defaultParameters["SelectedUltrasoundDevice"] = self.ultrasoundDeviceOptions[1]
+    self.defaultParameters["SelectedTrackingSystem"] = self.trackingSystemOptions[0]
+    self.defaultParameters["SelectedSimulationPhantom"] = self.simulationPhantomOptions[0]
+    self.defaultParameters["UltrasoundImageName"] = 'Image_Reference'
+    self.defaultParameters["UltrasoundPlusServerPort"] = '18944'
+    self.defaultParameters["UltrasoundPlusConfigPath"] = ''
+    self.defaultParameters["UltrasoundPlusConfigTextNodeID"] = ''
+    self.defaultParameters["TrackerPlusServerPort"] = '18945'
+    self.defaultParameters["TrackerPlusConfigPath"] = ''
+    self.defaultParameters["TrackerPlusConfigTextNodeID"] = ''
+    self.defaultParameters["PlusServerRunning"] = 'False'
+    self.defaultParameters["PlusServerPath"] = ''
+    self.defaultParameters["PlusServerLauncherPath"] = ''
+    self.defaultParameters["PlusConnectionStatus"] = 'OFF'
+    self.defaultParameters["IGTLConnectionStatus"] = 'OFF'
+    self.defaultParameters["IGTLConnectorNodeID"] = ''
+
+    # Parameter node reference roles
+    # self.modelReferenceRolePrefix = 'Model_'
+
+    # Parameter node parameter names
+    self.selectedAppModeParameterName = 'AppMode'
+    self.selectedParticipantIDParameterName = 'SelectedParticipantID'
+    self.selectedRecordingIDParameterName = 'SelectedRecordingID'
+    self.selectedUltrasoundDeviceParameterName = 'SelectedUltrasoundDevice'
+    self.selectedTrackingSystemParameterName = 'SelectedTrackingSystem'
+    self.selectedSimulationPhantomParameterName = 'SelectedSimulationPhantom'
+    self.usImageNameParameterName = 'UltrasoundImageName'
+    self.usPlusServerPortParameterName = 'UltrasoundPlusServerPort'
+    self.usPlusConfigPathParameterName = 'UltrasoundPlusConfigPath'
+    self.usPlusConfigTextNodeIDParameterName = 'UltrasoundPlusConfigTextNodeID'
+    self.trackerPlusServerPortParameterName = 'TrackerPlusServerPort'
+    self.trackerPlusConfigPathParameterName = 'TrackerPlusConfigPath'
+    self.trackerPlusConfigTextNodeIDParameterName = 'TrackerPlusConfigTextNodeID'
+    self.plusServerRunningParameterName = 'PlusServerRunning'
+    self.plusServerPathParameterName = 'PlusServerPath'
+    self.plusServerLauncherPathParameterName = 'PlusServerLauncherPath'
+    self.plusConnectionStatusParameterName = 'PlusConnectionStatus'
+    self.igtlConnectionStatusParameterName = 'IGTLConnectionStatus'
+    self.igtlConnectorNodeIDParameterName = 'IGTLConnectorNodeID'
+
     # Setup scene
     self.setupScene()
 

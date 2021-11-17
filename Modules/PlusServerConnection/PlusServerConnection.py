@@ -84,6 +84,9 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     self.logic.setParameterNode()
     self.updateSliceWidgetVisibility(False)
 
+    # Update IGTL connection status
+    self.logic.getIGTLConnectionStatus()
+
   #------------------------------------------------------------------------------
   def exit(self):
     """
@@ -130,12 +133,14 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """
+    parameterNode = Parameters.instance.getParameterNode()
     # PLUS server connection status
+    plusConnectionStatus = parameterNode.GetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName) #TODO: Move to parameter class
     plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
     self.ui.plusConnectionStatusLabel.text = plusConnectionStatus
 
     # Start/stop buttons
-    if plusConnectionStatus == 'SUCCESSFUL':
+    if plusConnectionStatus == 'ON':
       self.ui.startConnectionButton.enabled = False
       self.ui.stopConnectionButton.enabled = True
     else:
@@ -255,13 +260,15 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     self.trainUsWidget = slicer.trainUsWidget
 
     # PLUS connection variables
-    self.connector = None
     self.plusServerLauncherRunning = False
     self.incomingNodesNames = list()
     self.incomingNodesTypes = list()
-    self.plusServerNode = None
     self.plusServerLauncherNode = None
     self.plusServerLauncherSubprocess = None
+    self.ultrasoundPlusServerNode = None
+    self.trackerPlusServerNode = None
+    self.ultrasoundConnector = None
+    self.trackerConnector = None
 
     # Setup scene
     self.setupScene()
@@ -273,6 +280,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
   def setParameterNode(self):
     
     # Get parameter node
+    parameterNode = <
     parameterNode = Parameters.instance.getParameterNode()
     if not parameterNode:
       logging.error('setParameterNode: Failed to get parameter node')
@@ -355,25 +363,86 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
         shortcut.connect('activated()', callback)
 
   #------------------------------------------------------------------------------
+  def isUltrasoundDeviceSelectionValid(self):
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('isUltrasoundDeviceSelectionValid: Failed to get parameter node')
+      return
+    parameterNode = Parameters.instance.getParameterNode()
+
+    # Get config file path
+    ultrasoundPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigPathParameterName) #TODO: Move to parameter class
+    
+    return os.path.isfile(ultrasoundPlusConfigPath)
+
+  #------------------------------------------------------------------------------
+  def isTrackerDeviceSelectionValid(self):
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('isTrackerDeviceSelectionValid: Failed to get parameter node')
+      return
+
+    # Get config file path
+    trackerPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigPathParameterName) #TODO: To param class
+    
+    return os.path.isfile(trackerPlusConfigPath)
+
+  #------------------------------------------------------------------------------
   def loadPlusConfigFile(self):
-    # Get config file path and text node ID
-    plusConfigPath = Parameters.instance.getParameterString(Parameters.PLUS_CONFIG_PATH)
-    logging.debug(' - PLUS config path: %s' % plusConfigPath)    
-    plusConfigTextNodeID = Parameters.instance.getParameterString(Parameters.PLUS_CONFIG_TEXT_NODE_ID)
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('loadPlusConfigFile: Failed to get parameter node')
+      return
 
-    # Get config file text node
-    self.plusConfigTextNode = slicer.mrmlScene.GetNodeByID(plusConfigTextNodeID)
-    if self.plusConfigTextNode:
-      slicer.mrmlScene.RemoveNode(self.plusConfigTextNode)
-    self.plusConfigTextNode = slicer.util.loadText(plusConfigPath) # load XML as text node
-    self.plusConfigTextNode.SetName('Plus_Config_File')
+    #
+    # Ultrasound device
+    #
+    if self.isUltrasoundDeviceSelectionValid():
+      # Get config path and text node ID
+      ultrasoundPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigPathParameterName)
+      ultrasoundPlusConfigTextNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.usPlusConfigTextNodeIDParameterName)
+      
+      # Get config file text node
+      self.ultrasoundPlusConfigTextNode = slicer.mrmlScene.GetNodeByID(ultrasoundPlusConfigTextNodeID)
+      if self.ultrasoundPlusConfigTextNode:
+        slicer.mrmlScene.RemoveNode(self.ultrasoundPlusConfigTextNode)
+      self.ultrasoundPlusConfigTextNode = slicer.util.loadText(ultrasoundPlusConfigPath) # load XML as text node
+      self.ultrasoundPlusConfigTextNode.SetName('Ultrasound_Plus_Config_File')
 
-    # Add node ID to parameter node
-    Parameters.instance.setParameter(Parameters.PLUS_CONFIG_TEXT_NODE_ID, self.plusConfigTextNode.GetID())
+      # Add node ID to parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.usPlusConfigTextNodeIDParameterName, self.ultrasoundPlusConfigTextNode.GetID())
+
+    #
+    # Tracker device
+    #
+    if self.isTrackerDeviceSelectionValid():
+      # Get config path and text node ID
+      trackerPlusConfigPath = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigPathParameterName)
+      trackerPlusConfigTextNodeID = parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusConfigTextNodeIDParameterName)
+
+      # Get config file text node
+      self.trackerPlusConfigTextNode = slicer.mrmlScene.GetNodeByID(trackerPlusConfigTextNodeID)
+      if self.trackerPlusConfigTextNode:
+        slicer.mrmlScene.RemoveNode(self.trackerPlusConfigTextNode)
+      self.trackerPlusConfigTextNode = slicer.util.loadText(trackerPlusConfigPath) # load XML as text node
+      self.trackerPlusConfigTextNode.SetName('Tracker_Plus_Config_File')
+
+      # Add node ID to parameter node
+      parameterNode.SetParameter(self.trainUsWidget.logic.trackerPlusConfigTextNodeIDParameterName, self.trackerPlusConfigTextNode.GetID())
 
   #------------------------------------------------------------------------------
   def startPlusServerLauncher(self, windowVisible = False, progressDialog=None):
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('startPlusServerLauncher: Failed to get parameter node')
+      return
+
     # Location of PLUS server launcher    
+    plusServerLauncherPath = parameterNode.GetParameter(self.trainUsWidget.logic.plusServerLauncherPathParameterName) #TODO: To param class
     plusServerLauncherPath = Parameters.instance.getParameterString(Parameters.PLUS_SERVER_LAUNCHER_PATH)
 
     # Start PlusServerLauncher.exe
@@ -393,7 +462,6 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
   #------------------------------------------------------------------------------
   def stopPlusServerLauncher(self):
-
     # Close Plus server launcher
     self.plusServerLauncherSubprocess.terminate()
 
@@ -407,20 +475,41 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     """
     logging.debug('PlusServerConnection.startPlusConnection')
 
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('startPlusConnection: Failed to get parameter node')
+      return
+
     # Create Plus server launcher node
     if not self.plusServerLauncherNode:
       self.plusServerLauncherNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlusServerLauncherNode')
 
-    # Create Plus server node
-    if not self.plusServerNode:
-      self.plusServerNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlusServerNode")
+    # Connect ultrasound device
+    if self.isUltrasoundDeviceSelectionValid():
+      # Create Plus server node
+      if not self.ultrasoundPlusServerNode:
+        self.ultrasoundPlusServerNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlusServerNode")
 
-    # Set plus server and launcher nodes
-    self.plusServerNode.SetAndObserveConfigNode(self.plusConfigTextNode) 
-    self.plusServerLauncherNode.AddAndObserveServerNode(self.plusServerNode)
+      # Set plus server and launcher nodes
+      self.ultrasoundPlusServerNode.SetAndObserveConfigNode(self.ultrasoundPlusConfigTextNode) 
+      self.plusServerLauncherNode.AddAndObserveServerNode(self.ultrasoundPlusServerNode)
 
-    # Start server
-    self.plusServerNode.StartServer()
+      # Start server
+      self.ultrasoundPlusServerNode.StartServer()
+
+    # Connect tracker device
+    if self.isTrackerDeviceSelectionValid():
+      # Create Plus server node
+      if not self.trackerPlusServerNode:
+        self.trackerPlusServerNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLPlusServerNode")
+
+      # Set plus server and launcher nodes
+      self.trackerPlusServerNode.SetAndObserveConfigNode(self.trackerPlusConfigTextNode) 
+      self.plusServerLauncherNode.AddAndObserveServerNode(self.trackerPlusServerNode)
+
+      # Start server
+      self.trackerPlusServerNode.StartServer()
 
     # Wait
     if progressDialog:
@@ -428,27 +517,58 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     else:
       time.sleep(5)
 
-    # Get IGTL connector
-    connectorNodeFound = False
-    referencedNodes = slicer.mrmlScene.GetReferencedNodes(self.plusServerNode)
-    for node in referencedNodes:
-      if node.GetClassName() == 'vtkMRMLIGTLConnectorNode':
-        if node.GetID() != self.plusServerLauncherNode.GetConnectorNode().GetID():
-          self.connector = node
-          connectorNodeFound = True    
-    if not connectorNodeFound:
-      logging.error('ERROR: Could not find IGTL connector with name: PlusOpenIGTLinkServer_VideoStream_Connector')
-      return
+    # Get ultrasound IGTL connector from server port
+    if self.isUltrasoundDeviceSelectionValid():
+      usPlusServerPort = int(parameterNode.GetParameter(self.trainUsWidget.logic.usPlusServerPortParameterName))
+      connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
+      ultrasoundConnectorFound = False
+      for connectorNode in connectorNodes:
+        serverPort = connectorNode.GetServerPort()
+        if serverPort == usPlusServerPort:
+          self.ultrasoundConnector = connectorNode
+          ultrasoundConnectorFound = True
+      if not ultrasoundConnectorFound:
+        logging.error('ERROR: Could not find IGTL connector for ultrasound device...')
+        self.stopPlusConnection()
+        return
 
-    # Add observer to connector
-    if not self.connector.HasObserver(slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent):
-      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
-      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
-      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
-      self.addObserver(self.connector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
+    # Get tracker IGTL connector from server port
+    if self.isTrackerDeviceSelectionValid():
+      trackerPlusServerPort = int(parameterNode.GetParameter(self.trainUsWidget.logic.trackerPlusServerPortParameterName))
+      connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
+      trackerConnectorFound = False
+      for connectorNode in connectorNodes:
+        serverPort = connectorNode.GetServerPort()
+        if serverPort == trackerPlusServerPort:
+          self.trackerConnector = connectorNode
+          trackerConnectorFound = True
+      if not trackerConnectorFound:
+        logging.error('ERROR: Could not find IGTL connector for tracker device...')
+        self.stopPlusConnection()
+        return
 
-    # Save connector node ID into parameter node
-    Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, self.connector.GetID())
+    # Add observers to connector nodes
+    if self.ultrasoundConnector:
+      if not self.ultrasoundConnector.HasObserver(slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent):
+        self.addObserver(self.ultrasoundConnector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.ultrasoundConnector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.ultrasoundConnector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.ultrasoundConnector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
+    if self.trackerConnector:
+      if not self.trackerConnector.HasObserver(slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent):
+        self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
+        self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
+
+    # Save connector node ID into parameter node 
+    # TODO: Reference both connectors to parameter node
+    if self.ultrasoundConnector:
+      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.ultrasoundConnector.GetID())
+    elif self.trackerConnector:
+      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, self.trackerConnector.GetID())
+    else:
+      parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, '')
 
     # Wait
     if progressDialog:
@@ -460,16 +580,16 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     slicer.app.processEvents()
     self.getIGTLConnectionStatus()
 
-    # Get Plus server state
-    if (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().On):
-      plusConnectionStatus ='SUCCESSFUL'
-      plusServerRunning = 'True'
+    # Update Plus server status in parameter node
+    plusServerConnectionStatus = self.getPlusServerConnectionStatus()
+    if (plusServerConnectionStatus == 'ON'):
+      logging.debug('Plus Servers were successfully connected.')
     else:
-      logging.error('ERROR: Plus Server is not connected.')
-      plusConnectionStatus ='FAILED'
-      plusServerRunning = 'False'
-    Parameters.instance.setParameter(Parameters.PLUS_CONNECTION_STATUS, plusConnectionStatus)
-    Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
+      logging.error('ERROR: Plus Servers were not successfully connected.')
+
+    # Plus servers running
+    plusServerRunning = 'False'
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
 
   #------------------------------------------------------------------------------
   def stopPlusConnection(self, progressDialog=None):
@@ -479,7 +599,10 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     logging.debug('PlusServerConnection.stopPlusConnection')
     
     # Stop Plus server
-    self.plusServerNode.StopServer()
+    if self.ultrasoundPlusServerNode:
+      self.ultrasoundPlusServerNode.StopServer()
+    if self.trackerPlusServerNode:
+      self.trackerPlusServerNode.StopServer()
 
     # Wait
     if progressDialog:
@@ -488,52 +611,162 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       time.sleep(5)
 
     # Save PLUS connection status
-    if (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().Off) or (self.plusServerNode.GetState() == slicer.vtkMRMLPlusServerNode().Stopping):
-      plusConnectionStatus ='OFF'
-      plusServerRunning = 'False'      
+    plusServerConnectionStatus = self.getPlusServerConnectionStatus()
+    if (plusServerConnectionStatus == 'OFF'):
+      logging.debug('Plus Servers were successfully disconnected.')
     else:
-      logging.error('ERROR: Plus Server was not successfully disconnected.')
-      plusConnectionStatus ='FAILED'    
-      plusServerRunning = 'False'
-    Parameters.instance.setParameter(Parameters.PLUS_CONNECTION_STATUS, plusConnectionStatus)
-    Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
+      logging.error('ERROR: Plus Servers were not successfully disconnected.')
+    
+    # Plus server running
+    plusServerRunning = 'False'
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusServerRunningParameterName, plusServerRunning)
 
     # Remove previous incoming MRML nodes
     incomingNodes = list()
-    for i in range(self.connector.GetNumberOfIncomingMRMLNodes()):
-      incomingNodes.append(self.connector.GetIncomingMRMLNode(i))
+    if self.ultrasoundConnector:
+      for i in range(self.ultrasoundConnector.GetNumberOfIncomingMRMLNodes()):
+        incomingNodes.append(self.ultrasoundConnector.GetIncomingMRMLNode(i))
+    if self.trackerConnector:
+      for i in range(self.trackerConnector.GetNumberOfIncomingMRMLNodes()):
+        incomingNodes.append(self.trackerConnector.GetIncomingMRMLNode(i))
     for incomingNode in incomingNodes:
       slicer.mrmlScene.RemoveNode(incomingNode)
 
     # Remove connector node
-    if self.connector:
-      slicer.mrmlScene.RemoveNode(self.connector)
-      # Reset connector node ID into parameter node
-      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, '')
+    if self.ultrasoundConnector:
+      slicer.mrmlScene.RemoveNode(self.ultrasoundConnector)
+      self.ultrasoundConnector = None
+    if self.trackerConnector:
+      slicer.mrmlScene.RemoveNode(self.trackerConnector)
+      self.trackerConnector = None
+      
+    # Reset connector node ID into parameter node
+    parameterNode.SetParameter(self.trainUsWidget.logic.igtlConnectorNodeIDParameterName, '')
+
+    # Remove Plus server nodes
+    if self.ultrasoundPlusServerNode:
+      slicer.mrmlScene.RemoveNode(self.ultrasoundPlusServerNode)
+      self.ultrasoundPlusServerNode = None
+    if self.trackerPlusServerNode:
+      slicer.mrmlScene.RemoveNode(self.trackerPlusServerNode)
+      self.trackerPlusServerNode = None
 
     # Get IGTL connection status
     slicer.app.processEvents()
     self.getIGTLConnectionStatus()
 
   #------------------------------------------------------------------------------
+  def getPlusServerConnectionStatus(self):
+    logging.debug('PlusServerConnection.getPlusServerConnectionStatus')
+
+    # Get parameter node
+    parameterNode = self.trainUsWidget.getParameterNode()
+    if not parameterNode:
+      logging.error('getPlusServerConnectionStatus: Failed to get parameter node')
+      return
+
+    # Get state of plus server nodes
+    if self.ultrasoundPlusServerNode:
+      ultrasoundPlusServerState = self.ultrasoundPlusServerNode.GetState()
+    if self.trackerPlusServerNode:
+      trackerPlusServerState = self.trackerPlusServerNode.GetState()
+
+    # Possible connection states
+    stateOn = slicer.vtkMRMLPlusServerNode().On
+    stateStopping = slicer.vtkMRMLPlusServerNode().Stopping
+    stateOff = slicer.vtkMRMLPlusServerNode().Off
+
+    # Get overall connection status
+    status = 'UNKNOWN'
+    if self.ultrasoundPlusServerNode and self.trackerPlusServerNode:
+      if (ultrasoundPlusServerState == stateOn) and (trackerPlusServerState == stateOn):
+        status = 'ON'
+      elif (ultrasoundPlusServerState == stateStopping) or (trackerPlusServerState == stateStopping):
+        status = 'STOPPING'
+      elif (ultrasoundPlusServerState == stateOff) or (trackerPlusServerState == stateOff):
+        status = 'OFF'
+      else:
+        status = 'UNKNOWN'
+    elif self.ultrasoundConnector:
+      if ultrasoundPlusServerState == stateOn:
+        status = 'ON'
+      elif ultrasoundPlusServerState == stateStopping:
+        status = 'STOPPING'
+      elif ultrasoundPlusServerState == stateOff:
+        status = 'OFF'
+      else:
+        status = 'UNKNOWN'
+    elif self.trackerConnector:
+      if trackerPlusServerState == stateOn:
+        status = 'ON'
+      elif trackerPlusServerState == stateStopping:
+        status = 'STOPPING'
+      elif trackerPlusServerState == stateOff:
+        status = 'OFF'
+      else:
+        status = 'UNKNOWN'
+    else:
+      logging.debug('getPlusServerConnectionStatus: No Plus Server nodes were found')
+      status = 'OFF'
+
+    parameterNode = Parameters.instance.getParameterNode()
+    # Update parameter node    
+    parameterNode.SetParameter(self.trainUsWidget.logic.plusConnectionStatusParameterName, status)
+
+    return status
+
+  #------------------------------------------------------------------------------
   def getIGTLConnectionStatus(self, caller=None, event=None):
     logging.debug('PlusServerConnection.getIGTLConnectionStatus')
 
-    # Connector
-    if self.connector:
-      # Get state from connector
-      connectorState = self.connector.GetState()
-      if connectorState == slicer.vtkMRMLIGTLConnectorNode.StateOff:
-        status = 'OFF'
-      elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+    # Get parameter node
+    parameterNode = Parameters.instance.getParameterNode()
+    if not parameterNode:
+      logging.error('getIGTLConnectionStatus: Failed to get parameter node')
+      return
+
+    # Get state from connectors
+    if self.ultrasoundConnector:
+      ultrasoundConnectorState = self.ultrasoundConnector.GetState()
+    if self.trackerConnector:
+      trackerConnectorState = self.trackerConnector.GetState()
+
+    # Possible connection states
+    stateConnected = slicer.vtkMRMLIGTLConnectorNode.StateConnected
+    stateWaiting = slicer.vtkMRMLIGTLConnectorNode.StateWaitConnection
+    stateOff = slicer.vtkMRMLIGTLConnectorNode.StateOff
+
+    # Get overall connection status
+    if self.ultrasoundConnector and self.trackerConnector:
+      if (ultrasoundConnectorState == stateConnected) and (trackerConnectorState == stateConnected):
         status = 'ON'
-      elif connectorState == slicer.vtkMRMLIGTLConnectorNode.StateWaitConnection:
+      elif (ultrasoundConnectorState == stateWaiting) or (trackerConnectorState == stateWaiting):
         status = 'WAIT'
+      elif (ultrasoundConnectorState == stateOff) or (trackerConnectorState == stateOff):
+        status = 'OFF'
+      else:
+        status = 'UNKNOWN'
+    elif self.ultrasoundConnector:
+      if ultrasoundConnectorState == stateConnected:
+        status = 'ON'
+      elif ultrasoundConnectorState == stateWaiting:
+        status = 'WAIT'
+      elif ultrasoundConnectorState == stateOff:
+        status = 'OFF'
+      else:
+        status = 'UNKNOWN'
+    elif self.trackerConnector:
+      if trackerConnectorState == stateConnected:
+        status = 'ON'
+      elif trackerConnectorState == stateWaiting:
+        status = 'WAIT'
+      elif trackerConnectorState == stateOff:
+        status = 'OFF'
       else:
         status = 'UNKNOWN'
     else:
       logging.debug('getIGTLConnectionStatus: No IGTL connector was found')
-      status = 'OFF'    
+      status = 'OFF'
 
     # Update list of incoming nodes
     self.getListOfIncomingNodes()
@@ -547,17 +780,23 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     self.incomingNodesNames = list()
     self.incomingNodesTypes = list()
     
-    # Get number of incoming MRML nodes
-    if not self.connector:
-      return
-    numIncomingNodes = self.connector.GetNumberOfIncomingMRMLNodes()
-
-    # Get name and type of each node
-    if self.connector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
-      for nodeIndex in range(numIncomingNodes):
-        node = self.connector.GetIncomingMRMLNode(nodeIndex)
-        self.incomingNodesNames.append(node.GetName())
-        self.incomingNodesTypes.append(node.GetClassName())
+    # Get incoming MRML nodes - ultrasound connector
+    if self.ultrasoundConnector:
+      if self.ultrasoundConnector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+        numIncomingNodes = self.ultrasoundConnector.GetNumberOfIncomingMRMLNodes()
+        for nodeIndex in range(numIncomingNodes):
+          node = self.ultrasoundConnector.GetIncomingMRMLNode(nodeIndex)
+          self.incomingNodesNames.append(node.GetName())
+          self.incomingNodesTypes.append(node.GetClassName())
+    
+    # Get incoming MRML nodes - tracker connector
+    if self.trackerConnector:
+      if self.trackerConnector.GetState() == slicer.vtkMRMLIGTLConnectorNode.StateConnected:
+        numIncomingNodes = self.trackerConnector.GetNumberOfIncomingMRMLNodes()
+        for nodeIndex in range(numIncomingNodes):
+          node = self.trackerConnector.GetIncomingMRMLNode(nodeIndex)
+          self.incomingNodesNames.append(node.GetName())
+          self.incomingNodesTypes.append(node.GetClassName())
 
   #------------------------------------------------------------------------------
   def sleepWithProgressDialog(self, totalTime, progressDialog, progressLabel, numSteps = 10):
