@@ -39,6 +39,7 @@
         0 1 0 0
         0 0 1 0
         0 0 0 1" />
+    
     <Transform From="Image" To="Ultrasound"
       Matrix="
         0.12913 -0.109897 0.085048  -38.1853
@@ -58,15 +59,16 @@
         0 0 0.193681  0
         0 0 0 1" />
   </CoordinateDefinitions>
-  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18944" SendValidTransformsOnly="true" OutputChannelId="TrackedVideoStream">
+  <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18945" SendValidTransformsOnly="true" OutputChannelId="TrackedVideoStream">
     <DefaultClientInfo>
       <MessageTypes>
-        <Message Type="IMAGE" />
+        <Message Type="TRANSFORM" />
       </MessageTypes>
-      <ImageNames>
-        <Image Name="Image" EmbeddedTransformToFrame="Reference" />
-        <xxImage Name="Image" EmbeddedTransformToFrame="Image" />
-      </ImageNames>
+      <TransformNames>
+        <Transform Name="ProbeToTracker" />
+        <Transform Name="ReferenceToTracker" />
+        <Transform Name="StylusToTracker" />
+      </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
 </PlusConfiguration>

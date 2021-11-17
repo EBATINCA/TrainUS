@@ -248,7 +248,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Hardware configurations
     self.ultrasoundDeviceOptions = ['None', 'Simulated US - Linear Probe', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
-    self.trackingSystemOptions = ['None', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
+    self.trackingSystemOptions = ['None', 'Simulated Tracker', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
     # Default parameters map
