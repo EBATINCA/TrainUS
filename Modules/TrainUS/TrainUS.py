@@ -107,7 +107,7 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
-    pass
+    slicer.app.connect("startupCompleted()", self.onStartupCompleted)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
@@ -195,6 +195,11 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         widget.styleSheet = style
 
   #------------------------------------------------------------------------------
+  def onStartupCompleted(self):
+    # Apply singleton parameter node settings to application
+    Parameters.instance.setParameterNode(self.logic.getParameterNode())
+
+  #------------------------------------------------------------------------------
   def updateGUIFromMRML(self, caller=None, event=None):
     """
     Set selections and other settings on the GUI based on the parameter node.
@@ -227,11 +232,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.parameterNode = None
 
     # Parameters
-    Parameters.instance = Parameters(self)
-    Parameters.instance.trainUsWidgetInstance = widgetInstance
-    Parameters.instance.setParameterNode(self.getParameterNode()) 
-    value = Parameters.instance.getParameterString(Parameters.APP_MODE)
-    print('[TESTTTT] Value: ', value)
+    Parameters.instance = Parameters(widgetInstance)
 
     # Constants
     self.rootDirectoryPath = self.setupRootDirectory()

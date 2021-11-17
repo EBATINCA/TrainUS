@@ -2,6 +2,7 @@ import logging
 import os
 
 from __main__ import vtk, qt, slicer  # pylint: disable=no-name-in-module
+from slicer.util import VTKObservationMixin
 
 # Make this instance easy to access:
 #
@@ -11,7 +12,7 @@ from __main__ import vtk, qt, slicer  # pylint: disable=no-name-in-module
 #  Parameters.instance.getNodeReference(Parameters.NODE_REF)
 #
 
-class TrainUSParameters(object):
+class TrainUSParameters(VTKObservationMixin):
   """
   Encapsulation of all core features and convenience functions related to
   application-wide parameter node handling.
@@ -56,12 +57,13 @@ class TrainUSParameters(object):
   IGTL_CONNECTION_STATUS = 'IGTLConnectionStatus'
   IGTL_CONNECTOR_NODE_ID = 'IGTLConnectorNodeID'
 
-  def __init__(self, trainUsLibInstance):
+  def __init__(self, trainUsWidgetInstance):
     """
     Constructor of class. Intializes variables with default values.
     """
-    self.trainUsLibInstance = trainUsLibInstance
-    self.trainUsWidgetInstance = None
+    VTKObservationMixin.__init__(self)
+
+    self.trainUsWidgetInstance = trainUsWidgetInstance
 
     # Pointer to the parameter node so that we have access to the old one before setting the new one
     self.parameterNode = None
@@ -88,7 +90,7 @@ class TrainUSParameters(object):
     """
     Get parameter node.
     """
-    return self.trainUsLibInstance.getParameterNode()
+    return self.trainUsWidgetInstance.logic.getParameterNode()
 
   def setParameterNode(self, inputParameterNode):
     """
@@ -102,11 +104,9 @@ class TrainUSParameters(object):
     if inputParameterNode == self.parameterNode:
       return
 
-    trainUsInstance = self.trainUsWidgetInstance #slicer.trainUsWidget.guideletInstance
-
     # Remove observations from nodes referenced in the old parameter node
-    if self.parameterNode: # and trainUsInstance:
-      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, trainUsInstance.updateGUIFromMRML)
+    if self.parameterNode:
+      self.removeObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.trainUsWidgetInstance.updateGUIFromMRML)
 
     # Reset member variables
     #TODO: If any
@@ -117,12 +117,12 @@ class TrainUSParameters(object):
     self.parameterNode = inputParameterNode
 
     # Add observations on referenced nodes
-    if self.parameterNode and trainUsInstance:
-      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, trainUsInstance.updateGUIFromMRML)
+    if self.parameterNode:
+      self.addObserver(self.parameterNode, vtk.vtkCommand.ModifiedEvent, self.trainUsWidgetInstance.updateGUIFromMRML)
 
     # Make sure parameter node is associated to this module
     if self.parameterNode:
-      self.parameterNode.SetModuleName(self.trainUsLibInstance.moduleName)
+      self.parameterNode.SetModuleName(self.trainUsWidgetInstance.moduleName)
 
     #
     # Set default parameters if missing
