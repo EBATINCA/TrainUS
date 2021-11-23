@@ -478,6 +478,13 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     # Fit to view      
     self.fitUltrasoundImage()
 
+    # Update slice controller visibility
+    # This is done to refresh the slice view. If this is not done, a black square is displayed 
+    # on top of the US image until user interacts with slice view.
+    sliceControllerVisible = self.getSliceControllerVisibility()
+    self.updateSliceControllerVisibility(not sliceControllerVisible)
+    self.updateSliceControllerVisibility(sliceControllerVisible)
+
     return True
 
   #------------------------------------------------------------------------------
@@ -500,6 +507,15 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     for name in slicer.app.layoutManager().sliceViewNames():
       sliceWidget = slicer.app.layoutManager().sliceWidget(name)
       sliceWidget.sliceController().setVisible(visible)
+
+  #------------------------------------------------------------------------------
+  def getSliceControllerVisibility(self):
+    # Get overall visibility of slice controllers
+    visible = True
+    for name in slicer.app.layoutManager().sliceViewNames():
+      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
+      visible = (visible and sliceWidget.sliceController().visible)
+    return visible   
 
   #------------------------------------------------------------------------------
   def updateSliceViewText(self, text):

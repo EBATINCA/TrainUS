@@ -278,9 +278,7 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
 
   #------------------------------------------------------------------------------
   def setParameterNode(self):
-    
     # Get parameter node
-    parameterNode = <
     parameterNode = Parameters.instance.getParameterNode()
     if not parameterNode:
       logging.error('setParameterNode: Failed to get parameter node')
