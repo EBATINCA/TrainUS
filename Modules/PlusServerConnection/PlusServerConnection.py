@@ -583,11 +583,12 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     plusServerConnectionStatus = self.getPlusServerConnectionStatus()
     if (plusServerConnectionStatus == 'ON'):
       logging.debug('Plus Servers were successfully connected.')
+      plusServerRunning = True
     else:
       logging.error('ERROR: Plus Servers were not successfully connected.')
+      plusServerRunning = False
 
     # Plus servers running
-    plusServerRunning = 'False'
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
 
   #------------------------------------------------------------------------------
@@ -613,11 +614,12 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     plusServerConnectionStatus = self.getPlusServerConnectionStatus()
     if (plusServerConnectionStatus == 'OFF'):
       logging.debug('Plus Servers were successfully disconnected.')
+      plusServerRunning = False
     else:
       logging.error('ERROR: Plus Servers were not successfully disconnected.')
+      plusServerRunning = False
     
     # Plus server running
-    plusServerRunning = 'False'
     Parameters.instance.setParameter(Parameters.PLUS_SERVER_RUNNING, plusServerRunning)
 
     # Remove previous incoming MRML nodes

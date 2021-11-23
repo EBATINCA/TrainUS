@@ -102,12 +102,6 @@ class Configuration(qt.QWidget):
     trackerPlusConfigFilePath = self.trainUsWidget.logic.deviceManager.getTrackerDeviceConfigFilePathFromSelection()
     Parameters.instance.setParameter(Parameters.TRACKER_PLUS_CONFIG_PATH, trackerPlusConfigFilePath)
 
-    # Disable configuration combo boxes if PLUS is connected
-    plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
-    self.ui.ultrasoundDeviceComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
-    self.ui.trackingSystemComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
-    self.ui.simulationPhantomComboBox.enabled = not (plusConnectionStatus == 'SUCCESSFUL')
-
   #------------------------------------------------------------------------------
   #
   # Event handler functions

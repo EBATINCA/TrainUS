@@ -643,18 +643,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     # Get PLUS connection status
     plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
-    plusServerRunning = Parameters.instance.getParameterString(Parameters.PLUS_SERVER_RUNNING)
+    plusServerRunning = Parameters.instance.getParameterBool(Parameters.PLUS_SERVER_RUNNING)
 
     # Update GUI in training session info box
     self.ui.ConfigurationPanel.ui.connectionStatusText.text = plusConnectionStatus
-    if plusServerRunning == 'True':
-      self.ui.ConfigurationPanel.ui.ultrasoundDeviceComboBox.enabled = False
-      self.ui.ConfigurationPanel.ui.trackingSystemComboBox.enabled = False
-      self.ui.ConfigurationPanel.ui.simulationPhantomComboBox.enabled = False
-    else:
-      self.ui.ConfigurationPanel.ui.ultrasoundDeviceComboBox.enabled = True
-      self.ui.ConfigurationPanel.ui.trackingSystemComboBox.enabled = True
-      self.ui.ConfigurationPanel.ui.simulationPhantomComboBox.enabled = True
+    self.ui.ConfigurationPanel.ui.ultrasoundDeviceComboBox.enabled = not plusServerRunning
+    self.ui.ConfigurationPanel.ui.trackingSystemComboBox.enabled = not plusServerRunning
+    self.ui.ConfigurationPanel.ui.simulationPhantomComboBox.enabled = not plusServerRunning
 
     # Update GUI config panel
     self.ui.ConfigurationPanel.updateGUIFromMRML()
