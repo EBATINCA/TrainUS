@@ -65,6 +65,7 @@ class Configuration(qt.QWidget):
     self.ui.simulationPhantomComboBox.currentTextChanged.connect(self.onSimulationPhantomComboBoxTextChanged)
     self.ui.plusConnectionButton.clicked.connect(self.onPlusConnectionButton)
     self.ui.ultrasoundDisplaySettingsButton.clicked.connect(self.onUltrasoundDisplaySettingsButton)
+    self.ui.toolTrackingStatusButton.clicked.connect(self.onToolTrackingStatusButton)
     self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
 
   #------------------------------------------------------------------------------
@@ -76,6 +77,7 @@ class Configuration(qt.QWidget):
     self.ui.simulationPhantomComboBox.currentTextChanged.disconnect()
     self.ui.plusConnectionButton.clicked.disconnect()
     self.ui.ultrasoundDisplaySettingsButton.clicked.disconnect()
+    self.ui.toolTrackingStatusButton.clicked.disconnect()
     self.ui.previousPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -149,6 +151,15 @@ class Configuration(qt.QWidget):
 
     # Change to UltrasoundDisplaySettings module
     slicer.util.selectModule('UltrasoundDisplaySettings')
+
+  #------------------------------------------------------------------------------
+  def onToolTrackingStatusButton(self):
+    
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ToolTrackingStatus module
+    slicer.util.selectModule('ToolTrackingStatus')
 
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
