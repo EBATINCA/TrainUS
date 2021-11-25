@@ -218,7 +218,7 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         pStatusIconWidget.setLayout(pStatusLayout)
         toolsTableWidget.setCellWidget( rowIndex, 2, pStatusIconWidget)
 
-        #sound
+        # sound
         pSoundWidget = qt.QWidget()
         pCheckBox = qt.QCheckBox()
         pCheckBox.setObjectName("Sound")
@@ -228,6 +228,7 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         pCheckBox.setStyleSheet("margin-left:2px; margin-right:2px;margin-top:2px; margin-bottom:2px;")
         pSoundWidget.setLayout(pSoundLayout)
         toolsTableWidget.setCellWidget( rowIndex, 1, pSoundWidget)
+        pCheckBox.stateChanged.connect(self.onSoundCheckBoxStateChanged)
 
     elif (numberOfWatchedNodes < toolsTableWidget.rowCount):
       # Removes rows from table
@@ -239,7 +240,13 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
       toolsTableWidget.item(watchedNodeIndex, 0).setText(node.GetName())
 
-      #pCheckBox = toolsTableWidget.cellWidget(watchedNodeIndex, 1).findChild(QCheckBox, 'Sound')
+      soundCheckBox = toolsTableWidget.cellWidget(watchedNodeIndex, 1).findChild(qt.QCheckBox, 'Sound')
+      if soundCheckBox:
+        soundActive = self.watchdogNode.GetWatchedNodePlaySound(watchedNodeIndex)
+        if soundActive:
+          soundCheckBox.setCheckState(2) # checked
+        else:
+          soundCheckBox.setCheckState(0) # unchecked
 
       statusIcon = toolsTableWidget.cellWidget(watchedNodeIndex,2).findChild(qt.QLabel, 'StatusIcon')
       if statusIcon:
@@ -256,6 +263,11 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   #------------------------------------------------------------------------------
   def onWatchdogNodeModified(self, caller=None, event=None):
     self.updateToolsTable() # to update status icon
+
+  #------------------------------------------------------------------------------
+  def onSoundCheckBoxStateChanged(self, state):
+    # TODO: update sound property in watchdog node (self.watchdogNode.SetWatchedNodePlaySound())
+    pass
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
