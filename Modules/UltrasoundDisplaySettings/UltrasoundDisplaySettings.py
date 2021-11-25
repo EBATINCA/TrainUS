@@ -57,6 +57,10 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
 
+    # Set up the layout
+    self.logic.setup2DView()
+    self.logic.updateSliceControllerVisibility(False)
+
   #------------------------------------------------------------------------------
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -70,6 +74,10 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     """
     Runs whenever the module is reopened
     """
+    # Set up the layout
+    self.logic.setup2DView()
+    self.logic.updateSliceControllerVisibility(False)
+
     # Display US image
     usImageDisplayed = self.logic.displayUSImage()
 
@@ -380,9 +388,6 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
     self.crosshairNode = None
     self.mouseObserverID = None
 
-    # Setup scene
-    self.setupScene()
-
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
@@ -401,18 +406,6 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
       slicer.util.mainWindow().hide()
       slicer.util.exit(slicer.util.EXIT_FAILURE)
     qt.QTimer.singleShot(0, _exitApplication)
-
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-    # Observe scene loaded and closed events. In those cases we need to make sure the scene is set up correctly afterwards
-    # if not self.hasObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndImportEvent, self.onSceneEndImport):
-    #   self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndImportEvent, self.onSceneEndImport)
-    # if not self.hasObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndCloseEvent, self.onSceneEndClose):
-    #   self.addObserver(slicer.mrmlScene, slicer.vtkMRMLScene.EndCloseEvent, self.onSceneEndClose)
-
-    # Set up the layout / 3D View
-    self.setup2DView()
-    self.updateSliceControllerVisibility(False)
 
   #------------------------------------------------------------------------------
   def setup2DView(self):
