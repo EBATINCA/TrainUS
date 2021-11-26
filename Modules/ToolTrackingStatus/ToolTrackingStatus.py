@@ -159,6 +159,7 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.setupKeyboardShortcuts()
 
     # Tool transform names
+    self.toolNames = ['Probe', 'Stylus', 'Reference']    
     self.toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'ReferenceToTracker']    
     self.toolTransformDisplayColor = [[1,0,0], [0,1,0], [0,1,1]]
     self.toolTransformNodes = []
@@ -204,6 +205,10 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       if validTransformNode:
         # Add new watched nodes
         self.watchdogNode.AddWatchedNode(transformNode)
+
+        # Set watched node warning message
+        warningMessage = self.toolNames[toolTransformIndex] + ' is outside the FOV'
+        self.watchdogNode.SetWatchedNodeWarningMessage(toolTransformIndex, warningMessage)
 
         # Create sphere locator        
         sphereLocatorModel = self.createModelsLogic.CreateSphere(self.toolTransformLocatorRadius)
