@@ -85,6 +85,14 @@ class ToolTrackingStatusWidget(ScriptedLoadableModuleWidget, VTKObservationMixin
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
+  def exit(self):
+    """
+    Runs when exiting the module.
+    """
+    # Unwatch transforms
+    self.logic.unwatchToolTransforms()
+
+  #------------------------------------------------------------------------------
   def setupUi(self):
     
     # Load widget from .ui file (created by Qt Designer).
@@ -141,49 +149,94 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.moduleWidget = widgetInstance
     self.trainUsWidget = slicer.trainUsWidget
 
+    # CreateModels module (SlicerIGT extension)
+    try:
+      self.createModelsLogic = slicer.modules.createmodels.logic()
+    except:
+      logging.error('ERROR: "CreateModels" module is not available...')
+
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
+    # Tool transform names
+    self.toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'ReferenceToTracker']    
+    self.toolTransformDisplayColor = [[1,0,0], [0,1,0], [0,1,1]]
+    self.toolTransformNodes = []
+    self.toolTransformLocators = []
+
+    # Tool transform locator properties
+    self.toolTransformLocatorRadius = 5.0
+
     # Watchdog
-    self.watchdogNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLWatchdogNode')
-    self.addObserver(self.watchdogNode, vtk.vtkCommand.ModifiedEvent, self.onWatchdogNodeModified)        
+    self.watchdogNode = None
 
   #------------------------------------------------------------------------------
   def watchToolTransforms(self):
-
+    # Create/reset watchdog node
     if not self.watchdogNode:
-        return
+      self.watchdogNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLWatchdogNode')
+      self.addObserver(self.watchdogNode, vtk.vtkCommand.ModifiedEvent, self.onWatchdogNodeModified)
+    self.watchdogNode.RemoveAllWatchedNodes()
 
-    # Get list of transforms in the scene
-    toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'ReferenceToTracker']
+    # Reset lists
+    self.toolTransformNodes = []
+    self.toolTransformLocators = []
 
-    # Get current watched nodes
-    watchedNodeIds = list()
-    numberOfWatchedNodes = self.watchdogNode.GetNumberOfWatchedNodes()
-    for watchedNodeIndex in range(numberOfWatchedNodes):
-      node = self.watchdogNode.GetWatchedNode(watchedNodeIndex)
-      watchedNodeIds.append(node.GetID())
+    # Watch tool transforms
+    numToolTransforms = len(self.toolTransformNames)
+    for toolTransformIndex in range(numToolTransforms):
+      # Get transform name
+      transformName = self.toolTransformNames[toolTransformIndex]
 
-    # Add transforms to watchdog node
-    for transformName in toolTransformNames:
-      # Get transform
+      # Get transform node
       transformNode = None
+      validTransformNode = False
       try:
         transformNode = slicer.util.getNode(transformName)
+        validTransformNode = True
+        self.toolTransformNodes.append(transformNode)
       except:
         logging.warning('WARNING: Transform node with name "%s" was not found.' % transformName)
-        return
+        self.toolTransformNodes.append(None)
+        self.toolTransformLocators.append(None)
 
-      # Add new watched nodes
-      transformNodeId = transformNode.GetID()
-      if transformNodeId not in watchedNodeIds:
+      # Watch and display tool transforms
+      if validTransformNode:
+        # Add new watched nodes
         self.watchdogNode.AddWatchedNode(transformNode)
 
-    # Update table
+        # Create sphere locator        
+        sphereLocatorModel = self.createModelsLogic.CreateSphere(self.toolTransformLocatorRadius)
+        sphereLocatorModel.SetName(transformName + '_Locator')
+        sphereLocatorModel.GetModelDisplayNode().SetColor(self.toolTransformDisplayColor[toolTransformIndex])
+        self.toolTransformLocators.append(sphereLocatorModel) # store locator
+
+        # Apply transform to locator
+        sphereLocatorModel.SetAndObserveTransformNodeID(transformNode.GetID())
+
+    # Update tool status table
     self.updateToolsTable()
 
   #------------------------------------------------------------------------------
+  def unwatchToolTransforms(self):
+    # Delete watchdog node
+    if self.watchdogNode:
+      self.watchdogNode.RemoveAllWatchedNodes()
+      slicer.mrmlScene.RemoveNode(self.watchdogNode)
+      self.watchdogNode = None
+
+    # Delete tool transform locators
+    numToolTransforms = len(self.toolTransformNames)
+    for toolTransformIndex in range(numToolTransforms):
+      sphereLocatorModel = self.toolTransformLocators[toolTransformIndex]
+      if sphereLocatorModel:
+        slicer.mrmlScene.RemoveNode(sphereLocatorModel)
+
+  #------------------------------------------------------------------------------
   def updateToolsTable(self):
+
+    if not self.watchdogNode:
+      return
 
     toolsTableWidget = self.moduleWidget.ui.toolsTableWidget
 
