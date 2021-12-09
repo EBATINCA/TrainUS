@@ -167,7 +167,6 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       if mainWindow.isMaximized():
         self.homeWidget.showMaximized()
       mainWindow.hide()
-    self.creatingNewStudy = False
 
   #------------------------------------------------------------------------------
   def hideHome(self):

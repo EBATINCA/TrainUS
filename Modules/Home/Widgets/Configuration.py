@@ -66,6 +66,7 @@ class Configuration(qt.QWidget):
     self.ui.plusConnectionButton.clicked.connect(self.onPlusConnectionButton)
     self.ui.ultrasoundDisplaySettingsButton.clicked.connect(self.onUltrasoundDisplaySettingsButton)
     self.ui.toolTrackingStatusButton.clicked.connect(self.onToolTrackingStatusButton)
+    self.ui.toolPivotCalibrationButton.clicked.connect(self.onToolPivotCalibrationButton)
     self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
 
   #------------------------------------------------------------------------------
@@ -78,6 +79,7 @@ class Configuration(qt.QWidget):
     self.ui.plusConnectionButton.clicked.disconnect()
     self.ui.ultrasoundDisplaySettingsButton.clicked.disconnect()
     self.ui.toolTrackingStatusButton.clicked.disconnect()
+    self.ui.toolPivotCalibrationButton.clicked.disconnect()
     self.ui.previousPageButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -160,6 +162,15 @@ class Configuration(qt.QWidget):
 
     # Change to ToolTrackingStatus module
     slicer.util.selectModule('ToolTrackingStatus')
+
+  #------------------------------------------------------------------------------
+  def onToolPivotCalibrationButton(self):
+    
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ToolTrackingStatus module
+    slicer.util.selectModule('ToolPivotCalibration')
 
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
