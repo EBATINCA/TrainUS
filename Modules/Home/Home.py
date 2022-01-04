@@ -113,6 +113,11 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.homeWidget.homeLayout.addWidget(self.uiWidget)
     self.ui = slicer.util.childWidgetVariables(self.uiWidget)
 
+    # Display TrainUS logo in UI
+    moduleDir = os.path.dirname(__file__)
+    logoFilePath = os.path.join(moduleDir, 'Resources', 'Logo', 'TrainUS_Logo.png')
+    self.ui.trainUSLogo.pixmap = qt.QPixmap(logoFilePath)
+
     # Create logic class
     self.logic = HomeLogic(self)
 

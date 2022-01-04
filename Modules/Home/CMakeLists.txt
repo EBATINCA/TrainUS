@@ -11,12 +11,13 @@ set(MODULE_PYTHON_SCRIPTS
   Widgets/PlugAndPlay.py
   Widgets/ReviewSelection.py
   Widgets/TrainingSession.py
-  Managers/DataManager.py
+  Managers/RecordingManager.py
   Managers/DeviceManager.py
   )
 
 set(MODULE_PYTHON_RESOURCES
   Resources/Icons/${MODULE_NAME}.png
+  Resources/Logo/TrainUS_Logo.png
   Resources/UI/${MODULE_NAME}.ui
   Resources/Home.qss  
   )
