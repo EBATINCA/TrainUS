@@ -84,7 +84,7 @@ class TrainUSWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.applyApplicationStyle()
 
     # Avoid style to be applied by default
-    self.settingsUI.CustomStyleCheckBox.checked = False
+    #self.settingsUI.CustomStyleCheckBox.checked = False
 
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
