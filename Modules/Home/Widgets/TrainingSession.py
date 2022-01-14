@@ -38,6 +38,10 @@ class TrainingSession(qt.QWidget):
 
     # Customize widgets
     
+    # Display TrainUS logo in UI
+    logoFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'Logo', 'TrainUS_Logo.png')
+    self.ui.trainUSLogo.pixmap = qt.QPixmap(logoFilePath)
+    
     # Setup GUI connections
     self.setupConnections()
 
@@ -48,6 +52,7 @@ class TrainingSession(qt.QWidget):
     self.ui.basicExercise1Button.clicked.connect(self.onBasicExercise1ButtonClicked)
     self.ui.basicExercise2Button.clicked.connect(self.onBasicExercise2ButtonClicked)
     self.ui.basicExercise3Button.clicked.connect(self.onBasicExercise3ButtonClicked)
+    self.ui.basicExercise4Button.clicked.connect(self.onBasicExercise4ButtonClicked)
     self.ui.advancedExercise1Button.clicked.connect(self.onAdvancedExercise1ButtonClicked)
     self.ui.advancedExercise2Button.clicked.connect(self.onAdvancedExercise2ButtonClicked)
     self.ui.advancedExercise3Button.clicked.connect(self.onAdvancedExercise3ButtonClicked)
@@ -60,6 +65,7 @@ class TrainingSession(qt.QWidget):
     self.ui.basicExercise1Button.clicked.disconnect()
     self.ui.basicExercise2Button.clicked.disconnect()
     self.ui.basicExercise3Button.clicked.disconnect()
+    self.ui.basicExercise4Button.clicked.disconnect()
     self.ui.advancedExercise1Button.clicked.disconnect()
     self.ui.advancedExercise2Button.clicked.disconnect()
     self.ui.advancedExercise3Button.clicked.disconnect()
@@ -106,6 +112,13 @@ class TrainingSession(qt.QWidget):
 
     # Create new recording
     self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 3')
+  
+  #------------------------------------------------------------------------------
+  def onBasicExercise4ButtonClicked(self):
+    print('Basic training - Exercise 4')    
+
+    # Create new recording
+    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 4')
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise1ButtonClicked(self):
