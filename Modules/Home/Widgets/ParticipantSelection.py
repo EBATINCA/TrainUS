@@ -317,12 +317,16 @@ class ParticipantSelection(qt.QWidget):
   #------------------------------------------------------------------------------
   def onPreviousPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.logic.setMode(modeID = 0)
+    self.homeWidget.logic.setMode(modeID = 2) # TODO: if switching directly to mode 0, UI moves to the bottom. 
+    self.homeWidget.logic.setMode(modeID = 3) # After a few times, buttons go out of the screen. Why does this happen?
+    self.homeWidget.logic.setMode(modeID = 4)
+    self.homeWidget.logic.setMode(modeID = 5) 
+    self.homeWidget.logic.setMode(modeID = 0) # switch back to welcome page
 
   #------------------------------------------------------------------------------
   def onNextPageButtonClicked(self):
     # Update UI page
-    self.homeWidget.logic.setMode(modeID = 2)
+    self.homeWidget.logic.setMode(modeID = 2) # switch to hardware selection page
 
 
   #------------------------------------------------------------------------------
