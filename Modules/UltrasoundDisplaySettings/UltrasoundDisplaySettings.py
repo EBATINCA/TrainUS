@@ -172,7 +172,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
 
     # Customize widgets
     self.ui.connectionStatusLabel.text = '-'
-    self.ui.sliceControllerVisibilityCheckBox.checked = True
+    self.ui.sliceControllerVisibilityCheckBox.checked = False
     self.ui.freezeUltrasoundButton.setText('Un-freeze')
     self.ui.fitUltrasoundButton.setText('Fit')
     self.ui.flipUltrasoundButton.setText('Un-flip')
@@ -198,7 +198,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.brightnessContrastBrighterButton.clicked.connect(self.onBrightnessContrastBrighterButtonClicked)
     self.ui.brightnessContrastCustomButton.clicked.connect(self.onBrightnessContrastCustomButtonClicked)
     self.ui.brightnessSliderWidget.valuesChanged.connect(self.onBrightnessSliderWidgetValuesChanged)
-    self.ui.sliceControllerVisibilityCheckBox.toggled.connect(self.onSliceControllerVisibilityCheckBoxToggled)
+    self.ui.sliceControllerVisibilityCheckBox.stateChanged.connect(self.onSliceControllerVisibilityCheckBoxStateChanged)
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
   #------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.brightnessContrastBrighterButton.clicked.disconnect()
     self.ui.brightnessContrastCustomButton.clicked.disconnect()
     self.ui.brightnessSliderWidget.valuesChanged.disconnect()
-    self.ui.sliceControllerVisibilityCheckBox.toggled.disconnect()
+    self.ui.sliceControllerVisibilityCheckBox.stateChanged.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -296,8 +296,8 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
     self.ui.brightnessSliderWidget.visible = self.ui.brightnessContrastCustomButton.checked
 
   #------------------------------------------------------------------------------
-  def onSliceControllerVisibilityCheckBoxToggled(self, state):
-    self.logic.updateSliceControllerVisibility(not state)
+  def onSliceControllerVisibilityCheckBoxStateChanged(self, state):
+    self.logic.updateSliceControllerVisibility(state)
 
   #------------------------------------------------------------------------------
   def onFreezeUltrasoundButtonClicked(self):

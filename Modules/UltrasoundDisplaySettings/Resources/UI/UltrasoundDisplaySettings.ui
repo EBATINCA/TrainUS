@@ -284,27 +284,12 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QLabel" name="label_15">
+          <widget class="QCheckBox" name="sliceControllerVisibilityCheckBox">
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
            <property name="text">
-            <string>Slice view controller:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="ctkCheckBox" name="sliceControllerVisibilityCheckBox">
-           <property name="iconSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="indicatorIcon">
-            <iconset>
-             <normaloff>:/Icons/VisibleOff.png</normaloff>
-             <normalon>:/Icons/VisibleOn.png</normalon>:/Icons/VisibleOff.png</iconset>
+            <string>Slice view controller</string>
            </property>
           </widget>
          </item>
@@ -344,11 +329,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ctkCheckBox</class>
-   <extends>QCheckBox</extends>
-   <header>ctkCheckBox.h</header>
-  </customwidget>
   <customwidget>
    <class>ctkDoubleRangeSlider</class>
    <extends>QWidget</extends>
