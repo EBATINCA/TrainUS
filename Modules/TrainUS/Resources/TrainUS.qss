@@ -122,3 +122,9 @@ QComboBox QAbstractItemView {
     selection-background-color: #cde534;
     selection-color: black;
 }
+ 
+/* CHECKBOX */
+QCheckBox {
+	background-color: transparent;
+	border:none;
+}
