@@ -15,8 +15,7 @@ if(NOT DEFINED slicersources_SOURCE_DIR)
   # Download Slicer sources and set variables slicersources_SOURCE_DIR and slicersources_BINARY_DIR
   FetchContent_Populate(slicersources
     GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/Slicer/Slicer
-    GIT_TAG        118cef1e03fa690e9d167f0074d838fa005a3936 # Preview 2021.07.14.
-    # GIT_TAG        da8607855e2174d165a15352a42b86b3eb33d866 # 2022.03.07. (just before Slicer 5.0)
+    GIT_TAG        e081f91bf4a134b8efdb8db0cdca3c82bc6eaffb # 2022.03.09. (just before Slicer 5.0)
     GIT_PROGRESS   1
     )
 else()
@@ -162,7 +161,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/openigtlink/SlicerOpenIGTLink.git
-  GIT_TAG        804e7f659bc50a339ecab44287b971fb11c32fd4 # branch: master
+  GIT_TAG        ca4b0fa5989403ee67a3e730f3df85f25e9a3bf4 # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -174,7 +173,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerIGT/SlicerIGT.git
-  GIT_TAG        983b9f08efa201df6f44a94d8f6b4a3d220bde86 # branch: master
+  GIT_TAG        083b8b2229a5a576c144fc03a0501df980e80abf # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -186,7 +185,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/IGSIO/SlicerIGSIO.git
-  GIT_TAG        1576200669903b3e118fe431b375cb99bd4ee7c0 # branch: master
+  GIT_TAG        f461f692ef288a886d48882af8b34a07b9dba578 # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -203,7 +202,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkTutor/PerkTutor.git
-  GIT_TAG        f42e863fb929125d4ff8f598c99cfc4de2e75084 # branch: master
+  GIT_TAG        0dfc7b42fab6e216ba086d5ceeaef92efeda51cf # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -215,7 +214,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerRt/SlicerDebuggingTools.git
-  GIT_TAG        8f5436b8519e10163fd88a86f5641fe70fc6697d # branch: master
+  # GIT_TAG        8f5436b8519e10163fd88a86f5641fe70fc6697d # branch: master
   GIT_PROGRESS   1
   QUIET
   )

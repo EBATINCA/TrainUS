@@ -77,8 +77,8 @@ void qTrainUSAppMainWindowPrivate::setupUi(QMainWindow * mainWindow)
   //----------------------------------------------------------------------------
   mainWindow->setWindowIcon(QIcon(":/Icons/Medium/DesktopIcon.png"));
 
-  QPixmap logo(":/LogoFull.png");
-  this->LogoLabel->setPixmap(logo);
+  // QPixmap logo(":/LogoFull.png");
+  // this->LogoLabel->setPixmap(logo);
 
   // Hide the toolbars
   this->MainToolBar->setVisible(false);
