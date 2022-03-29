@@ -4,6 +4,7 @@ set(MODULE_NAME Home)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  Widgets/__init__.py
   Widgets/Configuration.py
   Widgets/Evaluation.py
   Widgets/HardwareSelection.py
@@ -11,15 +12,25 @@ set(MODULE_PYTHON_SCRIPTS
   Widgets/PlugAndPlay.py
   Widgets/ReviewSelection.py
   Widgets/TrainingSession.py
+  Managers/__init__.py
   Managers/RecordingManager.py
   Managers/DeviceManager.py
   )
 
 set(MODULE_PYTHON_RESOURCES
+  Resources/Home.qss  
   Resources/Icons/${MODULE_NAME}.png
   Resources/Logo/TrainUS_Logo.png
   Resources/UI/${MODULE_NAME}.ui
-  Resources/Home.qss  
+  Resources/UI/Configuration.ui
+  Resources/UI/Evaluation.ui
+  Resources/UI/HardwareSelection.ui
+  Resources/UI/ParticipantSelection.ui
+  Resources/UI/PlugAndPlay.ui
+  Resources/UI/ReviewSelection.ui
+  Resources/UI/TrainingSession.ui
+  Resources/UI/LanguageFile_English.json
+  Resources/UI/LanguageFile_Spanish.json
   )
 
 slicerFunctionAddPythonQtResources(MODULE_PYTHON_QRC_RESOURCES

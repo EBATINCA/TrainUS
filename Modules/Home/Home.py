@@ -22,7 +22,7 @@ import TrainUSLib.TrainUSParameters as Parameters
 #
 #------------------------------------------------------------------------------
 class Home(ScriptedLoadableModule):
-  
+
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Home"
@@ -88,7 +88,7 @@ class QHomeWidget(qt.QDialog):
 #
 #------------------------------------------------------------------------------
 class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
-  
+
   def __init__(self, parent):
     """
     Initialize the window and main GUI for the TrainUS home screen
@@ -455,7 +455,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Filter participants according to search text
     searchText = uiPanel.ui.participantSearchText.text
-    if searchText is not '':
+    if searchText != '':
       participantInfo_list = self.trainUsWidget.logic.recordingManager.filterParticipantInfoListFromSearchText(participantInfo_list, searchText)
 
     ## Get table widget
@@ -552,7 +552,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     tableWidget.sortingEnabled = False
 
     # Update table if participant is selected
-    if selectedParticipantID is not '':
+    if selectedParticipantID != '':
       # Get data from directory
       recordingInfo_list = self.trainUsWidget.logic.recordingManager.readParticipantDirectory(selectedParticipantID)
 
@@ -688,18 +688,18 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
 class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
-  
+
   def __init__(self, widgetInstance, parent=None):
     ScriptedLoadableModuleLogic.__init__(self, parent)
     VTKObservationMixin.__init__(self)
 
     # Define member variables
     self.fileDir = os.path.dirname(__file__)
-    
+
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
     self.trainUsWidget = self.moduleWidget.trainUsWidget
-    
+
     # Store whether python console was floating so that it is restored when hidden
     self.pythonConsoleWasFloating = False
 
@@ -996,7 +996,7 @@ class HomeLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 #
 #------------------------------------------------------------------------------
 class HomeTest(ScriptedLoadableModuleTest):
-  
+
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
