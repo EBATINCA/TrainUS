@@ -113,17 +113,21 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     self.ui.igtlConnectionStatusLabel.text = '-'
     self.ui.startConnectionButton.enabled = True
     self.ui.stopConnectionButton.enabled = False
+    self.ui.refreshButton.setIcon(qt.QIcon(':/Icons/Small/SlicerCheckForUpdates.png'))
+    self.ui.refreshButton.minimumWidth = self.ui.refreshButton.sizeHint.height()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):
     self.ui.startConnectionButton.clicked.connect(self.onStartConnectionButtonClicked)
     self.ui.stopConnectionButton.clicked.connect(self.onStopConnectionButtonClicked)
+    self.ui.refreshButton.clicked.connect(self.onRefreshButtonClicked)
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
     self.ui.startConnectionButton.clicked.disconnect()
     self.ui.stopConnectionButton.clicked.disconnect()
+    self.ui.refreshButton.clicked.disconnect()
     self.ui.backToMenuButton.clicked.disconnect()
 
   #------------------------------------------------------------------------------
@@ -213,6 +217,15 @@ class PlusServerConnectionWidget(ScriptedLoadableModuleWidget, VTKObservationMix
     qt.QApplication.restoreOverrideCursor()
     progressDialog.hide()
     progressDialog.deleteLater()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onRefreshButtonClicked(self):
+    
+    # Refresh connection status
+    self.logic.getIGTLConnectionStatus()
 
     # Update GUI
     self.updateGUIFromMRML()
