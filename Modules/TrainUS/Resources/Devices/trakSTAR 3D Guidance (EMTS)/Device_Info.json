@@ -1,0 +1,8 @@
+{
+    "label": "trakSTAR EMTS",
+    "name": "trakSTAR",
+    "type": "TrackerDevice",
+    "config": "Config/PlusDeviceSet_Server_Ascension3DG.xml",
+    "plus server": "C:/PLUS TOOLKIT/PlusApp-2.9.0.20211103-Telemed-Win32/bin/PlusServer.exe",
+    "plus launcher": "C:/PLUS TOOLKIT/PlusApp-2.9.0.20211103-Telemed-Win32/bin/PlusServerLauncher.exe"
+}
