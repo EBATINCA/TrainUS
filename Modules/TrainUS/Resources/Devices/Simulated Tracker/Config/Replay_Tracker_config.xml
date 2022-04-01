@@ -58,6 +58,18 @@
         0 0.193681  0 0
         0 0 0.193681  0
         0 0 0 1" />
+    <Transform From="Needle" To="Stylus"
+      Matrix="
+        1 0 0 10
+        0 1 0 20
+        0 0 1 30
+        0 0 0 1" />
+    <Transform From="Patient" To="Reference"
+      Matrix="
+        1 0 0 0
+        0 1 0 0
+        0 0 1 0
+        0 0 0 1" />
   </CoordinateDefinitions>
   <PlusOpenIGTLinkServer MaxNumberOfIgtlMessagesToSend="1" MaxTimeSpentWithProcessingMs="50" ListeningPort="18945" SendValidTransformsOnly="true" OutputChannelId="TrackedVideoStream">
     <DefaultClientInfo>
@@ -66,8 +78,9 @@
       </MessageTypes>
       <TransformNames>
         <Transform Name="ProbeToTracker" />
-        <Transform Name="ReferenceToTracker" />
+        <Transform Name="PatientToTracker" />
         <Transform Name="StylusToTracker" />
+        <Transform Name="NeedleToTracker" />
       </TransformNames>
     </DefaultClientInfo>
   </PlusOpenIGTLinkServer>
