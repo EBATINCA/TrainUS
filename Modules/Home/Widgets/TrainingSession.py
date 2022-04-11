@@ -98,6 +98,12 @@ class TrainingSession(qt.QWidget):
 
     # Create new recording
     self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 1')
+
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ExerciseVascular module
+    slicer.util.selectModule('ExerciseVascular')
   
   #------------------------------------------------------------------------------
   def onBasicExercise2ButtonClicked(self):

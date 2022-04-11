@@ -185,14 +185,14 @@
                 <item row="0" column="0">
                  <widget class="QPushButton" name="basicExercise1Button">
                   <property name="text">
-                   <string>Exercise 1</string>
+                   <string>Vascular cannulation</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
                  <widget class="QPushButton" name="basicExercise2Button">
                   <property name="text">
-                   <string>Exercise 2</string>
+                   <string>Breast tumor biopsy (WIP)</string>
                   </property>
                  </widget>
                 </item>
@@ -208,14 +208,14 @@
                 <item row="0" column="1">
                  <widget class="QPushButton" name="basicExercise4Button">
                   <property name="text">
-                   <string>Exercise 4</string>
+                   <string>Exercise 4 (WIP)</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
                  <widget class="QPushButton" name="basicExercise3Button">
                   <property name="text">
-                   <string>Exercise 3</string>
+                   <string>Exercise 3 (WIP)</string>
                   </property>
                  </widget>
                 </item>
@@ -270,21 +270,21 @@
                 <item row="0" column="0">
                  <widget class="QPushButton" name="advancedExercise1Button">
                   <property name="text">
-                   <string>Exercise 1</string>
+                   <string>Exercise 1 (WIP)</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="2">
                  <widget class="QPushButton" name="advancedExercise2Button">
                   <property name="text">
-                   <string>Exercise 3</string>
+                   <string>Exercise 3 (WIP)</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
                  <widget class="QPushButton" name="advancedExercise3Button">
                   <property name="text">
-                   <string>Exercise 2</string>
+                   <string>Exercise 2 (WIP)</string>
                   </property>
                  </widget>
                 </item>

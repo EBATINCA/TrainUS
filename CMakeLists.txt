@@ -151,6 +151,7 @@ set(Slicer_EXTENSION_SOURCE_DIRS
   ${TrainUS_SOURCE_DIR}/Modules/UltrasoundProbeCalibration
   ${TrainUS_SOURCE_DIR}/Modules/ToolPivotCalibration
   ${TrainUS_SOURCE_DIR}/Modules/ToolTrackingStatus
+  ${TrainUS_SOURCE_DIR}/Modules/ExerciseVascular
   )
 
 # Add remote extension source directories
