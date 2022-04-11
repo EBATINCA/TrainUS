@@ -159,9 +159,9 @@ class ToolTrackingStatusLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.setupKeyboardShortcuts()
 
     # Tool transform names
-    self.toolNames = ['Probe', 'Stylus', 'Reference']    
-    self.toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'ReferenceToTracker']    
-    self.toolTransformDisplayColor = [[1,0,0], [0,1,0], [0,1,1]]
+    self.toolNames = ['Probe', 'Stylus', 'Needle', 'Patient']    
+    self.toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'NeedleToTracker', 'PatientToTracker']    
+    self.toolTransformDisplayColor = [[1,0,0], [0,1,0], [0,1,1], [1,1,0]]
     self.toolTransformNodes = []
     self.toolTransformLocators = []
 
