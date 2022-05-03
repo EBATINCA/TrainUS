@@ -120,6 +120,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.connect(self.onSaveRecordingButtonClicked)
     # Load recording
     self.ui.loadRecordingFileButton.clicked.connect(self.onLoadRecordingFileButtonClicked)
+    # Compute metrics
+    self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
@@ -145,6 +147,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.disconnect()
     # Load recording
     self.ui.loadRecordingFileButton.clicked.disconnect()
+    # Compute metrics
+    self.ui.computeMetricsButton.clicked.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -350,6 +354,15 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
+  def onComputeMetricsButtonClicked(self):    
+    
+    # Compute metrics
+    self.logic.computeMetricsFromRecording()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
     # Go back to Home module
     #slicer.util.selectModule('Home') 
@@ -441,6 +454,15 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Playback
     self.playbackInProgress = False
+
+    # Tool reference points
+    self.NEEDLE_TIP = [0.0, 0.0, 0.0]
+    self.NEEDLE_HANDLE = [0.0, 0.0, -50.0]
+    self.USPROBE_TIP = [0.0, 0.0, 0.0]
+    self.USPROBE_HANDLE = [0.0, 50.0, 0.0]
+    self.USPLANE_ORIGIN = [0.0, 0.0, 0.0]
+    self.USPLANE_NORMAL = [0.0, 0.0, 1.0]
+
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -859,6 +881,189 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.sequenceBrowserNode.SetPlaybackRateFps(frameRate)
     except:
       logging.error('Could not set playback realtime fps rate')
+
+  #------------------------------------------------------------------------------
+  def computeMetricsFromRecording(self):
+
+    # Get number of items
+    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+
+    # Iterate along items
+    self.sequenceBrowserNode.SelectFirstItem() # reset
+    for currentItem in range(numItems):
+      print('\nItem: ', currentItem)
+
+      # Get timestamp
+      timestamp = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(currentItem)
+      print('Timestamp: ', timestamp)
+
+      # Get needle position
+      needleTip = self.getTransformedPoint(self.NEEDLE_TIP, self.NeedleTipToNeedle)
+      print('Needle tip: ', needleTip)
+      needleHandle = self.getTransformedPoint(self.NEEDLE_HANDLE, self.NeedleTipToNeedle)
+      print('Needle handle: ', needleHandle)
+
+      # Get US probe position
+      usProbeTip = self.getTransformedPoint(self.USPROBE_TIP, self.ProbeModelToProbe)
+      print('usProbeTip: ', usProbeTip)
+      usProbeHandle = self.getTransformedPoint(self.USPROBE_HANDLE, self.ProbeModelToProbe)
+      print('usProbeHandle: ', usProbeHandle)
+
+      # Get US image plane orientation
+      usPlanePointA = np.array(self.USPLANE_ORIGIN)
+      print('usPlanePointA: ', usPlanePointA)
+      usPlanePointB = np.array(self.USPLANE_NORMAL)
+      print('usPlanePointB: ', usPlanePointB)
+      usPlaneCentroid = usPlanePointA
+      print('usPlaneCentroid: ', usPlaneCentroid)
+      usPlaneNormal = (usPlanePointB - usPlanePointA) / np.linalg.norm(usPlanePointB - usPlanePointA)
+      print('usPlaneNormal: ', usPlaneNormal)
+
+      # Get target point position
+      targetPoint = [0,0,0]
+      try:
+        self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
+        targetPoint = self.getTransformedPoint(targetPoint, None)
+      except:
+        logging.error('No target point is defined...')
+      print('Target point: ', targetPoint)
+
+      # Get target line position
+      targetLineStart = [0,0,0]
+      targetLineEnd = [0,0,0]
+      try:
+        self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
+        self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
+        targetLineStart = self.getTransformedPoint(targetLineStart, None)
+        targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
+      except:
+        logging.error('No target point is defined...')
+      print('Target line start: ', targetLineStart)
+      print('Target line end: ', targetLineEnd)
+
+
+      #
+      # Metrics
+      #
+
+      # Distance from needle tip to US plane
+      distance_NeedleTipToUSPlane = self.computeDistancePointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
+      print('Distance from needle tip to US plane: ', distance_NeedleTipToUSPlane)
+
+      # Distance from needle tip to target point
+      distance_NeedleTipToTargetPoint = self.computeDistancePointToPoint(needleTip, targetPoint)
+      print('Distance from needle tip to target: ', distance_NeedleTipToTargetPoint)
+
+      # Next sample
+      self.sequenceBrowserNode.SelectNextItem()
+
+  #------------------------------------------------------------------------------
+  def computeDistancePointToPoint(self, fromPoint, toPoint):
+
+    # Convert input data to numpy arrays
+    fromPoint = np.array(fromPoint)
+    toPoint = np.array(toPoint)
+
+    # Compute distance
+    distance = np.linalg.norm(toPoint - fromPoint)
+
+    return distance
+
+  #------------------------------------------------------------------------------
+  def computeDistancePointToPlane(self, point, planeCentroid, planeNormal):
+
+    # Convert input data to numpy arrays
+    point = np.array(point)
+    planeCentroid = np.array(planeCentroid)
+    planeNormal = np.array(planeNormal)    
+
+    # Project point to plane
+    projectedPoint = np.subtract(point, np.dot(np.subtract(point, planeCentroid), planeNormal) * planeNormal)
+    
+    # Compute distance
+    distance = np.linalg.norm(projectedPoint - point)
+
+    return distance
+
+  #------------------------------------------------------------------------------
+  def getTransformedPoint(self, point, transformNode):
+
+    # Convert to homogenous coordinates
+    point_hom = np.hstack((np.array(point), 1.0))
+
+    # Get transform to world
+    if transformNode:
+      transformToWorld_array = self.getToolToWorldTransform(transformNode)
+    else:
+      transformToWorld_array = np.eye(4) # identity
+
+    # Get world to ultrasound transform
+    worldToUltrasound_array = self.getWorldToUltrasoundTransform()
+    
+    # Get transformed point
+    point_transformed = np.dot(worldToUltrasound_array, np.dot(transformToWorld_array, point_hom))
+
+    # Output points
+    point = np.array([point_transformed[0], point_transformed[1], point_transformed[2]])
+
+    return point
+
+  #------------------------------------------------------------------------------
+  def getWorldToUltrasoundTransform(self):
+
+    if not self.ImageToProbe:
+      logging.error('ImageToProbe transform does not exist. WorldToUltrasoundTransform cannot be computed.')
+
+    # Get transform from image to world
+    ultrasoundToWorldMatrix = vtk.vtkMatrix4x4()
+    self.ImageToProbe.GetMatrixTransformToWorld(ultrasoundToWorldMatrix)
+
+    # Get inverse transform
+    worldToUltrasoundMatrix = vtk.vtkMatrix4x4()
+    worldToUltrasoundMatrix.DeepCopy( ultrasoundToWorldMatrix )
+    worldToUltrasoundMatrix.Invert()
+
+    # Get numpy array
+    worldToUltrasoundArray = self.convertVtkMatrixToNumpyArray(worldToUltrasoundMatrix)
+    return worldToUltrasoundArray
+
+  #------------------------------------------------------------------------------
+  def getToolToParentTransform(self, node):
+
+    # Get matrix
+    transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
+    node.GetMatrixTransformToParent(transform_matrix) # get vtk matrix
+    return self.convertVtkMatrixToNumpyArray(transform_matrix)
+
+  #------------------------------------------------------------------------------
+  def getToolToWorldTransform(self, node):
+
+    # Get matrix
+    transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
+    node.GetMatrixTransformToWorld(transform_matrix) # get vtk matrix
+    return self.convertVtkMatrixToNumpyArray(transform_matrix)
+
+  #------------------------------------------------------------------------------
+  def convertVtkMatrixToNumpyArray(self, vtkMatrix):
+
+    # Build array
+    R00 = vtkMatrix.GetElement(0, 0) 
+    R01 = vtkMatrix.GetElement(0, 1) 
+    R02 = vtkMatrix.GetElement(0, 2)
+    Tx = vtkMatrix.GetElement(0, 3)
+    R10 = vtkMatrix.GetElement(1, 0)
+    R11 = vtkMatrix.GetElement(1, 1)
+    R12 = vtkMatrix.GetElement(1, 2)
+    Ty = vtkMatrix.GetElement(1, 3)
+    R20 = vtkMatrix.GetElement(2, 0)
+    R21 = vtkMatrix.GetElement(2, 1)
+    R22 = vtkMatrix.GetElement(2, 2)
+    Tz = vtkMatrix.GetElement(2, 3)
+    H0 = vtkMatrix.GetElement(3, 0)
+    H1 = vtkMatrix.GetElement(3, 1)
+    H2 = vtkMatrix.GetElement(3, 2)
+    H3 = vtkMatrix.GetElement(3, 3)
+    return np.array([[R00, R01, R02, Tx],[R10, R11, R12, Ty], [R20, R21, R22, Tz], [H0, H1, H2, H3]])
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
