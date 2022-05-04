@@ -251,11 +251,18 @@
      <property name="title">
       <string>Metrics</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
        <widget class="QPushButton" name="computeMetricsButton">
         <property name="text">
          <string>Compute Metrics</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="displayPlotButton">
+        <property name="text">
+         <string>Display Plot</string>
         </property>
        </widget>
       </item>

@@ -122,6 +122,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.loadRecordingFileButton.clicked.connect(self.onLoadRecordingFileButtonClicked)
     # Compute metrics
     self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
+    self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
@@ -149,6 +150,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.loadRecordingFileButton.clicked.disconnect()
     # Compute metrics
     self.ui.computeMetricsButton.clicked.disconnect()
+    self.ui.displayPlotButton.clicked.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -235,6 +237,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   def onModeSelectionComboBoxTextChanged(self, text):
     # Update mode
     self.logic.exerciseMode = text
+    print('onModeSelectionComboBoxTextChanged:: ', text)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -363,6 +366,20 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
+  def onDisplayPlotButtonClicked(self):    
+    
+    self.logic.plotVisible = not self.logic.plotVisible
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+    # Display metrics
+    self.logic.displayMetricPlot()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
     # Go back to Home module
     #slicer.util.selectModule('Home') 
@@ -403,6 +420,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.customLayout_2Donly_ID = 998
     self.customLayout_Dual3D3D_ID = 999
     self.customLayout_FourUp3D_ID = 1000
+    self.customLayout_Dual2D3D_withPlot_ID = 1001
 
     # Tool transform names
     self.toolNames = ['Probe', 'Stylus', 'Patient']    
@@ -411,7 +429,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Exercise settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
-    self.exerciseMode = 'Developer'
+    self.exerciseMode = 'Evaluation'
 
     # Instructions
     self.intructionsVisible = False
@@ -462,6 +480,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.USPROBE_HANDLE = [0.0, 50.0, 0.0]
     self.USPLANE_ORIGIN = [0.0, 0.0, 0.0]
     self.USPLANE_NORMAL = [0.0, 0.0, 1.0]
+
+    # Metrics
+    self.metricTableNode = None
+    self.plotSeriesNodes = []
+    self.plotChartNode = None
+    self.plotVisible = False
 
 
   #------------------------------------------------------------------------------
@@ -888,6 +912,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Get number of items
     numItems = self.sequenceBrowserNode.GetNumberOfItems()
 
+    # Metrics
+    self.sampleID = []
+    self.timestamp = []
+    self.needleTipToUsPlaneDistanceMm = []
+    self.needleTipToTargetDistanceMm = []
+
     # Iterate along items
     self.sequenceBrowserNode.SelectFirstItem() # reset
     for currentItem in range(numItems):
@@ -954,8 +984,107 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       distance_NeedleTipToTargetPoint = self.computeDistancePointToPoint(needleTip, targetPoint)
       print('Distance from needle tip to target: ', distance_NeedleTipToTargetPoint)
 
+      # Store metrics
+      self.sampleID.append(currentItem)
+      self.timestamp.append(timestamp)
+      self.needleTipToUsPlaneDistanceMm.append(distance_NeedleTipToUSPlane)
+      self.needleTipToTargetDistanceMm.append(distance_NeedleTipToTargetPoint)
+
       # Next sample
       self.sequenceBrowserNode.SelectNextItem()
+
+    # Define metrics
+    metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm']
+    metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm]
+
+    # Create table
+    self.createMetricTable(metric_names, metric_array)
+
+    # Create plot chart
+    self.createPlotChart(metric_names)    
+
+  #------------------------------------------------------------------------------
+  def createMetricTable(self, metric_names, metric_array):
+
+    # Get number of metrics
+    numMetrics = len(metric_names)
+
+    # Get number of items in recording
+    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+
+    # Delete existing table node if any
+    if self.metricTableNode:
+      slicer.mrmlScene.RemoveNode(self.metricTableNode)
+      self.metricTableNode = None      
+
+    # Create table node
+    self.metricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
+    self.metricTableNode.SetName('Metrics')
+
+    # Add one column for each metric
+    self.metricTableNode.SetLocked(True) # lock table to avoid modifications
+    self.metricTableNode.RemoveAllColumns() # reset
+    table = self.metricTableNode.GetTable()
+    for metricID in range(numMetrics):
+      array = vtk.vtkFloatArray()
+      array.SetName(metric_names[metricID])
+      table.AddColumn(array)
+
+    # Fill table
+    table.SetNumberOfRows(numItems)
+    for itemID in range(numItems):
+      for metricID in range(numMetrics):
+        table.SetValue(itemID, metricID, metric_array[metricID][itemID])
+    table.Modified()
+
+    print('Metric table has been created!')
+
+  #------------------------------------------------------------------------------
+  def createPlotChart(self, metric_names):
+
+    # Get number of metrics
+    numMetrics = len(metric_names)
+
+    # Delete previous plot series
+    if self.plotSeriesNodes:
+      for plotSeriesNode in self.plotSeriesNodes:
+        slicer.mrmlScene.RemoveNode(plotSeriesNode)
+      self.plotSeriesNodes = []
+
+    # Create plot series
+    self.plotSeriesNodes = []
+    for metricID in range(numMetrics-2):
+      plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
+      plotSeriesNode.SetName('Series_' + metric_names[metricID+2])
+      plotSeriesNode.SetAndObserveTableNodeID(self.metricTableNode.GetID())
+      plotSeriesNode.SetXColumnName(metric_names[0])
+      plotSeriesNode.SetYColumnName(metric_names[metricID+2])
+      plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatter)
+      plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleNone)
+      plotSeriesNode.SetMarkerSize(15)
+      plotSeriesNode.SetLineWidth(4)
+      plotSeriesNode.SetColor([1,0,0]) # Red
+      self.plotSeriesNodes.append(plotSeriesNode)
+
+    # Delete previous plot chart
+    if self.plotChartNode:
+      slicer.mrmlScene.RemoveNode(self.plotChartNode)
+      self.plotChartNode = None
+
+    # Create plot chart
+    self.plotChartNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotChartNode')
+    self.plotChartNode.SetName('Chart')
+    self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
+    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.plotSeriesNodes[0].GetID())
+    #for plotSeriesNode in self.plotSeriesNodes:
+    #  self.plotChartNode.AddAndObservePlotSeriesNodeID(plotSeriesNode.GetID())
+    self.plotChartNode.SetTitle('Metric Plot')
+    #self.plotChartNode.SetXAxisTitle('Sample ID')
+    #self.plotChartNode.SetYAxisTitle('ANGLE (\xB0)')
+    self.plotChartNode.SetAxisLabelFontSize(20)
+
+    print('Plot chart has been created!')
+
 
   #------------------------------------------------------------------------------
   def computeDistancePointToPoint(self, fromPoint, toPoint):
@@ -1064,6 +1193,27 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     H2 = vtkMatrix.GetElement(3, 2)
     H3 = vtkMatrix.GetElement(3, 3)
     return np.array([[R00, R01, R02, Tx],[R10, R11, R12, Ty], [R20, R21, R22, Tz], [H0, H1, H2, H3]])
+
+  #------------------------------------------------------------------------------
+  def displayMetricPlot(self):
+
+    if self.plotVisible:
+      # Store last layout
+      layoutManager= slicer.app.layoutManager()
+      self.lastLayout = layoutManager.layout
+
+      # Switch to plot only layout
+      self.setCustomLayout('2D + 3D + Plot')
+
+      # Show plot chart in plot view
+      slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(self.plotChartNode.GetID())
+      slicer.app.applicationLogic().PropagatePlotChartSelection()    
+
+    else:
+      # Restore last layout if any
+      if self.lastLayout:
+        layoutManager= slicer.app.layoutManager()
+        layoutManager.setLayout(self.lastLayout)
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
@@ -1185,10 +1335,35 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       "  </layout>"
       " </item>"
       "</layout>")
+      customLayout_Dual2D3DwithPlot = ("<layout type=\"vertical\" split=\"true\" >\n"
+      " <item splitSize=\"700\" >\n"
+      "  <layout type=\"horizontal\" split=\"true\">"
+      "   <item>"
+      "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "       <property name=\"orientation\" action=\"default\">Axial</property>"
+      "       <property name=\"viewlabel\" action=\"default\">R</property>"
+      "       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "    </view>"
+      "   </item>"
+      "   <item>"
+      "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+      "    <property name=\"viewlabel\" action=\"default\">T</property>"
+      "    </view>"
+      "   </item>"
+      "  </layout>"
+      " </item>"
+      " <item splitSize=\"300\" >\n"
+      "  <view class=\"vtkMRMLPlotViewNode\" singletontag=\"PlotView1\">"
+      "  <property name=\"viewlabel\" action=\"default\">1</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+      
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_ID, customLayout_2Donly)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
+      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
 
   #------------------------------------------------------------------------------
   def setCustomLayout(self, layoutName):
@@ -1202,8 +1377,14 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       layoutID = self.customLayout_Dual2D3D_ID
     elif layoutName == 'Dual 3D':
       layoutID = self.customLayout_Dual3D3D_ID
+    elif layoutName == '2D + 3D + Plot':
+      layoutID = self.customLayout_Dual2D3D_withPlot_ID
     elif layoutName == 'Four Up 3D':
       layoutID = self.customLayout_FourUp3D_ID
+    elif layoutName == 'Plot only':
+      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpPlotView
+    else:
+      layoutID = 1
 
     # Set layout
     layoutManager= slicer.app.layoutManager()
