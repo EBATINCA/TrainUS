@@ -917,6 +917,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.timestamp = []
     self.needleTipToUsPlaneDistanceMm = []
     self.needleTipToTargetDistanceMm = []
+    self.needleToUsPlaneAngleDeg = []
+    self.needleToTargetLineInPlaneAngleDeg = []
 
     # Iterate along items
     self.sequenceBrowserNode.SelectFirstItem() # reset
@@ -977,31 +979,133 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       #
 
       # Distance from needle tip to US plane
-      distance_NeedleTipToUSPlane = self.computeDistancePointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
+      distance_NeedleTipToUSPlane = self.computeNeedleTipToUsPlaneDistanceMm(needleTip, usPlaneCentroid, usPlaneNormal)
       print('Distance from needle tip to US plane: ', distance_NeedleTipToUSPlane)
 
       # Distance from needle tip to target point
-      distance_NeedleTipToTargetPoint = self.computeDistancePointToPoint(needleTip, targetPoint)
+      distance_NeedleTipToTargetPoint = self.computeNeedleTipToTargetDistanceMm(needleTip, targetPoint)
       print('Distance from needle tip to target: ', distance_NeedleTipToTargetPoint)
+
+      # Angle between needle and US plane
+      angle_NeedleToUsPlane = self.computeNeedleToUsPlaneAngleDeg(needleTip, needleHandle, usPlaneCentroid, usPlaneNormal)
+      print('Angle between needle and US plane: ', angle_NeedleToUsPlane)
+
+      # Angle between needle and target trajectory
+      angle_NeedleToTargetLineInPlane = self.computeNeedleToTargetLineInPlaneAngleDeg(needleTip, needleHandle, targetLineStart, targetLineEnd, usPlaneCentroid, usPlaneNormal)
+      print('Angle between needle and target line (in-plane): ', angle_NeedleToTargetLineInPlane)
 
       # Store metrics
       self.sampleID.append(currentItem)
       self.timestamp.append(timestamp)
       self.needleTipToUsPlaneDistanceMm.append(distance_NeedleTipToUSPlane)
       self.needleTipToTargetDistanceMm.append(distance_NeedleTipToTargetPoint)
+      self.needleToUsPlaneAngleDeg.append(angle_NeedleToUsPlane)
+      self.needleToTargetLineInPlaneAngleDeg.append(angle_NeedleToTargetLineInPlane)
 
       # Next sample
       self.sequenceBrowserNode.SelectNextItem()
 
     # Define metrics
-    metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm']
-    metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm]
+    metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
+    metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm, self.needleToUsPlaneAngleDeg, self.needleToTargetLineInPlaneAngleDeg]
 
     # Create table
     self.createMetricTable(metric_names, metric_array)
 
     # Create plot chart
-    self.createPlotChart(metric_names)    
+    self.createPlotChart(metric_names)
+
+  #------------------------------------------------------------------------------
+  def computeNeedleTipToUsPlaneDistanceMm(self, needleTip, usPlaneCentroid, usPlaneNormal):
+    """
+    Compute the distance in mm from the needle tip to the ultrasound image plane.
+
+    :param needleTip: needle tip position (numpy array)
+    :param usPlaneCentroid: position of the US plane centroid (numpy array)
+    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
+
+    :return float: output distance value in mm
+    """
+    # Compute distance from point to plane
+    distance = self.computeDistancePointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
+    
+    return distance
+
+
+  #------------------------------------------------------------------------------
+  def computeNeedleTipToTargetDistanceMm(self, needleTip, targetPoint):
+    """
+    Compute the distance in mm from the needle tip to a target 3D point.
+
+    :param needleTip: needle tip position (numpy array)
+    :param targetPoint: target point position (numpy array)
+
+    :return float: output distance value in mm
+    """
+    # Compute distance from point to point
+    distance = self.computeDistancePointToPoint(needleTip, targetPoint)
+    
+    return distance
+
+  #------------------------------------------------------------------------------
+  def computeNeedleToUsPlaneAngleDeg(self, needleTip, needleHandle, usPlaneCentroid, usPlaneNormal):
+    """
+    Compute the angle in degrees between the needle and the US plane.
+
+    :param needleTip: needle tip position (numpy array)
+    :param needleHandle: needle handle position (numpy array)
+    :param usPlaneCentroid: position of the US plane centroid (numpy array)
+    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
+
+    :return float: output angle value in degrees
+    """
+    # Project needle points into US plane
+    needleTip_proj = self.projectPointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
+    needleHandle_proj = self.projectPointToPlane(needleHandle, usPlaneCentroid, usPlaneNormal)
+
+    # Define needle vector
+    needleVector = needleTip - needleHandle
+
+    # Define needle projection vector
+    needleProjectionVector = needleTip_proj - needleHandle_proj
+
+    # Compute angular deviation
+    angle = self.computeAngularDeviation(needleVector, needleProjectionVector)
+
+    return angle
+
+  #------------------------------------------------------------------------------
+  def computeNeedleToTargetLineInPlaneAngleDeg(self, needleTip, needleHandle, targetLineStart, targetLineEnd, usPlaneCentroid, usPlaneNormal):
+    """
+    Compute the angle in degrees between the needle and the target line.
+
+    :param needleTip: needle tip position (numpy array)
+    :param needleHandle: needle handle position (numpy array)
+    :param targetLineStart: target line start position (numpy array)
+    :param targetLineEnd: target line end position (numpy array)
+    :param usPlaneCentroid: position of the US plane centroid (numpy array)
+    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
+
+    :return float: output angle value in degrees
+    """
+    # Project needle points into US plane
+    needleTip_proj = self.projectPointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
+    needleHandle_proj = self.projectPointToPlane(needleHandle, usPlaneCentroid, usPlaneNormal)
+
+    # Project target line points into US plane (NOT NEEDED, SINCE LINE IS SUPPOSED TO BE WITHIN PLANE)
+    targetLineStart_proj = self.projectPointToPlane(targetLineStart, usPlaneCentroid, usPlaneNormal)
+    targetLineEnd_proj = self.projectPointToPlane(targetLineEnd, usPlaneCentroid, usPlaneNormal)
+
+    # Define needle projection vector
+    needleProjectionVector = needleTip_proj - needleHandle_proj
+
+    # Define target projection vector
+    targetProjectionVector = targetLineEnd_proj - targetLineStart_proj    
+
+    # Compute angular deviation
+    angle = self.computeAngularDeviation(needleProjectionVector, targetProjectionVector)
+
+    return angle
 
   #------------------------------------------------------------------------------
   def createMetricTable(self, metric_names, metric_array):
@@ -1055,7 +1159,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotSeriesNodes = []
     for metricID in range(numMetrics-2):
       plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
-      plotSeriesNode.SetName('Series_' + metric_names[metricID+2])
+      plotSeriesNode.SetName(metric_names[metricID+2])
       plotSeriesNode.SetAndObserveTableNodeID(self.metricTableNode.GetID())
       plotSeriesNode.SetXColumnName(metric_names[0])
       plotSeriesNode.SetYColumnName(metric_names[metricID+2])
@@ -1089,30 +1193,50 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   #------------------------------------------------------------------------------
   def computeDistancePointToPoint(self, fromPoint, toPoint):
 
-    # Convert input data to numpy arrays
-    fromPoint = np.array(fromPoint)
-    toPoint = np.array(toPoint)
-
     # Compute distance
-    distance = np.linalg.norm(toPoint - fromPoint)
+    distance = np.linalg.norm(np.array(toPoint) - np.array(fromPoint))
 
     return distance
 
   #------------------------------------------------------------------------------
   def computeDistancePointToPlane(self, point, planeCentroid, planeNormal):
 
-    # Convert input data to numpy arrays
-    point = np.array(point)
-    planeCentroid = np.array(planeCentroid)
-    planeNormal = np.array(planeNormal)    
-
     # Project point to plane
-    projectedPoint = np.subtract(point, np.dot(np.subtract(point, planeCentroid), planeNormal) * planeNormal)
+    projectedPoint = self.projectPointToPlane(point, planeCentroid, planeNormal)
     
     # Compute distance
-    distance = np.linalg.norm(projectedPoint - point)
+    distance = np.linalg.norm(np.array(projectedPoint) - np.array(point))
 
     return distance
+
+  #------------------------------------------------------------------------------
+  def projectPointToPlane(self, point, planeCentroid, planeNormal):
+
+    # Project point to plane
+    projectedPoint = np.subtract(np.array(point), np.dot(np.subtract(np.array(point), np.array(planeCentroid)), np.array(planeNormal)) * np.array(planeNormal))
+    
+    return projectedPoint
+
+  # ------------------------------------------------------------------------------
+  def computeAngularDeviation(self, vec1, vec2):
+    """
+    Compute angle between two vectors.
+
+    :param vec1: Vector 1 numpy array
+    :param vec2: Vector 2 numpy array
+
+    :return float: Angle between vector 1 and vector 2 in degrees.
+    """
+    # Cosine value
+    cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
+    # Cosine value can only be between [-1, 1].
+    if cos_value > 1.0:
+      cos_value = 1.0
+    elif cos_value < -1.0:
+      cos_value = -1.0
+    # Compute angle in degrees
+    angle = np.rad2deg (np.arccos(cos_value))
+    return angle
 
   #------------------------------------------------------------------------------
   def getTransformedPoint(self, point, transformNode):
