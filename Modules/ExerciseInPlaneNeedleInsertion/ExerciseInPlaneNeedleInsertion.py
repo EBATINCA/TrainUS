@@ -123,6 +123,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Compute metrics
     self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
     self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
+    self.ui.metricSelectionComboBox.currentTextChanged.connect(self.onMetricSelectionComboBoxTextChanged)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
@@ -151,6 +152,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Compute metrics
     self.ui.computeMetricsButton.clicked.disconnect()
     self.ui.displayPlotButton.clicked.disconnect()
+    self.ui.metricSelectionComboBox.currentTextChanged.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -227,6 +229,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     else:
       self.ui.SequenceBrowserPlayWidget.enabled = False
       self.ui.SequenceBrowserSeekWidget.enabled = False
+
+    # Metric selection
+    self.ui.metricSelectionComboBox.enabled = self.logic.plotVisible
+
 
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
@@ -362,6 +368,20 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Compute metrics
     self.logic.computeMetricsFromRecording()
 
+    # Remove current items in combo box
+    numItems = self.ui.metricSelectionComboBox.count
+    for itemID in range(numItems):
+      self.ui.metricSelectionComboBox.removeItem(0)
+
+    # Add items to metric selection combo box
+    numMetrics = len(self.logic.metric_names) - 2
+    for metricID in range(numMetrics):
+      self.ui.metricSelectionComboBox.addItem(self.logic.metric_names[metricID+2])
+
+    # Hide plot
+    self.logic.plotVisible = False
+    self.logic.displayMetricPlot()
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -370,12 +390,21 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     
     self.logic.plotVisible = not self.logic.plotVisible
 
-    # Update GUI
-    self.updateGUIFromMRML()
-
     # Display metrics
     self.logic.displayMetricPlot()
 
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onMetricSelectionComboBoxTextChanged(self, text):
+
+    # Selected metric
+    self.logic.selectedMetric = text
+
+    # Update plot chart
+    self.logic.updatePlotChart()
+    
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -390,7 +419,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 #                                                                                             #
 #                                                                                             #
 #                                                                                             #
-#                                       ExerciseInPlaneNeedleInsertionLogic                                          #
+#                        ExerciseInPlaneNeedleInsertionLogic                                  #
 #                                                                                             #
 #                                                                                             #
 #                                                                                             #
@@ -405,12 +434,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.fileDir = os.path.dirname(__file__)
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
-
-    # CreateModels module (SlicerIGT extension)
-    try:
-      self.createModelsLogic = slicer.modules.createmodels.logic()
-    except:
-      logging.error('ERROR: "CreateModels" module is not available...')
 
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
@@ -445,12 +468,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     except:
       logging.error('ERROR: "Volume Reslice Driver" module was not found.')
 
-    # CreateModels module (SlicerIGT extension)
-    try:
-      self.createModelsLogic = slicer.modules.createmodels.logic()
-    except:
-      logging.error('ERROR: "Create Models" module was not found.')
-
     # Red slice
     self.redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
 
@@ -469,6 +486,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.recordingInProgress = False
     self.sequenceBrowserNode = None
     self.recordingLength = 0.0
+    self.observerID = None
 
     # Playback
     self.playbackInProgress = False
@@ -483,10 +501,21 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Metrics
     self.metricTableNode = None
-    self.plotSeriesNodes = []
+    self.cursorTableNode = None
+    self.metricValuesPlotSeriesNodes = []
+    self.cursorValuesPlotSeriesNodes = []
     self.plotChartNode = None
     self.plotVisible = False
 
+    # Metric data
+    self.sampleID = []
+    self.timestamp = []
+    self.needleTipToUsPlaneDistanceMm = []
+    self.needleTipToTargetDistanceMm = []
+    self.needleToUsPlaneAngleDeg = []
+    self.needleToTargetLineInPlaneAngleDeg = []
+    self.metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
+    self.metric_array = []
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -510,11 +539,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Update model slice visibility
     try:
-      self.stylus_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
-      self.vessel_1_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
-      self.vessel_2_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
-      self.vessel_3_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
-      self.vessel_4_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
+      self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
     except:
       pass
 
@@ -531,6 +556,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
       # Deactivate volume reslice driver
       self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, self.redSliceLogic.GetSliceNode())
+
+      # Avoid visibility of needle model in 2D view
+      self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(False)
 
       # Switch to 2D only layout
       self.setCustomLayout('2D only')
@@ -549,6 +577,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
       # Activate volume reslice driver
       self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
+
+      # Restore visibility of needle model in 2D view
+      self.updateDifficulty()
 
       # Restore last volume
       if self.lastBackgroundVolumeID:
@@ -841,6 +872,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
       self.sequenceBrowserNode.EndModify(modifiedFlag)
 
+      # Add observer
+      try:
+        self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
+      except:
+        logging.error('Error adding an observer to the NeedleToTracker transform...')
+
       return True
 
     except:
@@ -848,11 +885,22 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       return False
 
   #------------------------------------------------------------------------------
+  def callbackCursorPosition(self, unused1=None, unused2=None):
+    """
+    Update cursor position in plot chart.
+    """
+    self.updateCursorPosition(self.sequenceBrowserNode.GetSelectedItemNumber())    
+
+  #------------------------------------------------------------------------------
   def clearSequenceBrowserRecording(self):
     """
     Clear recording data.
     """
     try:
+      # Remove observer
+      if self.observerID:
+        self.sequenceBrowserNode.GetMasterSequenceNode().RemoveObserver(self.observerID)
+
       # Remove sequence nodes from scene
       synchronizedSequenceNodes = vtk.vtkCollection()
       self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
@@ -890,6 +938,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     try:
       print('Loading sequence browser node from file: ' + filePath)
       self.sequenceBrowserNode = slicer.util.loadNodeFromFile(filePath, 'Tracked Sequence Browser')
+
+      # Add observer
+      try:
+          self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
+      except:
+        logging.error('Error adding an observer to the NeedleToTracker transform...')
     except:
       logging.error('Error loading sequence browser node from file...')
 
@@ -1005,15 +1059,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Next sample
       self.sequenceBrowserNode.SelectNextItem()
 
-    # Define metrics
-    metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
-    metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm, self.needleToUsPlaneAngleDeg, self.needleToTargetLineInPlaneAngleDeg]
+    # Fill metric array
+    self.metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm, self.needleToUsPlaneAngleDeg, self.needleToTargetLineInPlaneAngleDeg]   
 
     # Create table
-    self.createMetricTable(metric_names, metric_array)
+    self.createMetricTable()
+
+    # Create table
+    self.createCursorTable()
 
     # Create plot chart
-    self.createPlotChart(metric_names)
+    self.createPlotChart()
 
   #------------------------------------------------------------------------------
   def computeNeedleTipToUsPlaneDistanceMm(self, needleTip, usPlaneCentroid, usPlaneNormal):
@@ -1108,10 +1164,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return angle
 
   #------------------------------------------------------------------------------
-  def createMetricTable(self, metric_names, metric_array):
+  def createMetricTable(self):
 
     # Get number of metrics
-    numMetrics = len(metric_names)
+    numMetrics = len(self.metric_names)
 
     # Get number of items in recording
     numItems = self.sequenceBrowserNode.GetNumberOfItems()
@@ -1131,44 +1187,111 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     table = self.metricTableNode.GetTable()
     for metricID in range(numMetrics):
       array = vtk.vtkFloatArray()
-      array.SetName(metric_names[metricID])
+      array.SetName(self.metric_names[metricID])
       table.AddColumn(array)
 
     # Fill table
     table.SetNumberOfRows(numItems)
     for itemID in range(numItems):
       for metricID in range(numMetrics):
-        table.SetValue(itemID, metricID, metric_array[metricID][itemID])
+        table.SetValue(itemID, metricID, self.metric_array[metricID][itemID])
     table.Modified()
 
     print('Metric table has been created!')
 
   #------------------------------------------------------------------------------
-  def createPlotChart(self, metric_names):
+  def createCursorTable(self):
 
     # Get number of metrics
-    numMetrics = len(metric_names)
+    numMetrics = len(self.metric_names)
+
+    # Get number of items in recording
+    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+
+    # Delete existing table node if any
+    if self.cursorTableNode:
+      slicer.mrmlScene.RemoveNode(self.cursorTableNode)
+      self.cursorTableNode = None      
+
+    # Create table node
+    self.cursorTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
+    self.cursorTableNode.SetName('Cursor')
+
+    # Add one column for each metric
+    self.cursorTableNode.SetLocked(True) # lock table to avoid modifications
+    self.cursorTableNode.RemoveAllColumns() # reset
+    table = self.cursorTableNode.GetTable()
+    for metricID in range(numMetrics):
+      array = vtk.vtkFloatArray()
+      array.SetName(self.metric_names[metricID])
+      table.AddColumn(array)
+
+    # Fill table
+    table.SetNumberOfRows(1)
+    for metricID in range(numMetrics):
+      table.SetValue(0, metricID, max(self.metric_array[metricID][:]))
+    table.Modified()
+
+    # Set cursor to initial position
+    self.updateCursorPosition(0)
+
+    print('Cursor table has been created!')
+
+  #------------------------------------------------------------------------------
+  def updateCursorPosition(self, itemID):
+    if self.cursorTableNode:
+      # Modify cursor table to force plot chart update
+      table = self.cursorTableNode.GetTable()
+      table.SetValue(0, 0, float(itemID))
+      table.Modified()
+
+  #------------------------------------------------------------------------------
+  def createPlotChart(self):
+
+    # Get number of metrics
+    numMetrics = len(self.metric_names)
 
     # Delete previous plot series
-    if self.plotSeriesNodes:
-      for plotSeriesNode in self.plotSeriesNodes:
+    if self.metricValuesPlotSeriesNodes:
+      for plotSeriesNode in self.metricValuesPlotSeriesNodes:
         slicer.mrmlScene.RemoveNode(plotSeriesNode)
-      self.plotSeriesNodes = []
+      self.metricValuesPlotSeriesNodes = []
 
     # Create plot series
-    self.plotSeriesNodes = []
+    self.metricValuesPlotSeriesNodes = []
     for metricID in range(numMetrics-2):
       plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
-      plotSeriesNode.SetName(metric_names[metricID+2])
+      plotSeriesNode.SetName(self.metric_names[metricID+2])
       plotSeriesNode.SetAndObserveTableNodeID(self.metricTableNode.GetID())
-      plotSeriesNode.SetXColumnName(metric_names[0])
-      plotSeriesNode.SetYColumnName(metric_names[metricID+2])
+      plotSeriesNode.SetXColumnName(self.metric_names[0])
+      plotSeriesNode.SetYColumnName(self.metric_names[metricID+2])
       plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatter)
       plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleNone)
       plotSeriesNode.SetMarkerSize(15)
       plotSeriesNode.SetLineWidth(4)
       plotSeriesNode.SetColor([1,0,0]) # Red
-      self.plotSeriesNodes.append(plotSeriesNode)
+      self.metricValuesPlotSeriesNodes.append(plotSeriesNode)
+
+    # Delete previous cursor plot series
+    if self.cursorValuesPlotSeriesNodes:
+      for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
+        slicer.mrmlScene.RemoveNode(plotSeriesNode)
+      self.cursorValuesPlotSeriesNodes = []
+
+    # Create cursor plot series
+    self.cursorValuesPlotSeriesNodes = []
+    for metricID in range(numMetrics-2):
+      plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
+      plotSeriesNode.SetName(self.metric_names[metricID+2] + '_Cursor')
+      plotSeriesNode.SetAndObserveTableNodeID(self.cursorTableNode.GetID())
+      plotSeriesNode.SetXColumnName(self.metric_names[0])
+      plotSeriesNode.SetYColumnName(self.metric_names[metricID+2])
+      plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatterBar)
+      plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleCircle)
+      plotSeriesNode.SetMarkerSize(15)
+      plotSeriesNode.SetLineWidth(4)
+      plotSeriesNode.SetColor([0,0,0]) # Black
+      self.cursorValuesPlotSeriesNodes.append(plotSeriesNode)
 
     # Delete previous plot chart
     if self.plotChartNode:
@@ -1179,16 +1302,35 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotChartNode')
     self.plotChartNode.SetName('Chart')
     self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
-    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.plotSeriesNodes[0].GetID())
-    #for plotSeriesNode in self.plotSeriesNodes:
-    #  self.plotChartNode.AddAndObservePlotSeriesNodeID(plotSeriesNode.GetID())
+    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.metricValuesPlotSeriesNodes[0].GetID())
+    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.cursorValuesPlotSeriesNodes[0].GetID())
     self.plotChartNode.SetTitle('Metric Plot')
-    #self.plotChartNode.SetXAxisTitle('Sample ID')
+    self.plotChartNode.SetXAxisTitle('Sample ID')
     #self.plotChartNode.SetYAxisTitle('ANGLE (\xB0)')
     self.plotChartNode.SetAxisLabelFontSize(20)
 
     print('Plot chart has been created!')
 
+
+  #------------------------------------------------------------------------------
+  def updatePlotChart(self):
+
+    # Get selected metric name
+    metricName = self.selectedMetric
+
+    # Get metric ID from name
+    selectedMetricID = -1
+    numMetrics = len(self.metric_names)
+    for metricID in range(numMetrics-2):
+      if metricName == self.metric_names[metricID+2]:
+        selectedMetricID = metricID
+
+    # Update visible plot series in plot chart
+    if self.plotChartNode:
+      self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
+      self.plotChartNode.AddAndObservePlotSeriesNodeID(self.metricValuesPlotSeriesNodes[selectedMetricID].GetID())
+      self.plotChartNode.AddAndObservePlotSeriesNodeID(self.cursorValuesPlotSeriesNodes[selectedMetricID].GetID())
+      self.plotChartNode.SetTitle(metricName)
 
   #------------------------------------------------------------------------------
   def computeDistancePointToPoint(self, fromPoint, toPoint):
