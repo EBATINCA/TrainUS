@@ -472,10 +472,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.customLayout_FourUp3D_ID = 1000
     self.customLayout_Dual2D3D_withPlot_ID = 1001
 
-    # Tool transform names
-    self.toolNames = ['Probe', 'Stylus', 'Patient']    
-    self.toolTransformNames = ['ProbeToTracker', 'StylusToTracker', 'ReferenceToTracker']
-
     # Exercise settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
@@ -707,15 +703,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
 
     # Build transform tree
-    self.stylus_model.SetAndObserveTransformNodeID(self.StylusTipToStylus.GetID())
-    self.StylusTipToStylus.SetAndObserveTransformNodeID(self.StylusToTracker.GetID())
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
     self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
     self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.StylusToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
 
@@ -745,18 +738,14 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Load models
     self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
-    self.stylus_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
     self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 1.0)
 
     # Load transforms
-    self.StylusToTracker = self.getOrCreateTransform('StylusToTracker')
     self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
-    #self.StylusToTracker = self.loadTransformFromFile(self.dataFolderPath, 'StylusToTracker') # ONLY FOR DEVELOPMENT
     #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
     #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.StylusTipToStylus = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
     self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
     self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
@@ -889,7 +878,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Add synchronized nodes
       self.sequencesLogic.AddSynchronizedNode(None, self.NeedleToTracker, self.sequenceBrowserNode)
       self.sequencesLogic.AddSynchronizedNode(None, self.ProbeToTracker, self.sequenceBrowserNode)
-      self.sequencesLogic.AddSynchronizedNode(None, self.StylusToTracker, self.sequenceBrowserNode)
       self.sequencesLogic.AddSynchronizedNode(None, self.usImageVolumeNode, self.sequenceBrowserNode)
 
       # Stop overwritting and saving changes to all nodes
