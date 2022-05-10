@@ -366,8 +366,14 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onComputeMetricsButtonClicked(self):    
     
+    # Set wait cursor
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
+    # Create message window to indicate to user what is happening
+    progressDialog = self.showProgressDialog()
+
     # Compute metrics
-    self.logic.computeMetricsFromRecording()
+    self.logic.computeMetricsFromRecording(progressDialog)
 
     # Remove current items in combo box
     numItems = self.ui.metricSelectionComboBox.count
@@ -382,6 +388,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Hide plot
     self.logic.plotVisible = False
     self.logic.displayMetricPlot()
+
+    # Restore cursor and hide progress dialog
+    qt.QApplication.restoreOverrideCursor()
+    progressDialog.hide()
+    progressDialog.deleteLater()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -414,6 +425,21 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Go back to Home module
     #slicer.util.selectModule('Home') 
     print('Back to home!')
+
+  #------------------------------------------------------------------------------
+  def showProgressDialog(self):
+    """
+    Show progress dialog during metric computation.
+    """
+    progressDialog = qt.QProgressDialog('Computing performance metrics. Please, wait...', 'Cancel', 0, 100, slicer.util.mainWindow())
+    progressDialog.setCancelButton(None) # hide cancel button in dialog
+    progressDialog.setMinimumWidth(300) # dialog size
+    font = qt.QFont()
+    font.setPointSize(12)
+    progressDialog.setFont(font) # font size
+    progressDialog.show()
+    slicer.app.processEvents()
+    return progressDialog
 
 
 #---------------------------------------------------------------------------------------------#
@@ -962,7 +988,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.error('Could not set playback realtime fps rate')
 
   #------------------------------------------------------------------------------
-  def computeMetricsFromRecording(self):
+  def computeMetricsFromRecording(self, progressDialog = None):
 
     # Get number of items
     numItems = self.sequenceBrowserNode.GetNumberOfItems()
@@ -997,6 +1023,11 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Iterate along items
     self.sequenceBrowserNode.SelectFirstItem() # reset
     for currentItem in range(numItems):
+
+      # Update progress dialog if any
+      if progressDialog:
+        progress = (currentItem / numItems) * (progressDialog.maximum - progressDialog.minimum)
+        progressDialog.setValue(progress)
 
       # Get timestamp
       timestamp = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(currentItem)
@@ -1483,7 +1514,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   #------------------------------------------------------------------------------
   def setupLayouts(self):
     self.registerCustomLayouts()
-    self.setCustomLayout('3D only') # default
+    #self.setCustomLayout('3D only') # default
 
   #------------------------------------------------------------------------------
   def showViewerPinButton(self, sliceWidget, show):
