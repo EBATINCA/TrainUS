@@ -233,6 +233,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Metric selection
     self.ui.metricSelectionComboBox.enabled = self.logic.plotVisible
 
+    # Display plot
+    self.ui.displayPlotButton.checked = self.logic.plotVisible
 
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
@@ -243,7 +245,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   def onModeSelectionComboBoxTextChanged(self, text):
     # Update mode
     self.logic.exerciseMode = text
-    print('onModeSelectionComboBoxTextChanged:: ', text)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -754,7 +755,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         node=slicer.vtkMRMLLinearTransformNode()
         node.SetName(transformName)
         slicer.mrmlScene.AddNode(node)
-        print('ERROR: ' + transformName + ' transform was not found. Creating node as identity...')
+        logging.error('ERROR: ' + transformName + ' transform was not found. Creating node as identity...')
     return node
 
   #------------------------------------------------------------------------------
@@ -769,7 +770,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
           node=slicer.vtkMRMLLinearTransformNode()
           node.SetName(transformFileName)
           slicer.mrmlScene.AddNode(node)
-          print('ERROR: ' + transformFileName + ' transform not found in path. Creating node as identity...')
+          logging.error('ERROR: ' + transformFileName + ' transform not found in path. Creating node as identity...')
     return node
 
   #------------------------------------------------------------------------------
@@ -785,7 +786,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
           print(modelFileName + ' model loaded')
         except:
           node = None
-          print('ERROR: ' + modelFileName + ' model not found in path')
+          logging.error('ERROR: ' + modelFileName + ' model not found in path')
     return node
 
   #------------------------------------------------------------------------------
@@ -974,59 +975,45 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToUsPlaneAngleDeg = []
     self.needleToTargetLineInPlaneAngleDeg = []
 
+    # Get target point position
+    targetPoint = [0,0,0]
+    try:
+      self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
+      targetPoint = self.getTransformedPoint(targetPoint, None)
+    except:
+      logging.warning('No target point is defined...')
+
+    # Get target line position
+    targetLineStart = [0,0,0]
+    targetLineEnd = [0,0,0]
+    try:
+      self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
+      self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
+      targetLineStart = self.getTransformedPoint(targetLineStart, None)
+      targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
+    except:
+      logging.warning('No target line is defined...')
+
     # Iterate along items
     self.sequenceBrowserNode.SelectFirstItem() # reset
     for currentItem in range(numItems):
-      print('\nItem: ', currentItem)
 
       # Get timestamp
       timestamp = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(currentItem)
-      print('Timestamp: ', timestamp)
 
       # Get needle position
       needleTip = self.getTransformedPoint(self.NEEDLE_TIP, self.NeedleTipToNeedle)
-      print('Needle tip: ', needleTip)
       needleHandle = self.getTransformedPoint(self.NEEDLE_HANDLE, self.NeedleTipToNeedle)
-      print('Needle handle: ', needleHandle)
 
       # Get US probe position
       usProbeTip = self.getTransformedPoint(self.USPROBE_TIP, self.ProbeModelToProbe)
-      print('usProbeTip: ', usProbeTip)
       usProbeHandle = self.getTransformedPoint(self.USPROBE_HANDLE, self.ProbeModelToProbe)
-      print('usProbeHandle: ', usProbeHandle)
 
       # Get US image plane orientation
       usPlanePointA = np.array(self.USPLANE_ORIGIN)
-      print('usPlanePointA: ', usPlanePointA)
       usPlanePointB = np.array(self.USPLANE_NORMAL)
-      print('usPlanePointB: ', usPlanePointB)
       usPlaneCentroid = usPlanePointA
-      print('usPlaneCentroid: ', usPlaneCentroid)
       usPlaneNormal = (usPlanePointB - usPlanePointA) / np.linalg.norm(usPlanePointB - usPlanePointA)
-      print('usPlaneNormal: ', usPlaneNormal)
-
-      # Get target point position
-      targetPoint = [0,0,0]
-      try:
-        self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
-        targetPoint = self.getTransformedPoint(targetPoint, None)
-      except:
-        logging.error('No target point is defined...')
-      print('Target point: ', targetPoint)
-
-      # Get target line position
-      targetLineStart = [0,0,0]
-      targetLineEnd = [0,0,0]
-      try:
-        self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
-        self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
-        targetLineStart = self.getTransformedPoint(targetLineStart, None)
-        targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
-      except:
-        logging.error('No target point is defined...')
-      print('Target line start: ', targetLineStart)
-      print('Target line end: ', targetLineEnd)
-
 
       #
       # Metrics
@@ -1034,19 +1021,15 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
       # Distance from needle tip to US plane
       distance_NeedleTipToUSPlane = self.computeNeedleTipToUsPlaneDistanceMm(needleTip, usPlaneCentroid, usPlaneNormal)
-      print('Distance from needle tip to US plane: ', distance_NeedleTipToUSPlane)
 
       # Distance from needle tip to target point
       distance_NeedleTipToTargetPoint = self.computeNeedleTipToTargetDistanceMm(needleTip, targetPoint)
-      print('Distance from needle tip to target: ', distance_NeedleTipToTargetPoint)
 
       # Angle between needle and US plane
       angle_NeedleToUsPlane = self.computeNeedleToUsPlaneAngleDeg(needleTip, needleHandle, usPlaneCentroid, usPlaneNormal)
-      print('Angle between needle and US plane: ', angle_NeedleToUsPlane)
 
       # Angle between needle and target trajectory
       angle_NeedleToTargetLineInPlane = self.computeNeedleToTargetLineInPlaneAngleDeg(needleTip, needleHandle, targetLineStart, targetLineEnd, usPlaneCentroid, usPlaneNormal)
-      print('Angle between needle and target line (in-plane): ', angle_NeedleToTargetLineInPlane)
 
       # Store metrics
       self.sampleID.append(currentItem)
@@ -1086,7 +1069,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     distance = self.computeDistancePointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
     
     return distance
-
 
   #------------------------------------------------------------------------------
   def computeNeedleTipToTargetDistanceMm(self, needleTip, targetPoint):
@@ -1197,8 +1179,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         table.SetValue(itemID, metricID, self.metric_array[metricID][itemID])
     table.Modified()
 
-    print('Metric table has been created!')
-
   #------------------------------------------------------------------------------
   def createCursorTable(self):
 
@@ -1234,8 +1214,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Set cursor to initial position
     self.updateCursorPosition(0)
-
-    print('Cursor table has been created!')
 
   #------------------------------------------------------------------------------
   def updateCursorPosition(self, itemID):
@@ -1369,15 +1347,18 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     :return float: Angle between vector 1 and vector 2 in degrees.
     """
-    # Cosine value
-    cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
-    # Cosine value can only be between [-1, 1].
-    if cos_value > 1.0:
-      cos_value = 1.0
-    elif cos_value < -1.0:
-      cos_value = -1.0
-    # Compute angle in degrees
-    angle = np.rad2deg (np.arccos(cos_value))
+    try:
+      # Cosine value
+      cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
+      # Cosine value can only be between [-1, 1].
+      if cos_value > 1.0:
+        cos_value = 1.0
+      elif cos_value < -1.0:
+        cos_value = -1.0
+      # Compute angle in degrees
+      angle = np.rad2deg (np.arccos(cos_value))
+    except:
+      angle = -1.0
     return angle
 
   #------------------------------------------------------------------------------
