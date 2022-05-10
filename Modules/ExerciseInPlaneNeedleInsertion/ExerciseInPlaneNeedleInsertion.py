@@ -1551,14 +1551,14 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       layoutManager= slicer.app.layoutManager()
       layoutLogic = layoutManager.layoutLogic()
       customLayout_Dual2D3D = ("<layout type=\"horizontal\" split=\"true\">"
-      " <item>"
+      " <item splitSize=\"400\" >\n"
       "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
       "     <property name=\"orientation\" action=\"default\">Axial</property>"
       "     <property name=\"viewlabel\" action=\"default\">R</property>"
       "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
       "  </view>"
       " </item>"
-      " <item>"
+      " <item splitSize=\"600\" >\n"
       "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
       "  <property name=\"viewlabel\" action=\"default\">T</property>"
       "  </view>"
