@@ -230,10 +230,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.SequenceBrowserPlayWidget.enabled = False
       self.ui.SequenceBrowserSeekWidget.enabled = False
 
-    # Metric selection
-    self.ui.metricSelectionComboBox.enabled = self.logic.plotVisible
+    # Metric computation
+    self.ui.computeMetricsButton.enabled = not self.logic.isSequenceBrowserEmpty()
+    self.ui.metricSelectionComboBox.enabled = (not self.logic.isSequenceBrowserEmpty()) and self.logic.plotVisible
 
     # Display plot
+    self.ui.displayPlotButton.enabled = not self.logic.isSequenceBrowserEmpty()
     self.ui.displayPlotButton.checked = self.logic.plotVisible
 
   #------------------------------------------------------------------------------
@@ -916,6 +918,21 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       if self.observerID:
         self.sequenceBrowserNode.GetMasterSequenceNode().RemoveObserver(self.observerID)
 
+      # Delete plot series nodes
+      if self.metricValuesPlotSeriesNodes:
+        for plotSeriesNode in self.metricValuesPlotSeriesNodes:
+          slicer.mrmlScene.RemoveNode(plotSeriesNode)
+        self.metricValuesPlotSeriesNodes = []
+      if self.cursorValuesPlotSeriesNodes:
+        for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
+          slicer.mrmlScene.RemoveNode(plotSeriesNode)
+        self.cursorValuesPlotSeriesNodes = []
+
+      # Delete plot chart node
+      if self.plotChartNode:
+        slicer.mrmlScene.RemoveNode(self.plotChartNode)
+        self.plotChartNode = None
+
       # Remove sequence nodes from scene
       synchronizedSequenceNodes = vtk.vtkCollection()
       self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
@@ -927,6 +944,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       slicer.mrmlScene.RemoveNode(self.sequenceBrowserNode)
       self.sequenceBrowserNode = None 
       self.recordingLength = 0.0
+
       return True
     except:
       logging.error('Error deleting sequence browser node...')
@@ -961,6 +979,24 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         logging.error('Error adding an observer to the NeedleToTracker transform...')
     except:
       logging.error('Error loading sequence browser node from file...')
+
+  #------------------------------------------------------------------------------
+  def isSequenceBrowserEmpty(self):
+    """
+    Check if recording is empty or not.
+    """
+    # Get number of items
+    try:
+      numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    except:
+      return True
+
+    # Define sequence browser state
+    if numItems == 0:
+      isEmpty = True
+    else:
+      isEmpty = False
+    return isEmpty
 
   #------------------------------------------------------------------------------
   def setPlaybackRealtime(self):
