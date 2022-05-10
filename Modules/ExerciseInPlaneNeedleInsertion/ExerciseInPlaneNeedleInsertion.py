@@ -1286,6 +1286,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartNode.SetXAxisTitle('Sample ID')
     #self.plotChartNode.SetYAxisTitle('ANGLE (\xB0)')
     self.plotChartNode.SetAxisLabelFontSize(20)
+    self.plotChartNode.LegendVisibilityOff() # hide legend
+    self.plotChartNode.GridVisibilityOff()
 
     print('Plot chart has been created!')
 
