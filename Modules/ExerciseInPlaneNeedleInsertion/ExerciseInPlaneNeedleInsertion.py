@@ -374,6 +374,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Load sequence browser node
     self.logic.loadSequenceBrowserRecording(filePath)
 
+    # Reset focal point in 3D view
+    self.logic.resetFocalPointInThreeDView()
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -542,6 +545,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # 3D view
     self.threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
+    self.threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
 
     # Target nodes
     self.targetFileName = ''
@@ -770,6 +774,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Fit US image to view and display in 3D view     
     self.redSliceLogic.FitSliceToAll()
     self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
+
+    # Remove 3D cube and 3D axis label from 3D view
+    self.threeDViewNode.SetBoxVisible(False)
+    self.threeDViewNode.SetAxisLabelsVisible(False)
+
+    # Reset focal point in 3D view
+    self.resetFocalPointInThreeDView()
 
     # Display needle model projected in US image
     self.needle_model.GetDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
@@ -1097,6 +1108,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).setViewNode(self.threeDViewNode)
       self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeSetTransformNode(cameraTransform)
       self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeStart()
+
+  #------------------------------------------------------------------------------
+  def resetFocalPointInThreeDView(self):
+    self.threeDView.resetFocalPoint()
 
   #------------------------------------------------------------------------------
   def computeMetricsFromRecording(self, progressDialog = None):
