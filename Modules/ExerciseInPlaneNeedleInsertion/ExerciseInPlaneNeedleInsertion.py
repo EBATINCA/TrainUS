@@ -120,6 +120,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.connect(self.onSaveRecordingButtonClicked)
     # Load recording
     self.ui.loadRecordingFileButton.clicked.connect(self.onLoadRecordingFileButtonClicked)
+    # View control
+    self.ui.leftViewButton.clicked.connect(self.onLeftViewButtonClicked)
+    self.ui.frontViewButton.clicked.connect(self.onFrontViewButtonClicked)
+    self.ui.rightViewButton.clicked.connect(self.onRightViewButtonClicked)
+    self.ui.bottomViewButton.clicked.connect(self.onBottomViewButtonClicked)
+    self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
     # Compute metrics
     self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
     self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
@@ -149,6 +155,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.disconnect()
     # Load recording
     self.ui.loadRecordingFileButton.clicked.disconnect()
+    # View control
+    self.ui.leftViewButton.clicked.disconnect()
+    self.ui.frontViewButton.clicked.disconnect()
+    self.ui.rightViewButton.clicked.disconnect()
+    self.ui.bottomViewButton.clicked.disconnect()
+    self.ui.freeViewButton.clicked.disconnect()
     # Compute metrics
     self.ui.computeMetricsButton.clicked.disconnect()
     self.ui.displayPlotButton.clicked.disconnect()
@@ -366,6 +378,31 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
+  def onLeftViewButtonClicked(self):
+    # Update viewpoint
+    self.logic.updateViewpoint(cameraID = 'Left')
+
+  #------------------------------------------------------------------------------
+  def onFrontViewButtonClicked(self):
+    # Update viewpoint
+    self.logic.updateViewpoint(cameraID = 'Front')
+
+  #------------------------------------------------------------------------------
+  def onRightViewButtonClicked(self):
+    # Update viewpoint
+    self.logic.updateViewpoint(cameraID = 'Right')
+
+  #------------------------------------------------------------------------------
+  def onBottomViewButtonClicked(self):
+    # Update viewpoint
+    self.logic.updateViewpoint(cameraID = 'Bottom')
+
+  #------------------------------------------------------------------------------
+  def onFreeViewButtonClicked(self):
+    # Update viewpoint
+    self.logic.updateViewpoint(cameraID = 'Free')
+
+  #------------------------------------------------------------------------------
   def onComputeMetricsButtonClicked(self):    
     
     # Set wait cursor
@@ -487,6 +524,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
 
+    # Viewpoint module (SlicerIGT extension)
+    try:
+      import Viewpoint # Viewpoint Module must have been added to Slicer 
+      self.viewpointLogic = Viewpoint.ViewpointLogic()
+    except:
+      logging.error('ERROR: "Viewpoint" module was not found.')
+
     # Volume reslice driver (SlicerIGT extension)
     try:
       self.volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
@@ -495,6 +539,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Red slice
     self.redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+
+    # 3D view
+    self.threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
 
     # Target nodes
     self.targetFileName = ''
@@ -714,6 +761,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
 
+    # US probe camera transforms
+    self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
+
     # Fit US image to view and display in 3D view     
     self.redSliceLogic.FitSliceToAll()
     self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
@@ -751,6 +804,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
     self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
+
+    # Load camera transforms
+    self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')
+    self.FrontCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToProbeModel')
+    self.RightCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToProbeModel')
+    self.BottomCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToProbeModel')
 
     # Get ultrasound image
     try:
@@ -1010,6 +1069,34 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.sequenceBrowserNode.SetPlaybackRateFps(frameRate)
     except:
       logging.error('Could not set playback realtime fps rate')
+
+  #------------------------------------------------------------------------------
+  def updateViewpoint(self, cameraID):
+    """
+    Update virtual camera mode for 3D view.
+    """
+    # Select camera transform
+    if cameraID == 'Left':
+        cameraTransform = self.LeftCameraToProbeModel
+    elif cameraID == 'Front':
+        cameraTransform = self.FrontCameraToProbeModel
+    elif cameraID == 'Right':
+        cameraTransform = self.RightCameraToProbeModel
+    elif cameraID == 'Bottom':
+        cameraTransform = self.BottomCameraToProbeModel
+    else:
+        cameraTransform = None
+
+    # Disable bulleye mode if active
+    bullseyeMode = self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).getCurrentMode()
+    if bullseyeMode:
+      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeStop()
+    
+    # Update viewpoint
+    if cameraTransform:
+      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).setViewNode(self.threeDViewNode)
+      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeSetTransformNode(cameraTransform)
+      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeStart()
 
   #------------------------------------------------------------------------------
   def computeMetricsFromRecording(self, progressDialog = None):
