@@ -976,49 +976,50 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     """
     Update cursor position in plot chart.
     """
-    self.updateCursorPosition(self.sequenceBrowserNode.GetSelectedItemNumber())    
+    if self.sequenceBrowserNode:
+      self.updateCursorPosition(self.sequenceBrowserNode.GetSelectedItemNumber())    
 
   #------------------------------------------------------------------------------
   def clearSequenceBrowserRecording(self):
     """
     Clear recording data.
     """
-    try:
-      # Remove observer
-      if self.observerID:
-        self.sequenceBrowserNode.GetMasterSequenceNode().RemoveObserver(self.observerID)
+    if self.sequenceBrowserNode:
+      try:
+        # Remove observer
+        if self.observerID:
+          self.sequenceBrowserNode.GetMasterSequenceNode().RemoveObserver(self.observerID)
 
-      # Delete plot series nodes
-      if self.metricValuesPlotSeriesNodes:
-        for plotSeriesNode in self.metricValuesPlotSeriesNodes:
-          slicer.mrmlScene.RemoveNode(plotSeriesNode)
-        self.metricValuesPlotSeriesNodes = []
-      if self.cursorValuesPlotSeriesNodes:
-        for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
-          slicer.mrmlScene.RemoveNode(plotSeriesNode)
-        self.cursorValuesPlotSeriesNodes = []
+        # Delete plot series nodes
+        if self.metricValuesPlotSeriesNodes:
+          for plotSeriesNode in self.metricValuesPlotSeriesNodes:
+            slicer.mrmlScene.RemoveNode(plotSeriesNode)
+          self.metricValuesPlotSeriesNodes = []
+        if self.cursorValuesPlotSeriesNodes:
+          for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
+            slicer.mrmlScene.RemoveNode(plotSeriesNode)
+          self.cursorValuesPlotSeriesNodes = []
 
-      # Delete plot chart node
-      if self.plotChartNode:
-        slicer.mrmlScene.RemoveNode(self.plotChartNode)
-        self.plotChartNode = None
+        # Delete plot chart node
+        if self.plotChartNode:
+          slicer.mrmlScene.RemoveNode(self.plotChartNode)
+          self.plotChartNode = None
 
-      # Remove sequence nodes from scene
-      synchronizedSequenceNodes = vtk.vtkCollection()
-      self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
-      synchronizedSequenceNodes.AddItem(self.sequenceBrowserNode.GetMasterSequenceNode())
-      for sequenceNode in synchronizedSequenceNodes:
-        slicer.mrmlScene.RemoveNode(sequenceNode)
+        # Remove sequence nodes from scene
+        synchronizedSequenceNodes = vtk.vtkCollection()
+        self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
+        synchronizedSequenceNodes.AddItem(self.sequenceBrowserNode.GetMasterSequenceNode())
+        for sequenceNode in synchronizedSequenceNodes:
+          slicer.mrmlScene.RemoveNode(sequenceNode)
 
-      # Remove sequence browser node from scene
-      slicer.mrmlScene.RemoveNode(self.sequenceBrowserNode)
-      self.sequenceBrowserNode = None 
-      self.recordingLength = 0.0
-
-      return True
-    except:
-      logging.error('Error deleting sequence browser node...')
-      return False
+        # Remove sequence browser node from scene
+        slicer.mrmlScene.RemoveNode(self.sequenceBrowserNode)
+        self.sequenceBrowserNode = None 
+        self.recordingLength = 0.0
+      except:
+        logging.error('Error deleting sequence browser node...')
+        return False
+    return True
 
   #------------------------------------------------------------------------------
   def saveSequenceBrowserRecording(self, filePath):
