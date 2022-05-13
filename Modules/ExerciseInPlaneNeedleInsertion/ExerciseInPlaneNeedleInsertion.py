@@ -250,10 +250,16 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.displayPlotButton.enabled = not self.logic.isSequenceBrowserEmpty()
     self.ui.displayPlotButton.checked = self.logic.plotVisible
 
+    # Update viewpoint
+    self.logic.updateViewpoint()
+
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
     # Start exercise
     self.logic.setupScene()
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onModeSelectionComboBoxTextChanged(self, text):
@@ -383,27 +389,42 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onLeftViewButtonClicked(self):
     # Update viewpoint
-    self.logic.updateViewpoint(cameraID = 'Left')
+    self.logic.currentViewpointMode = 'Left'
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onFrontViewButtonClicked(self):
     # Update viewpoint
-    self.logic.updateViewpoint(cameraID = 'Front')
+    self.logic.currentViewpointMode = 'Front'
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onRightViewButtonClicked(self):
     # Update viewpoint
-    self.logic.updateViewpoint(cameraID = 'Right')
+    self.logic.currentViewpointMode = 'Right'
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onBottomViewButtonClicked(self):
     # Update viewpoint
-    self.logic.updateViewpoint(cameraID = 'Bottom')
+    self.logic.currentViewpointMode = 'Bottom'
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onFreeViewButtonClicked(self):
     # Update viewpoint
-    self.logic.updateViewpoint(cameraID = 'Free')
+    self.logic.currentViewpointMode = 'Free'
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onComputeMetricsButtonClicked(self):    
@@ -592,6 +613,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToTargetLineInPlaneAngleDeg = []
     self.metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
     self.metric_array = []
+
+    # Viewpoint
+    self.currentViewpointMode = 'Front' # default is front view
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -1083,21 +1107,24 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.error('Could not set playback realtime fps rate')
 
   #------------------------------------------------------------------------------
-  def updateViewpoint(self, cameraID):
+  def updateViewpoint(self):
     """
     Update virtual camera mode for 3D view.
     """
     # Select camera transform
-    if cameraID == 'Left':
-        cameraTransform = self.LeftCameraToProbeModel
-    elif cameraID == 'Front':
-        cameraTransform = self.FrontCameraToProbeModel
-    elif cameraID == 'Right':
-        cameraTransform = self.RightCameraToProbeModel
-    elif cameraID == 'Bottom':
-        cameraTransform = self.BottomCameraToProbeModel
-    else:
-        cameraTransform = None
+    try:
+      if self.currentViewpointMode == 'Left':
+          cameraTransform = self.LeftCameraToProbeModel
+      elif self.currentViewpointMode == 'Front':
+          cameraTransform = self.FrontCameraToProbeModel
+      elif self.currentViewpointMode == 'Right':
+          cameraTransform = self.RightCameraToProbeModel
+      elif self.currentViewpointMode == 'Bottom':
+          cameraTransform = self.BottomCameraToProbeModel
+      else:
+          cameraTransform = None
+    except:
+      return
 
     # Disable bulleye mode if active
     bullseyeMode = self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).getCurrentMode()
