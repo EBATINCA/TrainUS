@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>444</width>
-    <height>935</height>
+    <height>988</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -243,6 +243,55 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="ctkCollapsibleGroupBox" name="trimSequenceGroupBox">
+        <property name="title">
+         <string>Trim sequence</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="collapsedHeight">
+         <number>0</number>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="2">
+          <widget class="QLabel" name="maxValueTrimSequenceLabel">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="minValueTrimSequenceLabel">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider">
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QPushButton" name="trimSequenceButton">
+           <property name="text">
+            <string>Trim Sequence</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -366,6 +415,11 @@
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkDoubleRangeSlider</class>
+   <extends>QWidget</extends>
+   <header>ctkDoubleRangeSlider.h</header>
   </customwidget>
   <customwidget>
    <class>qMRMLWidget</class>

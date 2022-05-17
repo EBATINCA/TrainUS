@@ -120,6 +120,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.connect(self.onSaveRecordingButtonClicked)
     # Load recording
     self.ui.loadRecordingFileButton.clicked.connect(self.onLoadRecordingFileButtonClicked)
+    # Trim sequence
+    self.ui.trimSequenceGroupBox.toggled.connect(self.onTrimSequenceGroupBoxCollapsed)
+    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.connect(self.onTrimSequenceDoubleRangeSliderModified)
+    self.ui.trimSequenceButton.clicked.connect(self.onTrimSequenceButtonClicked)
     # View control
     self.ui.leftViewButton.clicked.connect(self.onLeftViewButtonClicked)
     self.ui.frontViewButton.clicked.connect(self.onFrontViewButtonClicked)
@@ -155,6 +159,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.saveRecordingButton.clicked.disconnect()
     # Load recording
     self.ui.loadRecordingFileButton.clicked.disconnect()
+    # Trim sequence
+    self.ui.trimSequenceGroupBox.toggled.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.disconnect()
+    self.ui.trimSequenceButton.clicked.disconnect()
     # View control
     self.ui.leftViewButton.clicked.disconnect()
     self.ui.frontViewButton.clicked.disconnect()
@@ -241,6 +249,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     else:
       self.ui.SequenceBrowserPlayWidget.enabled = False
       self.ui.SequenceBrowserSeekWidget.enabled = False
+
+    # Trim sequence
+    rangeSequence = self.logic.getRangeSequenceBrowserRecording()
+    if rangeSequence:
+      self.ui.trimSequenceDoubleRangeSlider.minimum = rangeSequence[0]
+      self.ui.trimSequenceDoubleRangeSlider.maximum = rangeSequence[1]
+      self.ui.trimSequenceDoubleRangeSlider.minimumValue = rangeSequence[0]
+      self.ui.trimSequenceDoubleRangeSlider.maximumValue = rangeSequence[1]
+    if self.logic.isSequenceBrowserEmpty():
+      self.ui.maxValueTrimSequenceLabel.text = '-'
+      self.ui.minValueTrimSequenceLabel.text = '-'
 
     # Metric computation
     self.ui.computeMetricsButton.enabled = not self.logic.isSequenceBrowserEmpty()
@@ -382,6 +401,33 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
     # Reset focal point in 3D view
     self.logic.resetFocalPointInThreeDView()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceGroupBoxCollapsed(self, toggled):
+    print('Trim markers visible: ', toggled)
+    self.logic.trimMarkersVisible = toggled
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceDoubleRangeSliderModified(self, minValue, maxValue):
+    # Update UI labels to indicate current min and max values in slider range
+    self.ui.minValueTrimSequenceLabel.text = str("{0:05.2f}".format(minValue)) + ' s'
+    self.ui.maxValueTrimSequenceLabel.text = str("{0:05.2f}".format(maxValue)) + ' s'
+
+    # Update trim markers in plot
+    # TO DO
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceButtonClicked(self):
+
+    # Get slider values
+    minValue = self.ui.trimSequenceDoubleRangeSlider.minimumValue
+    maxValue = self.ui.trimSequenceDoubleRangeSlider.maximumValue
+
+    # Trim sequence
+    self.logic.trimSequenceBrowserRecording(minValue, maxValue)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -616,6 +662,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Viewpoint
     self.currentViewpointMode = 'Front' # default is front view
+
+    # Trim sequences
+    self.trimMarkersVisible = False
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -1074,6 +1123,73 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         logging.error('Error adding an observer to the NeedleToTracker transform...')
     except:
       logging.error('Error loading sequence browser node from file...')
+
+  #------------------------------------------------------------------------------
+  def trimSequenceBrowserRecording(self, minValue, maxValue):
+    
+    # Translate timestamps to sample ID
+    print('Trimming sequence: ', [minValue, maxValue])
+    sampleInit = self.getSequenceItemFromTimestamp(minValue)
+    sampleEnd = self.getSequenceItemFromTimestamp(maxValue)
+    print('Trimming sequence (samples): ', [sampleInit, sampleEnd])
+
+    # Get number of items
+    try:
+      numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    except:
+      return
+
+    # Get list of timestamps
+    valuesToBeRemoved = list()
+    for itemID in range(numItems):
+      value = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(itemID)
+      if (float(value) < minValue) or (float(value) > maxValue):
+        valuesToBeRemoved.append(value)
+
+    # Remove data nodes from sequences
+    for value in valuesToBeRemoved:
+      self.sequenceBrowserNode.GetMasterSequenceNode().RemoveDataNodeAtValue(value)
+
+
+  #------------------------------------------------------------------------------
+  def getRangeSequenceBrowserRecording(self):
+    """
+    Check if recording is empty or not.
+    """
+    # Get number of items
+    try:
+      numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    except:
+      return
+
+    # No range if recording is empty
+    if numItems == 0:
+      return
+
+    # Get initial and final timestamps
+    minValue = float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(0))
+    maxValue = float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(numItems-1))
+    return [minValue, maxValue]
+
+  #------------------------------------------------------------------------------
+  def getSequenceItemFromTimestamp(self, inputTimestamp):
+    """
+    Get sequence item ID from index value (timestamp).
+    """
+    # Get number of items
+    try:
+      numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    except:
+      return
+
+    # Get list of timestamps
+    timestampsList = list()
+    for itemID in range(numItems):
+      timestampsList.append(float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(itemID)))
+
+    # Get closest timestamp
+    outputItemID = timestampsList.index(min(timestampsList, key=lambda x:abs(x-inputTimestamp)))
+    return outputItemID
 
   #------------------------------------------------------------------------------
   def isSequenceBrowserEmpty(self):
