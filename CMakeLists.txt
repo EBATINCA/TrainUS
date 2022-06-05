@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3)
 
-# Enable C++14
+# Enable C++17
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -15,7 +15,7 @@ if(NOT DEFINED slicersources_SOURCE_DIR)
   # Download Slicer sources and set variables slicersources_SOURCE_DIR and slicersources_BINARY_DIR
   FetchContent_Populate(slicersources
     GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/Slicer/Slicer
-    GIT_TAG        e081f91bf4a134b8efdb8db0cdca3c82bc6eaffb # 2022.03.09. (just before Slicer 5.0)
+    GIT_TAG        a4420c378ebe8d84928f10bd3040d48181890a3b  # 5.0.2
     GIT_PROGRESS   1
     )
 else()
@@ -162,7 +162,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/openigtlink/SlicerOpenIGTLink.git
-  GIT_TAG        ca4b0fa5989403ee67a3e730f3df85f25e9a3bf4 # branch: master
+  GIT_TAG        3bbf9d109e713f6da73ba742dc9b6967d74a4b65  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -174,7 +174,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerIGT/SlicerIGT.git
-  GIT_TAG        083b8b2229a5a576c144fc03a0501df980e80abf # branch: master
+  GIT_TAG        61ec7a1873a065d58352fd2733718edcd0caa682  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -186,7 +186,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/IGSIO/SlicerIGSIO.git
-  GIT_TAG        f461f692ef288a886d48882af8b34a07b9dba578 # branch: master
+  GIT_TAG        b57a4200125e91a3e484f9471ec472ba7febad54  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -195,7 +195,7 @@ option(SlicerIGSIO_USE_VP9 OFF)
 set(vtkAddon_DIR "${CMAKE_BINARY_DIR}/IGSIO-build/vtkAddon-bin")
 mark_as_superbuild(vtkAddon_DIR:PATH)
 set(vtkAddon_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/bin)
-set(vtkAddon_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/lib/SpineUs-4.11)
+set(vtkAddon_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/lib/TrainUS-5.0)
 
 # PerkTutor
 set(extension_name "PerkTutor")
@@ -203,7 +203,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkTutor/PerkTutor.git
-  GIT_TAG        0dfc7b42fab6e216ba086d5ceeaef92efeda51cf # branch: master
+  GIT_TAG        afd9f5768c3e4d8e310c8bf08666bca80d327f55  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -215,7 +215,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SlicerRt/SlicerDebuggingTools.git
-  # GIT_TAG        8f5436b8519e10163fd88a86f5641fe70fc6697d # branch: master
+  # GIT_TAG        8f5436b8519e10163fd88a86f5641fe70fc6697d  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
