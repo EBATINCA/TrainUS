@@ -99,6 +99,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.showInstructionsButton.setText('Show')
     self.ui.trimSequenceGroupBox.collapsed = True
 
+    # Disable slice annotations immediately
+    sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
+    sliceAnnotations.sliceViewAnnotationsEnabled = False
+    sliceAnnotations.updateSliceViewFromGUI()
+
   #------------------------------------------------------------------------------
   def setupConnections(self):    
     # Load data
@@ -569,10 +574,11 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Register layouts
     self.customLayout_Dual2D3D_ID = 997
-    self.customLayout_2Donly_ID = 998
-    self.customLayout_Dual3D3D_ID = 999
-    self.customLayout_FourUp3D_ID = 1000
-    self.customLayout_Dual2D3D_withPlot_ID = 1001
+    self.customLayout_2Donly_red_ID = 998
+    self.customLayout_2Donly_yellow_ID = 999
+    self.customLayout_Dual3D3D_ID = 1000
+    self.customLayout_FourUp3D_ID = 1001
+    self.customLayout_Dual2D3D_withPlot_ID = 1002
 
     # Exercise settings
     self.exerciseDifficulty = 'Medium'  
@@ -602,6 +608,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Red slice
     self.redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+
+    # Red slice
+    self.yellowSliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
+    self.yellowSliceLogic = self.yellowSliceWidget.sliceLogic()
 
     # 3D view
     self.threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
@@ -669,7 +679,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.exerciseLayout = '2D + 3D'
       self.highlightModelsInImage = False
     elif self.exerciseDifficulty == 'Hard':
-      self.exerciseLayout = '2D only'
+      self.exerciseLayout = '2D only red'
       self.highlightModelsInImage = False
     else:
       self.exerciseLayout = '3D only'
@@ -694,57 +704,69 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.lastLayout = layoutManager.layout
 
       # Store last background volume in red slice view
-      self.lastBackgroundVolumeID = self.redSliceLogic.GetSliceCompositeNode().GetBackgroundVolumeID()
+      self.lastBackgroundVolumeID = self.yellowSliceLogic.GetSliceCompositeNode().GetBackgroundVolumeID()
 
       # Deactivate volume reslice driver
-      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, self.redSliceLogic.GetSliceNode())
+      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, self.yellowSliceLogic.GetSliceNode())
 
       # Avoid visibility of needle model in 2D view
       self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(False)
 
+      # Hide slice controller visibility
+      self.updateSliceControllerVisibility(False)
+
+      # Disable yellow slice widget to avoid mouse interactions (drag, zoom, ...)
+      self.yellowSliceWidget.enabled = False
+
       # Switch to 2D only layout
-      self.setCustomLayout('2D only')
+      self.setCustomLayout('2D only yellow')
 
       # Display instructions
-      self.redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.instructions.GetID())
-      self.redSliceLogic.GetSliceNode().SetOrientationToAxial()
-      self.redSliceLogic.FitSliceToAll()
-      self.redSliceLogic.SetSliceOffset(0)
+      self.yellowSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.instructions.GetID())
+      self.yellowSliceLogic.GetSliceNode().SetOrientationToAxial()
+      self.yellowSliceLogic.FitSliceToAll()
+      self.yellowSliceLogic.SetSliceOffset(0)
 
     else:
+      # Restore slice controller visibility
+      self.updateSliceControllerVisibility(True)
+
+      # Enable yellow slice widget to avoid mouse interactions (drag, zoom, ...)
+      self.yellowSliceWidget.enabled = True
+
       # Restore last layout if any
       if self.lastLayout:
         layoutManager= slicer.app.layoutManager()
         layoutManager.setLayout(self.lastLayout)
 
       # Activate volume reslice driver
-      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
+      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.yellowSliceLogic.GetSliceNode())
 
       # Restore visibility of needle model in 2D view
       self.updateDifficulty()
 
       # Restore last volume
       if self.lastBackgroundVolumeID:
-        self.redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.lastBackgroundVolumeID)
-        self.redSliceLogic.FitSliceToAll()
+        self.yellowSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.lastBackgroundVolumeID)
+        self.yellowSliceLogic.FitSliceToAll()
 
   #------------------------------------------------------------------------------
   def previousExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      sliceOffset = self.redSliceLogic.GetSliceOffset()
-      sliceIndex = self.redSliceLogic.GetSliceIndexFromOffset(sliceOffset - 1)
+      sliceOffset = self.yellowSliceLogic.GetSliceOffset()
+      sliceIndex = self.yellowSliceLogic.GetSliceIndexFromOffset(sliceOffset - 1)
       if sliceIndex > 0:
-        self.redSliceLogic.SetSliceOffset(sliceOffset - 1)
+        self.yellowSliceLogic.SetSliceOffset(sliceOffset - 1)
 
   #------------------------------------------------------------------------------
   def nextExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      sliceOffset = self.redSliceLogic.GetSliceOffset()
-      sliceIndex = self.redSliceLogic.GetSliceIndexFromOffset(sliceOffset + 1)
+      sliceOffset = self.yellowSliceLogic.GetSliceOffset()
+      sliceIndex = self.yellowSliceLogic.GetSliceIndexFromOffset(sliceOffset + 1)
       if sliceIndex > 0:
-        self.redSliceLogic.SetSliceOffset(sliceOffset + 1)
+        self.yellowSliceLogic.SetSliceOffset(sliceOffset + 1)
 
   #------------------------------------------------------------------------------
   def getNumberOfTargets(self):
@@ -1827,11 +1849,20 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       "  </view>"
       " </item>"
       "</layout>")
-      customLayout_2Donly = ("<layout type=\"horizontal\">"
+      customLayout_2Donly_red = ("<layout type=\"horizontal\">"
       " <item>"
       "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
       "   <property name=\"orientation\" action=\"default\">Axial</property>"
       "     <property name=\"viewlabel\" action=\"default\">R</property>"
+      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+      customLayout_2Donly_yellow = ("<layout type=\"horizontal\">"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "     <property name=\"viewlabel\" action=\"default\">Y</property>"
       "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
       "  </view>"
       " </item>"
@@ -1900,10 +1931,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       "  <property name=\"viewlabel\" action=\"default\">1</property>"
       "  </view>"
       " </item>"
-      "</layout>")
-      
+      "</layout>")      
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_ID, customLayout_2Donly)
+      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_red_ID, customLayout_2Donly_red)
+      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_yellow_ID, customLayout_2Donly_yellow)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
       layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
@@ -1914,8 +1945,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Determine layout id from name
     if layoutName == '3D only':
       layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView
-    elif layoutName == '2D only':
-      layoutID = self.customLayout_2Donly_ID
+    elif layoutName == '2D only red':
+      layoutID = self.customLayout_2Donly_red_ID
+    elif layoutName == '2D only yellow':
+      layoutID = self.customLayout_2Donly_yellow_ID
     elif layoutName == '2D + 3D':
       layoutID = self.customLayout_Dual2D3D_ID
     elif layoutName == 'Dual 3D':
