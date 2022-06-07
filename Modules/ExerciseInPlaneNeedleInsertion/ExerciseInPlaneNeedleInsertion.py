@@ -97,6 +97,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
     # Customize widgets
     self.ui.showInstructionsButton.setText('Show')
+    self.ui.trimSequenceGroupBox.collapsed = True
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
