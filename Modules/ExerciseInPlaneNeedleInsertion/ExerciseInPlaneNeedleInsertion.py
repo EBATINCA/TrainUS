@@ -203,14 +203,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.importRecordingGroupBox.visible = True
       self.ui.playbackGroupBox.visible = True
       self.ui.metricsGroupBox.visible = True
-    elif self.logic.exerciseMode == 'Developer':
-      self.ui.instructionsGroupBox.visible = True
-      self.ui.difficultyGroupBox.visible = True
-      self.ui.targetGeneratorGroupBox.visible = True
-      self.ui.recordingGroupBox.visible = True
-      self.ui.importRecordingGroupBox.visible = True
-      self.ui.playbackGroupBox.visible = True
-      self.ui.metricsGroupBox.visible = True
     else:
       logging.error('Invalid selected mode...')
 

@@ -52,14 +52,15 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QComboBox" name="modeSelectionComboBox">
+        <property name="currentText">
+         <string>Evaluation</string>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
         <property name="maxVisibleItems">
          <number>10</number>
         </property>
-        <item>
-         <property name="text">
-          <string>Developer</string>
-         </property>
-        </item>
         <item>
          <property name="text">
           <string>Recording</string>
