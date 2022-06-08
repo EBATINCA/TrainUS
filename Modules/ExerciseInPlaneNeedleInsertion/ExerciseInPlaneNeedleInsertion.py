@@ -8,6 +8,8 @@ from slicer.util import VTKObservationMixin
 
 import logging
 
+import json
+
 #------------------------------------------------------------------------------
 #
 # ExerciseInPlaneNeedleInsertion
@@ -200,6 +202,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.recordingGroupBox.visible = True
       self.ui.importRecordingGroupBox.visible = False
       self.ui.playbackGroupBox.visible = False
+      self.ui.viewControllerGroupBox.visible = False
       self.ui.metricsGroupBox.visible = False
     elif self.logic.exerciseMode == 'Evaluation':
       self.ui.instructionsGroupBox.visible = True
@@ -208,6 +211,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.recordingGroupBox.visible = False
       self.ui.importRecordingGroupBox.visible = True
       self.ui.playbackGroupBox.visible = True
+      self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = True
     else:
       logging.error('Invalid selected mode...')
@@ -221,6 +225,14 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.showInstructionsButton.setText('Show')
       self.ui.previousInstructionButton.enabled = False
       self.ui.nextInstructionButton.enabled = False
+
+    # Difficulty
+    if self.logic.exerciseDifficulty == 'Easy':
+      self.ui.easyRadioButton.checked = True
+    elif self.logic.exerciseDifficulty == 'Medium':
+      self.ui.mediumRadioButton.checked = True
+    elif self.logic.exerciseDifficulty == 'Hard':
+      self.ui.hardRadioButton.checked = True
 
     # Start/Stop recording
     if self.logic.recordingInProgress:
@@ -287,7 +299,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onDifficultyRadioButtonToggled(self):    
+  def onDifficultyRadioButtonToggled(self):
     # Determine input difficulty
     if self.ui.easyRadioButton.isChecked():
       self.logic.exerciseDifficulty = 'Easy'
@@ -330,12 +342,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Generate random target ID
     targetID = np.random.randint(0, numTargets) + 1
 
-    # Get target file location
-    targetFileName = 'Target_' + str(targetID) + '.mrk.json'
-    targetDataFolder = self.logic.dataFolderPath + '/Targets/'
-
     # Load selected target
-    self.logic.loadTarget(targetFileName, targetDataFolder)
+    self.logic.loadTarget(targetID)
 
   #------------------------------------------------------------------------------
   def onStartStopRecordingButtonClicked(self):    
@@ -399,6 +407,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
     # Reset focal point in 3D view
     self.logic.resetFocalPointInThreeDView()
+
+    # Load recording info file
+    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
+    recordingInfo = self.logic.readRecordingInfoFile(recordingInfoFilePath)
+
+    # Update target corresponding to recording
+    targetID = recordingInfo['options']['target']
+    self.logic.loadTarget(targetID)
+
+    # Update difficulty corresponding to recording
+    self.logic.exerciseDifficulty = recordingInfo['options']['difficulty']
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -777,7 +796,11 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return numTargets
     
   #------------------------------------------------------------------------------
-  def loadTarget(self, targetFileName, targetDataFolder):
+  def loadTarget(self, targetID):
+
+    # Get target file location
+    targetFileName = 'Target_' + str(targetID) + '.mrk.json'
+    targetDataFolder = self.dataFolderPath + '/Targets/'
 
     # Remove previous target from scene
     if self.targetLineNode:
@@ -1138,6 +1161,25 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         logging.error('Error adding an observer to the NeedleToTracker transform...')
     except:
       logging.error('Error loading sequence browser node from file...')
+
+  #------------------------------------------------------------------------------
+  def readRecordingInfoFile(self, filePath):
+    """
+    Reads recording's information from .json file.
+
+    :param filePath: path to JSON file (string)
+
+    :return recording info (dict)
+    """
+    logging.debug('RecordingManager.readRecordingInfoFile')
+    
+    try:
+      with open(filePath, 'r') as inputFile:
+        recordingInfo =  json.loads(inputFile.read())
+    except:
+      logging.error('Cannot read recording information from JSON file at ' + filePath)
+      recordingInfo = None
+    return recordingInfo
 
   #------------------------------------------------------------------------------
   def trimSequenceBrowserRecording(self, minValue, maxValue):
