@@ -718,9 +718,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def updateDisplayExerciseInstructions(self):
 
     if self.intructionsVisible:
-      # Store last layout
+      # Store last layout settings
       layoutManager= slicer.app.layoutManager()
-      self.lastLayout = layoutManager.layout
+      needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
+      self.lastLayout = [layoutManager.layout, needleSliceIntersectionVisibility]
 
       # Store last background volume in red slice view
       self.lastBackgroundVolumeID = self.yellowSliceLogic.GetSliceCompositeNode().GetBackgroundVolumeID()
@@ -756,13 +757,14 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Restore last layout if any
       if self.lastLayout:
         layoutManager= slicer.app.layoutManager()
-        layoutManager.setLayout(self.lastLayout)
+        if self.lastLayout[0] != layoutManager.layout:
+          layoutManager.setLayout(self.lastLayout[0]) # set last layout
+        else:
+          self.setCustomLayout('2D + 3D')
+        self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.lastLayout[1]) # set model intersection visibility in slice
 
       # Activate volume reslice driver
       self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.yellowSliceLogic.GetSliceNode())
-
-      # Restore visibility of needle model in 2D view
-      self.updateDifficulty()
 
       # Restore last volume
       if self.lastBackgroundVolumeID:
@@ -1807,20 +1809,25 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     if self.plotVisible:
       # Store last layout
       layoutManager= slicer.app.layoutManager()
-      self.lastLayout = layoutManager.layout
+      needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
+      self.lastLayout = [layoutManager.layout, needleSliceIntersectionVisibility]
 
       # Switch to plot only layout
       self.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
-      slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(self.plotChartNode.GetID())
-      slicer.app.applicationLogic().PropagatePlotChartSelection()    
+      if self.plotChartNode:
+        slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(self.plotChartNode.GetID())
+        slicer.app.applicationLogic().PropagatePlotChartSelection()    
 
     else:
       # Restore last layout if any
       if self.lastLayout:
         layoutManager= slicer.app.layoutManager()
-        layoutManager.setLayout(self.lastLayout)
+        if self.lastLayout[0] != layoutManager.layout:
+          layoutManager.setLayout(self.lastLayout[0]) # set last layout
+        else:
+          self.setCustomLayout('2D + 3D')
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
