@@ -399,7 +399,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     fileDialog.setFilter(qt.QDir.Files)
     filters = ['*.sqbr']
     fileDialog.setNameFilters(filters)
-    filePath = fileDialog.getOpenFileName()
+    fileDialog.setFileMode(qt.QFileDialog().ExistingFile) # just one file can be selected
+    fileDialog.exec_()
+    selectedFiles = fileDialog.selectedFiles()
+    filePath = selectedFiles[0]
     if not filePath:
       return
 
