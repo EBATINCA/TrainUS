@@ -131,6 +131,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Trim sequence
     self.ui.trimSequenceGroupBox.toggled.connect(self.onTrimSequenceGroupBoxCollapsed)
     self.ui.trimSequenceDoubleRangeSlider.valuesChanged.connect(self.onTrimSequenceDoubleRangeSliderModified)
+    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.connect(self.onTrimSequenceMinPosDoubleRangeSliderModified)
+    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.connect(self.onTrimSequenceMaxPosDoubleRangeSliderModified)
     self.ui.trimSequenceButton.clicked.connect(self.onTrimSequenceButtonClicked)
     # View control
     self.ui.leftViewButton.clicked.connect(self.onLeftViewButtonClicked)
@@ -170,6 +172,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Trim sequence
     self.ui.trimSequenceGroupBox.toggled.disconnect()
     self.ui.trimSequenceDoubleRangeSlider.valuesChanged.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.disconnect()
     self.ui.trimSequenceButton.clicked.disconnect()
     # View control
     self.ui.leftViewButton.clicked.disconnect()
@@ -424,8 +428,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onTrimSequenceGroupBoxCollapsed(self, toggled):
-    print('Trim markers visible: ', toggled)
-    self.logic.trimMarkersVisible = toggled
+    pass
 
   #------------------------------------------------------------------------------
   def onTrimSequenceDoubleRangeSliderModified(self, minValue, maxValue):
@@ -433,12 +436,18 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.minValueTrimSequenceLabel.text = str("{0:05.2f}".format(minValue)) + ' s'
     self.ui.maxValueTrimSequenceLabel.text = str("{0:05.2f}".format(maxValue)) + ' s'
 
-    # Update trim markers in plot
-    # TO DO
+  #------------------------------------------------------------------------------
+  def onTrimSequenceMinPosDoubleRangeSliderModified(self, minValue):
+    # Update current sample in sequence browser by modifying seek widget slider
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.getSequenceItemFromTimestamp(minValue)
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceMaxPosDoubleRangeSliderModified(self, maxValue):
+    # Update current sample in sequence browser by modifying seek widget slider
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.getSequenceItemFromTimestamp(maxValue)
 
   #------------------------------------------------------------------------------
   def onTrimSequenceButtonClicked(self):
-
     # Get slider values
     minValue = self.ui.trimSequenceDoubleRangeSlider.minimumValue
     maxValue = self.ui.trimSequenceDoubleRangeSlider.maximumValue
@@ -684,9 +693,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Viewpoint
     self.currentViewpointMode = 'Front' # default is front view
-
-    # Trim sequences
-    self.trimMarkersVisible = False
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -1187,10 +1193,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def trimSequenceBrowserRecording(self, minValue, maxValue):
     
     # Translate timestamps to sample ID
-    print('Trimming sequence: ', [minValue, maxValue])
     sampleInit = self.getSequenceItemFromTimestamp(minValue)
     sampleEnd = self.getSequenceItemFromTimestamp(maxValue)
-    print('Trimming sequence (samples): ', [sampleInit, sampleEnd])
 
     # Get number of items
     try:
@@ -1209,6 +1213,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     for value in valuesToBeRemoved:
       self.sequenceBrowserNode.GetMasterSequenceNode().RemoveDataNodeAtValue(value)
 
+    # Select first item
+    self.sequenceBrowserNode.SelectFirstItem() # reset
 
   #------------------------------------------------------------------------------
   def getRangeSequenceBrowserRecording(self):
