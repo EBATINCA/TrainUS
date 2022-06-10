@@ -100,6 +100,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Customize widgets
     self.ui.showInstructionsButton.setText('Show')
     self.ui.trimSequenceGroupBox.collapsed = True
+    self.ui.recordingTimerWidget.slider().visible = False
 
     # Disable slice annotations immediately
     sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
@@ -218,7 +219,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = True
     else:
-      logging.error('Invalid selected mode...')
+      logging.error('Invalid exercise mode...')
 
     # Show/Hide instructions
     if self.logic.intructionsVisible:
@@ -239,48 +240,47 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.hardRadioButton.checked = True
 
     # Start/Stop recording
-    if self.logic.recordingInProgress:
+    if self.logic.sequenceBrowserManager.getRecordingInProgress():
       self.ui.startStopRecordingButton.setText('Stop')
       self.ui.clearRecordingButton.enabled = False
       self.ui.saveRecordingButton.enabled = False
     else:
       self.ui.startStopRecordingButton.setText('Start')
-      self.ui.clearRecordingButton.enabled = (self.logic.sequenceBrowserNode is not None)
-      self.ui.saveRecordingButton.enabled = (self.logic.sequenceBrowserNode is not None)
+      self.ui.clearRecordingButton.enabled = bool(self.logic.sequenceBrowserManager.getSequenceBrowser())
+      self.ui.saveRecordingButton.enabled = bool(self.logic.sequenceBrowserManager.getSequenceBrowser())
 
     # Recording info
-    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.recordingLength))
-    self.ui.recordingTimerWidget.slider().visible = False
-    if (self.logic.sequenceBrowserNode is not None):
-      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserNode)
+    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.sequenceBrowserManager.getRecordingLength()))
+    if bool(self.logic.sequenceBrowserManager.getSequenceBrowser()):
+      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
 
     # Playback
-    if (self.logic.sequenceBrowserNode is not None):
+    if bool(self.logic.sequenceBrowserManager.getSequenceBrowser()):
       self.ui.SequenceBrowserPlayWidget.enabled = True
-      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserNode)
+      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
       self.ui.SequenceBrowserSeekWidget.enabled = True
-      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserNode)
+      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
     else:
       self.ui.SequenceBrowserPlayWidget.enabled = False
       self.ui.SequenceBrowserSeekWidget.enabled = False
 
     # Trim sequence
-    rangeSequence = self.logic.getRangeSequenceBrowserRecording()
+    rangeSequence = self.logic.sequenceBrowserManager.getTimeRangeInSequenceBrowser()
     if rangeSequence:
       self.ui.trimSequenceDoubleRangeSlider.minimum = rangeSequence[0]
       self.ui.trimSequenceDoubleRangeSlider.maximum = rangeSequence[1]
       self.ui.trimSequenceDoubleRangeSlider.minimumValue = rangeSequence[0]
       self.ui.trimSequenceDoubleRangeSlider.maximumValue = rangeSequence[1]
-    if self.logic.isSequenceBrowserEmpty():
+    if self.logic.sequenceBrowserManager.isSequenceBrowserEmpty():
       self.ui.maxValueTrimSequenceLabel.text = '-'
       self.ui.minValueTrimSequenceLabel.text = '-'
 
     # Metric computation
-    self.ui.computeMetricsButton.enabled = not self.logic.isSequenceBrowserEmpty()
-    self.ui.metricSelectionComboBox.enabled = (not self.logic.isSequenceBrowserEmpty()) and self.logic.plotVisible
+    self.ui.computeMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
+    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()) and self.logic.plotVisible
 
     # Display plot
-    self.ui.displayPlotButton.enabled = not self.logic.isSequenceBrowserEmpty()
+    self.ui.displayPlotButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
     self.ui.displayPlotButton.checked = self.logic.plotVisible
 
     # Update viewpoint
@@ -322,13 +322,14 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onShowInstructionsButtonClicked(self):
+    # Update instructions visibility flag
     self.logic.intructionsVisible = not self.logic.intructionsVisible
-
-    # Update GUI
-    self.updateGUIFromMRML()
 
     # Update instruction display
     self.logic.updateDisplayExerciseInstructions()
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onPreviousInstructionButtonClicked(self):
@@ -340,30 +341,43 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onGenerateTargetButtonClicked(self):    
-    # Get number of targets
-    numTargets = self.logic.getNumberOfTargets()
-
     # Generate random target ID
-    targetID = np.random.randint(0, numTargets) + 1
+    targetID = self.logic.getRandomTargetID()
 
     # Load selected target
     self.logic.loadTarget(targetID)
 
   #------------------------------------------------------------------------------
   def onStartStopRecordingButtonClicked(self):    
-    # Update recording status
-    self.logic.updateSequenceBrowserRecording()
+    # Check recording status
+    recordingInProgress = self.logic.sequenceBrowserManager.getRecordingInProgress()
+
+    # Update sequence browser recording status
+    if recordingInProgress:
+      # Stop recording
+      self.logic.sequenceBrowserManager.stopSequenceBrowserRecording()
+    else:
+      # Start recording
+      self.logic.sequenceBrowserManager.startSequenceBrowserRecording()
 
     # Update GUI
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onClearRecordingButtonClicked(self):    
+  def onClearRecordingButtonClicked(self):
+    # Remove observer
+    self.logic.removeObserverToMasterSequenceNode()
+
     # Delete previous recording
-    self.logic.clearSequenceBrowserRecording()
+    self.logic.sequenceBrowserManager.clearSequenceBrowser()
 
     # Create new recording
-    self.logic.createSequenceBrowserRecording()
+    browserName = 'TrainUS_Recording'
+    synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
+    self.logic.sequenceBrowserManager.createNewSequenceBrowser(browserName, synchronizedNodes)
+
+    # Add observer
+    self.logic.addObserverToMasterSequenceNode()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -376,13 +390,13 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     filePath = os.path.join(directory, filename)
 
     # Save sequence browser node
-    self.logic.saveSequenceBrowserRecording(filePath)
+    self.logic.sequenceBrowserManager.saveSequenceBrowser(filePath)
 
     # Recording info to save in JSON file
     print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
     print('Date:', time.strftime("%Y%m%d"))
     print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.logic.recordingLength)
+    print('Recording length:', self.sequenceBrowserManager.getRecordingLength())
     print('Target:', self.logic.targetFileName)
     print('User:', 'XXXXXXXXXXX')
     print('Hardware setup:', 'XXXXXXXXXXX')
@@ -402,15 +416,23 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     fileDialog.setFileMode(qt.QFileDialog().ExistingFile) # just one file can be selected
     fileDialog.exec_()
     selectedFiles = fileDialog.selectedFiles()
+    if not selectedFiles:
+      return
     filePath = selectedFiles[0]
     if not filePath:
       return
 
+    # Remove observer
+    self.logic.removeObserverToMasterSequenceNode()
+
     # Delete previous recording
-    self.logic.clearSequenceBrowserRecording()
+    self.logic.sequenceBrowserManager.clearSequenceBrowser()
 
     # Load sequence browser node
-    self.logic.loadSequenceBrowserRecording(filePath)
+    self.logic.sequenceBrowserManager.loadSequenceBrowser(filePath)
+
+    # Add observer
+    self.logic.addObserverToMasterSequenceNode()
 
     # Reset focal point in 3D view
     self.logic.resetFocalPointInThreeDView()
@@ -442,12 +464,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onTrimSequenceMinPosDoubleRangeSliderModified(self, minValue):
     # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.getSequenceItemFromTimestamp(minValue)
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserManager.getSequenceBrowserItemFromTimestamp(minValue)
 
   #------------------------------------------------------------------------------
   def onTrimSequenceMaxPosDoubleRangeSliderModified(self, maxValue):
     # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.getSequenceItemFromTimestamp(maxValue)
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserManager.getSequenceBrowserItemFromTimestamp(maxValue)
 
   #------------------------------------------------------------------------------
   def onTrimSequenceButtonClicked(self):
@@ -455,11 +477,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     minValue = self.ui.trimSequenceDoubleRangeSlider.minimumValue
     maxValue = self.ui.trimSequenceDoubleRangeSlider.maximumValue
 
-    # Trim sequence
-    self.logic.trimSequenceBrowserRecording(minValue, maxValue)
-
     # Collapse trim sequence group box
     self.ui.trimSequenceGroupBox.collapsed = True
+
+    # Trim sequence
+    self.logic.sequenceBrowserManager.trimSequenceBrowserRecording(minValue, maxValue)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -540,7 +562,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onDisplayPlotButtonClicked(self):    
-    
+    # Update plot visibility flag
     self.logic.plotVisible = not self.logic.plotVisible
 
     # Display metrics
@@ -551,7 +573,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onMetricSelectionComboBoxTextChanged(self, text):
-
     # Selected metric
     self.logic.selectedMetric = text
 
@@ -606,7 +627,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
-    # Register layouts
+    # Register custom layouts
     self.customLayout_Dual2D3D_ID = 997
     self.customLayout_2Donly_red_ID = 998
     self.customLayout_2Donly_yellow_ID = 999
@@ -621,8 +642,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Instructions
     self.intructionsVisible = False
-    self.lastLayout = None 
-    self.lastBackgroundVolumeID = None
+    self.lastLayout = None
 
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
@@ -656,18 +676,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetLineNode = None
     self.targetPointNode = None
 
-    # Sequences (Sequences extension)
-    try:
-      self.sequencesLogic = slicer.modules.sequences.logic()
-    except:
-      logging.error('ERROR: "Sequences" module was not found.')
-
-    # Recording
-    self.recordingInProgress = False
-    self.sequenceBrowserNode = None
-    self.recordingLength = 0.0
-    self.observerID = None
-
     # Playback
     self.playbackInProgress = False
 
@@ -699,6 +707,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Viewpoint
     self.currentViewpointMode = 'Front' # default is front view
+
+    # Sequence browser manager
+    import TrainUsUtilities
+    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
+
+    # Observer
+    self.observerID = None
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -734,9 +749,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       layoutManager= slicer.app.layoutManager()
       needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
       self.lastLayout = [layoutManager.layout, needleSliceIntersectionVisibility]
-
-      # Store last background volume in red slice view
-      self.lastBackgroundVolumeID = self.yellowSliceLogic.GetSliceCompositeNode().GetBackgroundVolumeID()
 
       # Deactivate volume reslice driver
       self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, self.yellowSliceLogic.GetSliceNode())
@@ -775,14 +787,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
           self.setCustomLayout('2D + 3D')
         self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.lastLayout[1]) # set model intersection visibility in slice
 
-      # Activate volume reslice driver
-      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.yellowSliceLogic.GetSliceNode())
-
-      # Restore last volume
-      if self.lastBackgroundVolumeID:
-        self.yellowSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.lastBackgroundVolumeID)
-        self.yellowSliceLogic.FitSliceToAll()
-
   #------------------------------------------------------------------------------
   def previousExerciseInstruction(self):
     # Modify slice offset
@@ -802,12 +806,15 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         self.yellowSliceLogic.SetSliceOffset(sliceOffset + 1)
 
   #------------------------------------------------------------------------------
-  def getNumberOfTargets(self):
+  def getRandomTargetID(self):
     # Get targets in folder
     targetDataFolder = self.dataFolderPath + '/Targets/'
     targetFileList = os.listdir(targetDataFolder)
     numTargets = len(targetFileList)
-    return numTargets
+
+    # Generate random target ID
+    targetID = np.random.randint(0, numTargets) + 1
+    return targetID
     
   #------------------------------------------------------------------------------
   def loadTarget(self, targetID):
@@ -826,7 +833,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Load selected target    
     targetFilePath = targetDataFolder + targetFileName
-    logging.debug('Loading target from file: %s' % targetFilePath)
     try:
       self.targetLineNode = slicer.util.loadMarkups(targetFilePath)
       self.targetLineNode.SetName('Target Line')
@@ -1002,179 +1008,32 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return node
 
   #------------------------------------------------------------------------------
-  def updateSequenceBrowserRecording(self):
-
-    if self.recordingInProgress:
-      # Stop recording
-      success = self.stopSequenceBrowserRecording()
-
-      # Update recording flag
-      if success:
-        self.recordingInProgress = False 
-      else:
-        self.recordingInProgress = True
-
-    else:
-      # Start recording
-      success = self.startSequenceBrowserRecording()
-
-      # Update recording flag
-      if success:
-        self.recordingInProgress = True 
-      else:
-        self.recordingInProgress = False
-
-  #------------------------------------------------------------------------------
-  def startSequenceBrowserRecording(self):
+  def addObserverToMasterSequenceNode(self):
     """
-    Start recording data using sequence browser node.
+    Add observer to master sequence node.
     """
-    # Create sequence browser if needed
-    if self.sequenceBrowserNode == None:
-      success = self.createSequenceBrowserRecording()
-      if not success:
-        return False
-
-    # Start recording
     try:
-      self.sequenceBrowserNode.SetRecordMasterOnly(False)
-      self.sequenceBrowserNode.SetRecording(None, True)
-      self.sequenceBrowserNode.SetRecordingActive(True)
-      return True
+      self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
     except:
-      logging.error('Error starting sequence browser recording...')
-      return False
+      logging.error('Error adding observer to master sequence node...')    
 
   #------------------------------------------------------------------------------
-  def stopSequenceBrowserRecording(self):
+  def removeObserverToMasterSequenceNode(self):
     """
-    Stop recording data using sequence browser node.
+    Remove observer from master sequence node.
     """
-    # Stop recording
-    try:
-      self.sequenceBrowserNode.SetRecordingActive(False)
-      self.sequenceBrowserNode.SetRecording(None, False)
-      self.setPlaybackRealtime()
-      return True
-    except:
-      logging.error('Error stopping sequence browser recording...')
-      return False
-
-  #------------------------------------------------------------------------------
-  def createSequenceBrowserRecording(self):
-    """
-    Create new sequence browser node to manage data recording.
-    """
-    try:
-      # Create a sequence browser node
-      browserName = 'TrainUS_Recording'
-      self.sequenceBrowserNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSequenceBrowserNode', slicer.mrmlScene.GenerateUniqueName(browserName))
-  
-      modifiedFlag = self.sequenceBrowserNode.StartModify()
-
-      # Add synchronized nodes
-      self.sequencesLogic.AddSynchronizedNode(None, self.NeedleToTracker, self.sequenceBrowserNode)
-      self.sequencesLogic.AddSynchronizedNode(None, self.ProbeToTracker, self.sequenceBrowserNode)
-      self.sequencesLogic.AddSynchronizedNode(None, self.usImageVolumeNode, self.sequenceBrowserNode)
-
-      # Stop overwritting and saving changes to all nodes
-      self.sequenceBrowserNode.SetRecording(None, True)
-      self.sequenceBrowserNode.SetOverwriteProxyName(None, False)
-      self.sequenceBrowserNode.SetSaveChanges(None, False)
-
-      self.sequenceBrowserNode.EndModify(modifiedFlag)
-
-      # Add observer
+    if self.observerID:
       try:
-        self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
+        self.NeedleToTracker.RemoveObserver(self.observerID)
       except:
-        logging.error('Error adding an observer to the NeedleToTracker transform...')
-
-      return True
-
-    except:
-      logging.error('Error creating a new sequence browser node...')
-      return False
+        logging.error('Error removing observer from master sequence node...')   
 
   #------------------------------------------------------------------------------
   def callbackCursorPosition(self, unused1=None, unused2=None):
     """
     Update cursor position in plot chart.
     """
-    if self.sequenceBrowserNode:
-      self.updateCursorPosition(self.sequenceBrowserNode.GetSelectedItemNumber())    
-
-  #------------------------------------------------------------------------------
-  def clearSequenceBrowserRecording(self):
-    """
-    Clear recording data.
-    """
-    if self.sequenceBrowserNode:
-      try:
-        # Remove observer
-        if self.observerID:
-          self.sequenceBrowserNode.GetMasterSequenceNode().RemoveObserver(self.observerID)
-
-        # Delete plot series nodes
-        if self.metricValuesPlotSeriesNodes:
-          for plotSeriesNode in self.metricValuesPlotSeriesNodes:
-            slicer.mrmlScene.RemoveNode(plotSeriesNode)
-          self.metricValuesPlotSeriesNodes = []
-        if self.cursorValuesPlotSeriesNodes:
-          for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
-            slicer.mrmlScene.RemoveNode(plotSeriesNode)
-          self.cursorValuesPlotSeriesNodes = []
-
-        # Delete plot chart node
-        if self.plotChartNode:
-          slicer.mrmlScene.RemoveNode(self.plotChartNode)
-          self.plotChartNode = None
-
-        # Remove sequence nodes from scene
-        synchronizedSequenceNodes = vtk.vtkCollection()
-        self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
-        synchronizedSequenceNodes.AddItem(self.sequenceBrowserNode.GetMasterSequenceNode())
-        for sequenceNode in synchronizedSequenceNodes:
-          slicer.mrmlScene.RemoveNode(sequenceNode)
-
-        # Remove sequence browser node from scene
-        slicer.mrmlScene.RemoveNode(self.sequenceBrowserNode)
-        self.sequenceBrowserNode = None 
-        self.recordingLength = 0.0
-      except:
-        logging.error('Error deleting sequence browser node...')
-        return False
-    return True
-
-  #------------------------------------------------------------------------------
-  def saveSequenceBrowserRecording(self, filePath):
-    """
-    Save recording data to file.
-    """
-    # Save sequence browser node to file
-    try:
-      print('Saving sequence browser node at: ' + filePath)
-      slicer.util.saveNode(self.sequenceBrowserNode, filePath)
-    except:
-      logging.error('Error saving sequence browser node to file...')
-
-  #------------------------------------------------------------------------------
-  def loadSequenceBrowserRecording(self, filePath):
-    """
-    Load recording data from file.
-    """
-    # Save sequence browser node to file
-    try:
-      print('Loading sequence browser node from file: ' + filePath)
-      self.sequenceBrowserNode = slicer.util.loadNodeFromFile(filePath, 'Tracked Sequence Browser')
-
-      # Add observer
-      try:
-          self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
-      except:
-        logging.error('Error adding an observer to the NeedleToTracker transform...')
-    except:
-      logging.error('Error loading sequence browser node from file...')
+    self.updateCursorPosition(self.sequenceBrowserManager.getSelectedItemInSequenceBrowser())    
 
   #------------------------------------------------------------------------------
   def readRecordingInfoFile(self, filePath):
@@ -1194,104 +1053,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.error('Cannot read recording information from JSON file at ' + filePath)
       recordingInfo = None
     return recordingInfo
-
-  #------------------------------------------------------------------------------
-  def trimSequenceBrowserRecording(self, minValue, maxValue):
-    
-    # Translate timestamps to sample ID
-    sampleInit = self.getSequenceItemFromTimestamp(minValue)
-    sampleEnd = self.getSequenceItemFromTimestamp(maxValue)
-
-    # Get number of items
-    try:
-      numItems = self.sequenceBrowserNode.GetNumberOfItems()
-    except:
-      return
-
-    # Get list of timestamps
-    valuesToBeRemoved = list()
-    for itemID in range(numItems):
-      value = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(itemID)
-      if (float(value) < minValue) or (float(value) > maxValue):
-        valuesToBeRemoved.append(value)
-
-    # Remove data nodes from sequences
-    for value in valuesToBeRemoved:
-      self.sequenceBrowserNode.GetMasterSequenceNode().RemoveDataNodeAtValue(value)
-
-    # Select first item
-    self.sequenceBrowserNode.SelectFirstItem() # reset
-
-  #------------------------------------------------------------------------------
-  def getRangeSequenceBrowserRecording(self):
-    """
-    Check if recording is empty or not.
-    """
-    # Get number of items
-    try:
-      numItems = self.sequenceBrowserNode.GetNumberOfItems()
-    except:
-      return
-
-    # No range if recording is empty
-    if numItems == 0:
-      return
-
-    # Get initial and final timestamps
-    minValue = float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(0))
-    maxValue = float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(numItems-1))
-    return [minValue, maxValue]
-
-  #------------------------------------------------------------------------------
-  def getSequenceItemFromTimestamp(self, inputTimestamp):
-    """
-    Get sequence item ID from index value (timestamp).
-    """
-    # Get number of items
-    try:
-      numItems = self.sequenceBrowserNode.GetNumberOfItems()
-    except:
-      return
-
-    # Get list of timestamps
-    timestampsList = list()
-    for itemID in range(numItems):
-      timestampsList.append(float(self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(itemID)))
-
-    # Get closest timestamp
-    outputItemID = timestampsList.index(min(timestampsList, key=lambda x:abs(x-inputTimestamp)))
-    return outputItemID
-
-  #------------------------------------------------------------------------------
-  def isSequenceBrowserEmpty(self):
-    """
-    Check if recording is empty or not.
-    """
-    # Get number of items
-    try:
-      numItems = self.sequenceBrowserNode.GetNumberOfItems()
-    except:
-      return True
-
-    # Define sequence browser state
-    if numItems == 0:
-      isEmpty = True
-    else:
-      isEmpty = False
-    return isEmpty
-
-  #------------------------------------------------------------------------------
-  def setPlaybackRealtime(self):
-    try: #- update the playback fps rate
-      sequenceNode = self.sequenceBrowserNode.GetMasterSequenceNode()
-      numDataNodes = sequenceNode.GetNumberOfDataNodes()
-      startTime = float(sequenceNode.GetNthIndexValue(0))
-      stopTime = float(sequenceNode.GetNthIndexValue(numDataNodes-1))
-      self.recordingLength = stopTime - startTime
-      frameRate = numDataNodes / self.recordingLength
-      self.sequenceBrowserNode.SetPlaybackRateFps(frameRate)
-    except:
-      logging.error('Could not set playback realtime fps rate')
 
   #------------------------------------------------------------------------------
   def updateViewpoint(self):
@@ -1330,9 +1091,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def computeMetricsFromRecording(self, progressDialog = None):
-
     # Get number of items
-    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
 
     # Metrics
     self.sampleID = []
@@ -1362,7 +1122,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.warning('No target line is defined...')
 
     # Iterate along items
-    self.sequenceBrowserNode.SelectFirstItem() # reset
+    self.sequenceBrowserManager.selectFirstItemInSequenceBrowser() # reset
     for currentItem in range(numItems):
 
       # Update progress dialog if any
@@ -1371,7 +1131,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         progressDialog.setValue(progress)
 
       # Get timestamp
-      timestamp = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(currentItem)
+      timestamp = self.sequenceBrowserManager.GetTimestampFromItemID(currentItem)
 
       # Get needle position
       needleTip = self.getTransformedPoint(self.NEEDLE_TIP, self.NeedleTipToNeedle)
@@ -1412,7 +1172,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.needleToTargetLineInPlaneAngleDeg.append(angle_NeedleToTargetLineInPlane)
 
       # Next sample
-      self.sequenceBrowserNode.SelectNextItem()
+      self.sequenceBrowserManager.SelectNextItemInSequenceBrowser()
 
     # Fill metric array
     self.metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm, self.needleToUsPlaneAngleDeg, self.needleToTargetLineInPlaneAngleDeg]   
@@ -1524,7 +1284,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     numMetrics = len(self.metric_names)
 
     # Get number of items in recording
-    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
 
     # Delete existing table node if any
     if self.metricTableNode:
@@ -1558,7 +1318,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     numMetrics = len(self.metric_names)
 
     # Get number of items in recording
-    numItems = self.sequenceBrowserNode.GetNumberOfItems()
+    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
 
     # Delete existing table node if any
     if self.cursorTableNode:
