@@ -458,6 +458,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Trim sequence
     self.logic.trimSequenceBrowserRecording(minValue, maxValue)
 
+    # Collapse trim sequence group box
+    self.ui.trimSequenceGroupBox.collapsed = True
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -1659,7 +1662,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartNode.GridVisibilityOff()
 
     print('Plot chart has been created!')
-
 
   #------------------------------------------------------------------------------
   def updatePlotChart(self):
