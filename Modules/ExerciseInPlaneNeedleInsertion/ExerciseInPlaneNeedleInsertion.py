@@ -59,10 +59,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # The parameter node had defaults at creation, propagate them to the GUI
     self.updateGUIFromMRML()
 
-    # Layout
-    self.logic.updateSliceControllerVisibility(True)
-    self.logic.setupLayouts()
-
   #------------------------------------------------------------------------------
   def onClose(self, unusedOne, unusedTwo):
     pass
@@ -76,10 +72,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     """
     Runs whenever the module is reopened
     """
-    # Layout
-    self.logic.updateSliceControllerVisibility(True)
-    self.logic.setupLayouts()
-
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -435,7 +427,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.logic.addObserverToMasterSequenceNode()
 
     # Reset focal point in 3D view
-    self.logic.resetFocalPointInThreeDView()
+    self.logic.layoutManager.resetFocalPointInThreeDView()
 
     # Load recording info file
     recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
@@ -627,14 +619,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Setup keyboard shortcuts
     self.setupKeyboardShortcuts()
 
-    # Register custom layouts
-    self.customLayout_Dual2D3D_ID = 997
-    self.customLayout_2Donly_red_ID = 998
-    self.customLayout_2Donly_yellow_ID = 999
-    self.customLayout_Dual3D3D_ID = 1000
-    self.customLayout_FourUp3D_ID = 1001
-    self.customLayout_Dual2D3D_withPlot_ID = 1002
-
     # Exercise settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
@@ -660,10 +644,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     except:
       logging.error('ERROR: "Volume Reslice Driver" module was not found.')
 
-    # Red slice
-    self.redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
-
-    # Red slice
+    # Yellow slice
     self.yellowSliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
     self.yellowSliceLogic = self.yellowSliceWidget.sliceLogic()
 
@@ -711,6 +692,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Sequence browser manager
     import TrainUsUtilities
     self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
+    self.layoutManager = TrainUsUtilities.LayoutManager()
 
     # Observer
     self.observerID = None
@@ -733,7 +715,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.warning('Invalid difficulty level was selected.')
 
     # Update layout
-    self.setCustomLayout(self.exerciseLayout)
+    self.layoutManager.setCustomLayout(self.exerciseLayout)
 
     # Update model slice visibility
     try:
@@ -745,47 +727,22 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def updateDisplayExerciseInstructions(self):
 
     if self.intructionsVisible:
-      # Store last layout settings
-      layoutManager= slicer.app.layoutManager()
-      needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
-      self.lastLayout = [layoutManager.layout, needleSliceIntersectionVisibility]
-
-      # Deactivate volume reslice driver
-      self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, self.yellowSliceLogic.GetSliceNode())
-
-      # Avoid visibility of needle model in 2D view
-      self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(False)
-
       # Hide slice controller visibility
-      self.updateSliceControllerVisibility(False)
-
-      # Disable yellow slice widget to avoid mouse interactions (drag, zoom, ...)
-      self.yellowSliceWidget.enabled = False
+      self.layoutManager.updateSliceControllerVisibility(False)
 
       # Switch to 2D only layout
-      self.setCustomLayout('2D only yellow')
+      self.layoutManager.setCustomLayout('2D only yellow')
 
-      # Display instructions
-      self.yellowSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.instructions.GetID())
-      self.yellowSliceLogic.GetSliceNode().SetOrientationToAxial()
-      self.yellowSliceLogic.FitSliceToAll()
-      self.yellowSliceLogic.SetSliceOffset(0)
+      # Display instructions in yellow view
+      self.layoutManager.showImageInstructionsInSliceView(self.instructions, 'Yellow')
 
     else:
       # Restore slice controller visibility
-      self.updateSliceControllerVisibility(True)
-
-      # Enable yellow slice widget to avoid mouse interactions (drag, zoom, ...)
-      self.yellowSliceWidget.enabled = True
+      self.layoutManager.updateSliceControllerVisibility(True)
 
       # Restore last layout if any
-      if self.lastLayout:
-        layoutManager= slicer.app.layoutManager()
-        if self.lastLayout[0] != layoutManager.layout:
-          layoutManager.setLayout(self.lastLayout[0]) # set last layout
-        else:
-          self.setCustomLayout('2D + 3D')
-        self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.lastLayout[1]) # set model intersection visibility in slice
+      self.layoutManager.restoreLastLayout()
+      #self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.lastLayout[1]) # set model intersection visibility in slice
 
   #------------------------------------------------------------------------------
   def previousExerciseInstruction(self):
@@ -881,11 +838,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Load exercise data
     self.loadData()
 
-    # Display US image using volume reslice driver module
-    self.redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.usImageVolumeNode.GetID())
-    self.volumeResliceDriverLogic.SetDriverForSlice(self.usImageVolumeNode.GetID(), self.redSliceLogic.GetSliceNode())
-    self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
-
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
@@ -902,16 +854,14 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
 
-    # Fit US image to view and display in 3D view     
-    self.redSliceLogic.FitSliceToAll()
-    self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
+    # Display US image in red slice view
+    self.layoutManager.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
 
     # Remove 3D cube and 3D axis label from 3D view
-    self.threeDViewNode.SetBoxVisible(False)
-    self.threeDViewNode.SetAxisLabelsVisible(False)
+    self.layoutManager.hideCubeAndLabelsInThreeDView()
 
     # Reset focal point in 3D view
-    self.resetFocalPointInThreeDView()
+    self.layoutManager.resetFocalPointInThreeDView()
 
     # Display needle model projected in US image
     self.needle_model.GetDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
@@ -1074,20 +1024,19 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     except:
       return
 
+    # Get 3D view node
+    threeDViewNode = self.layoutManager.get3DViewNode()
+
     # Disable bulleye mode if active
-    bullseyeMode = self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).getCurrentMode()
+    bullseyeMode = self.viewpointLogic.getViewpointForViewNode(threeDViewNode).getCurrentMode()
     if bullseyeMode:
-      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeStop()
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStop()
     
     # Update viewpoint
     if cameraTransform:
-      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).setViewNode(self.threeDViewNode)
-      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeSetTransformNode(cameraTransform)
-      self.viewpointLogic.getViewpointForViewNode(self.threeDViewNode).bullseyeStart()
-
-  #------------------------------------------------------------------------------
-  def resetFocalPointInThreeDView(self):
-    self.threeDView.resetFocalPoint()
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).setViewNode(threeDViewNode)
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeSetTransformNode(cameraTransform)
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStart()
 
   #------------------------------------------------------------------------------
   def computeMetricsFromRecording(self, progressDialog = None):
@@ -1576,15 +1525,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def displayMetricPlot(self):
-
     if self.plotVisible:
-      # Store last layout
-      layoutManager= slicer.app.layoutManager()
-      needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
-      self.lastLayout = [layoutManager.layout, needleSliceIntersectionVisibility]
-
+      # TODO store model slice intersection
+      #needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
+    
       # Switch to plot only layout
-      self.setCustomLayout('2D + 3D + Plot')
+      self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
       if self.plotChartNode:
@@ -1593,12 +1539,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     else:
       # Restore last layout if any
-      if self.lastLayout:
-        layoutManager= slicer.app.layoutManager()
-        if self.lastLayout[0] != layoutManager.layout:
-          layoutManager.setLayout(self.lastLayout[0]) # set last layout
-        else:
-          self.setCustomLayout('2D + 3D')
+      self.layoutManager.restoreLastLayout()
 
   #------------------------------------------------------------------------------
   def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
@@ -1617,30 +1558,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     qt.QTimer.singleShot(0, _exitApplication)
 
   #------------------------------------------------------------------------------
-  def setupLayouts(self):
-    self.registerCustomLayouts()
-    #self.setCustomLayout('3D only') # default
-
-  #------------------------------------------------------------------------------
-  def showViewerPinButton(self, sliceWidget, show):
-    try:
-      sliceControlWidget = sliceWidget.children()[1]
-      pinButton = sliceControlWidget.children()[1].children()[1]
-      if show:
-        pinButton.show()
-      else:
-        pinButton.hide()
-    except: # pylint: disable=w0702
-      pass
-
-  #------------------------------------------------------------------------------
-  def updateSliceControllerVisibility(self, visible):
-    # Update visibility of slice controllers
-    for name in slicer.app.layoutManager().sliceViewNames():
-      sliceWidget = slicer.app.layoutManager().sliceWidget(name)
-      sliceWidget.sliceController().setVisible(visible)
-
-  #------------------------------------------------------------------------------
   def setupKeyboardShortcuts(self):
     shortcuts = [
         ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
@@ -1649,143 +1566,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     for (shortcutKey, callback) in shortcuts:
         shortcut = qt.QShortcut(slicer.util.mainWindow())
         shortcut.setKey(qt.QKeySequence(shortcutKey))
-        shortcut.connect('activated()', callback)
-
-  #------------------------------------------------------------------------------
-  def registerCustomLayouts(self):
-      layoutManager= slicer.app.layoutManager()
-      layoutLogic = layoutManager.layoutLogic()
-      customLayout_Dual2D3D = ("<layout type=\"horizontal\" split=\"true\">"
-      " <item splitSize=\"400\" >\n"
-      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "     <property name=\"orientation\" action=\"default\">Axial</property>"
-      "     <property name=\"viewlabel\" action=\"default\">R</property>"
-      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "  </view>"
-      " </item>"
-      " <item splitSize=\"600\" >\n"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "  <property name=\"viewlabel\" action=\"default\">T</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-      customLayout_2Donly_red = ("<layout type=\"horizontal\">"
-      " <item>"
-      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "   <property name=\"orientation\" action=\"default\">Axial</property>"
-      "     <property name=\"viewlabel\" action=\"default\">R</property>"
-      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-      customLayout_2Donly_yellow = ("<layout type=\"horizontal\">"
-      " <item>"
-      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
-      "   <property name=\"orientation\" action=\"default\">Axial</property>"
-      "     <property name=\"viewlabel\" action=\"default\">Y</property>"
-      "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-      customLayout_Dual3D3D = ("<layout type=\"horizontal\" split=\"false\">"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "  <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      " <item>"
-      "  <view class=\"vtkMRMLViewNode\" singletontag=\"2\">"
-      "  <property name=\"viewlabel\" action=\"default\">2</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")
-      customLayout_FourUp3D = ("<layout type=\"vertical\">"
-      " <item>"
-      "  <layout type=\"horizontal\">"
-      "   <item>"
-      "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "     <property name=\"viewlabel\" action=\"default\">1</property>"
-      "    </view>"
-      "   </item>"
-      "   <item>"
-      "    <view class=\"vtkMRMLViewNode\" singletontag=\"2\">"
-      "     <property name=\"viewlabel\" action=\"default\">2</property>"
-      "    </view>"
-      "   </item>"
-      "  </layout>"
-      " </item>"
-      " <item>"
-      "  <layout type=\"horizontal\">"
-      "   <item>"
-      "    <view class=\"vtkMRMLViewNode\" singletontag=\"3\">"
-      "     <property name=\"viewlabel\" action=\"default\">3</property>"
-      "    </view>"
-      "   </item>"
-      "   <item>"
-      "    <view class=\"vtkMRMLViewNode\" singletontag=\"4\">"
-      "     <property name=\"viewlabel\" action=\"default\">4</property>"
-      "    </view>"
-      "   </item>"
-      "  </layout>"
-      " </item>"
-      "</layout>")
-      customLayout_Dual2D3DwithPlot = ("<layout type=\"vertical\" split=\"true\" >\n"
-      " <item splitSize=\"700\" >\n"
-      "  <layout type=\"horizontal\" split=\"true\">"
-      "   <item>"
-      "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-      "       <property name=\"orientation\" action=\"default\">Axial</property>"
-      "       <property name=\"viewlabel\" action=\"default\">R</property>"
-      "       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-      "    </view>"
-      "   </item>"
-      "   <item>"
-      "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
-      "    <property name=\"viewlabel\" action=\"default\">T</property>"
-      "    </view>"
-      "   </item>"
-      "  </layout>"
-      " </item>"
-      " <item splitSize=\"300\" >\n"
-      "  <view class=\"vtkMRMLPlotViewNode\" singletontag=\"PlotView1\">"
-      "  <property name=\"viewlabel\" action=\"default\">1</property>"
-      "  </view>"
-      " </item>"
-      "</layout>")      
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_red_ID, customLayout_2Donly_red)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_yellow_ID, customLayout_2Donly_yellow)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
-      layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
-
-  #------------------------------------------------------------------------------
-  def setCustomLayout(self, layoutName):
-
-    # Determine layout id from name
-    if layoutName == '3D only':
-      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView
-    elif layoutName == '2D only red':
-      layoutID = self.customLayout_2Donly_red_ID
-    elif layoutName == '2D only yellow':
-      layoutID = self.customLayout_2Donly_yellow_ID
-    elif layoutName == '2D + 3D':
-      layoutID = self.customLayout_Dual2D3D_ID
-    elif layoutName == 'Dual 3D':
-      layoutID = self.customLayout_Dual3D3D_ID
-    elif layoutName == '2D + 3D + Plot':
-      layoutID = self.customLayout_Dual2D3D_withPlot_ID
-    elif layoutName == 'Four Up 3D':
-      layoutID = self.customLayout_FourUp3D_ID
-    elif layoutName == 'Plot only':
-      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpPlotView
-    else:
-      layoutID = 1
-
-    # Set layout
-    layoutManager= slicer.app.layoutManager()
-    layoutManager.setLayout(layoutID)
-    
+        shortcut.connect('activated()', callback)    
 
 #------------------------------------------------------------------------------
 #
