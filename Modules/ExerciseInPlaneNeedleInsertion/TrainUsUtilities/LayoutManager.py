@@ -30,6 +30,13 @@ class LayoutManager:
     except:
       logging.error('ERROR: "Volume Reslice Driver" module was not found.')
 
+    # Viewpoint module (SlicerIGT extension)
+    try:
+      import Viewpoint # Viewpoint Module must have been added to Slicer 
+      self.viewpointLogic = Viewpoint.ViewpointLogic()
+    except:
+      logging.error('ERROR: "Viewpoint" module was not found.')
+
     # 3D view
     self.threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
     self.threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
@@ -267,6 +274,28 @@ class LayoutManager:
     sliceWidget.enabled = False
 
   #------------------------------------------------------------------------------
+  def previousInstructionInSliceView(self, sliceViewName):
+    # Get slice logic
+    sliceLogic = slicer.app.layoutManager().sliceWidget(sliceViewName).sliceLogic()
+
+    # Modify slice offset
+    sliceOffset = sliceLogic.GetSliceOffset()
+    sliceIndex = sliceLogic.GetSliceIndexFromOffset(sliceOffset - 1)
+    if sliceIndex > 0:
+      sliceLogic.SetSliceOffset(sliceOffset - 1)
+
+  #------------------------------------------------------------------------------
+  def nextInstructionInSliceView(self, sliceViewName):
+    # Get slice logic
+    sliceLogic = slicer.app.layoutManager().sliceWidget(sliceViewName).sliceLogic()
+
+    # Modify slice offset
+    sliceOffset = sliceLogic.GetSliceOffset()
+    sliceIndex = sliceLogic.GetSliceIndexFromOffset(sliceOffset + 1)
+    if sliceIndex > 0:
+      sliceLogic.SetSliceOffset(sliceOffset + 1)
+
+  #------------------------------------------------------------------------------
   def get3DViewNode(self):
     threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
     return threeDViewNode
@@ -278,8 +307,22 @@ class LayoutManager:
 
   #------------------------------------------------------------------------------
   def hideCubeAndLabelsInThreeDView(self):
-    threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
+    threeDViewNode = self.get3DViewNode()
     threeDViewNode.SetBoxVisible(False)
     threeDViewNode.SetAxisLabelsVisible(False)
 
-  
+  #------------------------------------------------------------------------------
+  def activateViewpoint(self, cameraTransform):
+    # Get 3D view node
+    threeDViewNode = self.get3DViewNode()
+
+    # Disable bulleye mode if active
+    bullseyeMode = self.viewpointLogic.getViewpointForViewNode(threeDViewNode).getCurrentMode()
+    if bullseyeMode:
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStop()
+    
+    # Update viewpoint
+    if cameraTransform:
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).setViewNode(threeDViewNode)
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeSetTransformNode(cameraTransform)
+      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStart()  

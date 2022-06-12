@@ -277,6 +277,16 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
     # Update viewpoint
     self.logic.updateViewpoint()
+    self.ui.leftViewButton.checked = False
+    self.ui.frontViewButton.checked = False
+    self.ui.rightViewButton.checked = False
+    self.ui.bottomViewButton.checked = False
+    self.ui.freeViewButton.checked = False
+    if self.logic.currentViewpointMode == 'Left': self.ui.leftViewButton.checked = True
+    if self.logic.currentViewpointMode == 'Front': self.ui.frontViewButton.checked = True
+    if self.logic.currentViewpointMode == 'Right': self.ui.rightViewButton.checked = True
+    if self.logic.currentViewpointMode == 'Bottom': self.ui.bottomViewButton.checked = True
+    if self.logic.currentViewpointMode == 'Free': self.ui.freeViewButton.checked = True
 
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
@@ -626,39 +636,25 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Instructions
     self.intructionsVisible = False
-    self.lastLayout = None
+
+    # Viewpoint
+    self.currentViewpointMode = 'Front' # default is front view
+
+    # Sequence browser manager
+    import TrainUsUtilities
+    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
+    self.layoutManager = TrainUsUtilities.LayoutManager()
+
+    # Observer
+    self.observerID = None
 
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
-
-    # Viewpoint module (SlicerIGT extension)
-    try:
-      import Viewpoint # Viewpoint Module must have been added to Slicer 
-      self.viewpointLogic = Viewpoint.ViewpointLogic()
-    except:
-      logging.error('ERROR: "Viewpoint" module was not found.')
-
-    # Volume reslice driver (SlicerIGT extension)
-    try:
-      self.volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
-    except:
-      logging.error('ERROR: "Volume Reslice Driver" module was not found.')
-
-    # Yellow slice
-    self.yellowSliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
-    self.yellowSliceLogic = self.yellowSliceWidget.sliceLogic()
-
-    # 3D view
-    self.threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
-    self.threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
 
     # Target nodes
     self.targetFileName = ''
     self.targetLineNode = None
     self.targetPointNode = None
-
-    # Playback
-    self.playbackInProgress = False
 
     # Tool reference points
     self.NEEDLE_TIP = [0.0, 0.0, 0.0]
@@ -685,17 +681,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToTargetLineInPlaneAngleDeg = []
     self.metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
     self.metric_array = []
-
-    # Viewpoint
-    self.currentViewpointMode = 'Front' # default is front view
-
-    # Sequence browser manager
-    import TrainUsUtilities
-    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
-    self.layoutManager = TrainUsUtilities.LayoutManager()
-
-    # Observer
-    self.observerID = None
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -748,19 +733,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def previousExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      sliceOffset = self.yellowSliceLogic.GetSliceOffset()
-      sliceIndex = self.yellowSliceLogic.GetSliceIndexFromOffset(sliceOffset - 1)
-      if sliceIndex > 0:
-        self.yellowSliceLogic.SetSliceOffset(sliceOffset - 1)
+      self.layoutManager.previousInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
   def nextExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      sliceOffset = self.yellowSliceLogic.GetSliceOffset()
-      sliceIndex = self.yellowSliceLogic.GetSliceIndexFromOffset(sliceOffset + 1)
-      if sliceIndex > 0:
-        self.yellowSliceLogic.SetSliceOffset(sliceOffset + 1)
+      self.layoutManager.nextInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
   def getRandomTargetID(self):
@@ -1011,32 +990,16 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     """
     # Select camera transform
     try:
-      if self.currentViewpointMode == 'Left':
-          cameraTransform = self.LeftCameraToProbeModel
-      elif self.currentViewpointMode == 'Front':
-          cameraTransform = self.FrontCameraToProbeModel
-      elif self.currentViewpointMode == 'Right':
-          cameraTransform = self.RightCameraToProbeModel
-      elif self.currentViewpointMode == 'Bottom':
-          cameraTransform = self.BottomCameraToProbeModel
-      else:
-          cameraTransform = None
+      if self.currentViewpointMode == 'Left': cameraTransform = self.LeftCameraToProbeModel
+      elif self.currentViewpointMode == 'Front': cameraTransform = self.FrontCameraToProbeModel
+      elif self.currentViewpointMode == 'Right': cameraTransform = self.RightCameraToProbeModel
+      elif self.currentViewpointMode == 'Bottom': cameraTransform = self.BottomCameraToProbeModel
+      else: cameraTransform = None
     except:
       return
 
-    # Get 3D view node
-    threeDViewNode = self.layoutManager.get3DViewNode()
-
-    # Disable bulleye mode if active
-    bullseyeMode = self.viewpointLogic.getViewpointForViewNode(threeDViewNode).getCurrentMode()
-    if bullseyeMode:
-      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStop()
-    
-    # Update viewpoint
-    if cameraTransform:
-      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).setViewNode(threeDViewNode)
-      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeSetTransformNode(cameraTransform)
-      self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStart()
+    # Update viewpoint in 3D view
+    self.layoutManager.activateViewpoint(cameraTransform)
 
   #------------------------------------------------------------------------------
   def computeMetricsFromRecording(self, progressDialog = None):
@@ -1487,7 +1450,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def getToolToParentTransform(self, node):
-
     # Get matrix
     transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
     node.GetMatrixTransformToParent(transform_matrix) # get vtk matrix
@@ -1495,7 +1457,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def getToolToWorldTransform(self, node):
-
     # Get matrix
     transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
     node.GetMatrixTransformToWorld(transform_matrix) # get vtk matrix
@@ -1503,7 +1464,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def convertVtkMatrixToNumpyArray(self, vtkMatrix):
-
     # Build array
     R00 = vtkMatrix.GetElement(0, 0) 
     R01 = vtkMatrix.GetElement(0, 1) 

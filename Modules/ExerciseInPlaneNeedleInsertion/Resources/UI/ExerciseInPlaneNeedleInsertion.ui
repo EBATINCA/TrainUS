@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
-    <height>988</height>
+    <width>543</width>
+    <height>1159</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -307,12 +307,18 @@
         <property name="text">
          <string>Left</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="frontViewButton">
         <property name="text">
          <string>Front</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -321,6 +327,9 @@
         <property name="text">
          <string>Right</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -328,12 +337,18 @@
         <property name="text">
          <string>Bottom</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="freeViewButton">
         <property name="text">
          <string>Free</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
