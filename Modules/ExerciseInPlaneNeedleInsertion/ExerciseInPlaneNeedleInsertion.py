@@ -1014,24 +1014,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToUsPlaneAngleDeg = []
     self.needleToTargetLineInPlaneAngleDeg = []
 
-    # Get target point position
-    targetPoint = [0,0,0]
+    # Check if targets are defined in the scene
     try:
-      self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
-      targetPoint = self.getTransformedPoint(targetPoint, None)
+      self.targetPointNode.GetName()
     except:
-      logging.warning('No target point is defined...')
-
-    # Get target line position
-    targetLineStart = [0,0,0]
-    targetLineEnd = [0,0,0]
+      logging.error('No target point is defined...')
+      return
     try:
-      self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
-      self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
-      targetLineStart = self.getTransformedPoint(targetLineStart, None)
-      targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
+      self.targetLineNode.GetName()
     except:
-      logging.warning('No target line is defined...')
+      logging.error('No target line is defined...')
+      return
 
     # Iterate along items
     self.sequenceBrowserManager.selectFirstItemInSequenceBrowser() # reset
@@ -1054,10 +1047,23 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       usProbeHandle = self.getTransformedPoint(self.USPROBE_HANDLE, self.ProbeModelToProbe)
 
       # Get US image plane orientation
-      usPlanePointA = np.array(self.USPLANE_ORIGIN)
-      usPlanePointB = np.array(self.USPLANE_NORMAL)
+      usPlanePointA = self.getTransformedPoint(self.USPLANE_ORIGIN, self.ImageToProbe)
+      usPlanePointB = self.getTransformedPoint(self.USPLANE_NORMAL, self.ImageToProbe)
       usPlaneCentroid = usPlanePointA
       usPlaneNormal = (usPlanePointB - usPlanePointA) / np.linalg.norm(usPlanePointB - usPlanePointA)
+
+      # Get target point position
+      targetPoint = [0,0,0]
+      self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
+      targetPoint = self.getTransformedPoint(targetPoint, None)
+
+      # Get target line position
+      targetLineStart = [0,0,0]
+      targetLineEnd = [0,0,0]
+      self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
+      self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
+      targetLineStart = self.getTransformedPoint(targetLineStart, None)
+      targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
 
       #
       # Metrics
@@ -1419,15 +1425,16 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       transformToWorld_array = np.eye(4) # identity
 
     # Get world to ultrasound transform
-    worldToUltrasound_array = self.getWorldToUltrasoundTransform()
+    #worldToUltrasound_array = self.getWorldToUltrasoundTransform()
     
     # Get transformed point
-    point_transformed = np.dot(worldToUltrasound_array, np.dot(transformToWorld_array, point_hom))
+    point_transformed_hom = np.dot(transformToWorld_array, point_hom)
+    #point_transformed_hom = np.dot(worldToUltrasound_array, np.dot(transformToWorld_array, point_hom))
 
     # Output points
-    point = np.array([point_transformed[0], point_transformed[1], point_transformed[2]])
+    point_transformed = np.array([point_transformed_hom[0], point_transformed_hom[1], point_transformed_hom[2]])
 
-    return point
+    return point_transformed
 
   #------------------------------------------------------------------------------
   def getWorldToUltrasoundTransform(self):
