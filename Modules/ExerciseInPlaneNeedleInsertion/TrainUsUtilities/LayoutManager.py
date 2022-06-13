@@ -326,3 +326,12 @@ class LayoutManager:
       self.viewpointLogic.getViewpointForViewNode(threeDViewNode).setViewNode(threeDViewNode)
       self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeSetTransformNode(cameraTransform)
       self.viewpointLogic.getViewpointForViewNode(threeDViewNode).bullseyeStart()  
+
+  #------------------------------------------------------------------------------
+  def setActivePlotChart(self, plotChartNode):
+    """
+    Show input plot chart node in plot view
+    """
+    if plotChartNode:
+      slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(plotChartNode.GetID())
+      slicer.app.applicationLogic().PropagatePlotChartSelection()

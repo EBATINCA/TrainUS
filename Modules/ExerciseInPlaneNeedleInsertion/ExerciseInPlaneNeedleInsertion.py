@@ -546,9 +546,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.metricSelectionComboBox.removeItem(0)
 
     # Add items to metric selection combo box
-    numMetrics = len(self.logic.metric_names) - 2
-    for metricID in range(numMetrics):
-      self.ui.metricSelectionComboBox.addItem(self.logic.metric_names[metricID+2])
+    listOfMetrics = self.logic.plotChartManager.getListOfMetrics()
+    for metricName in listOfMetrics:
+      if (metricName != 'Sample ID') and (metricName != 'Timestamp'):
+        self.ui.metricSelectionComboBox.addItem(metricName)
 
     # Hide plot
     self.logic.plotVisible = False
@@ -643,7 +644,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Sequence browser manager
     import TrainUsUtilities
     self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
-    self.layoutManager = TrainUsUtilities.LayoutManager()
+    self.layoutManager = TrainUsUtilities.LayoutManager()    
+    self.plotChartManager = TrainUsUtilities.PlaybackPlotChartManager()
 
     # Observer
     self.observerID = None
@@ -664,12 +666,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.USPLANE_ORIGIN = [0.0, 0.0, 0.0]
     self.USPLANE_NORMAL = [0.0, 0.0, 1.0]
 
-    # Metrics
-    self.metricTableNode = None
-    self.cursorTableNode = None
-    self.metricValuesPlotSeriesNodes = []
-    self.cursorValuesPlotSeriesNodes = []
-    self.plotChartNode = None
+    # Plot
     self.plotVisible = False
 
     # Metric data
@@ -679,8 +676,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleTipToTargetDistanceMm = []
     self.needleToUsPlaneAngleDeg = []
     self.needleToTargetLineInPlaneAngleDeg = []
-    self.metric_names = ['SampleID', 'TimeStamp', 'NeedleTipToUsPlaneDistanceMm', 'NeedleTipToTargetDistanceMm', 'NeedleToUsPlaneAngleDeg', 'NeedleToTargetLineInPlaneAngleDeg']
-    self.metric_array = []
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -962,7 +957,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     """
     Update cursor position in plot chart.
     """
-    self.updateCursorPosition(self.sequenceBrowserManager.getSelectedItemInSequenceBrowser())    
+    self.plotChartManager.updateCursorPosition(self.sequenceBrowserManager.getSelectedItemInSequenceBrowser())    
 
   #------------------------------------------------------------------------------
   def readRecordingInfoFile(self, filePath):
@@ -1092,17 +1087,16 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Next sample
       self.sequenceBrowserManager.SelectNextItemInSequenceBrowser()
 
-    # Fill metric array
-    self.metric_array = [self.sampleID, self.timestamp, self.needleTipToUsPlaneDistanceMm, self.needleTipToTargetDistanceMm, self.needleToUsPlaneAngleDeg, self.needleToTargetLineInPlaneAngleDeg]   
-
-    # Create table
-    self.createMetricTable()
-
-    # Create table
-    self.createCursorTable()
+    # Store metrics
+    self.plotChartManager.addNewMetric('Sample ID', self.sampleID)
+    self.plotChartManager.addNewMetric('Timestamp', self.timestamp)
+    self.plotChartManager.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
+    self.plotChartManager.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
+    self.plotChartManager.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
+    self.plotChartManager.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
 
     # Create plot chart
-    self.createPlotChart()
+    self.plotChartManager.createPlotChart()
 
   #------------------------------------------------------------------------------
   def computeNeedleTipToUsPlaneDistanceMm(self, needleTip, usPlaneCentroid, usPlaneNormal):
@@ -1196,170 +1190,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return angle
 
   #------------------------------------------------------------------------------
-  def createMetricTable(self):
-
-    # Get number of metrics
-    numMetrics = len(self.metric_names)
-
-    # Get number of items in recording
-    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
-
-    # Delete existing table node if any
-    if self.metricTableNode:
-      slicer.mrmlScene.RemoveNode(self.metricTableNode)
-      self.metricTableNode = None      
-
-    # Create table node
-    self.metricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
-    self.metricTableNode.SetName('Metrics')
-
-    # Add one column for each metric
-    self.metricTableNode.SetLocked(True) # lock table to avoid modifications
-    self.metricTableNode.RemoveAllColumns() # reset
-    table = self.metricTableNode.GetTable()
-    for metricID in range(numMetrics):
-      array = vtk.vtkFloatArray()
-      array.SetName(self.metric_names[metricID])
-      table.AddColumn(array)
-
-    # Fill table
-    table.SetNumberOfRows(numItems)
-    for itemID in range(numItems):
-      for metricID in range(numMetrics):
-        table.SetValue(itemID, metricID, self.metric_array[metricID][itemID])
-    table.Modified()
-
-  #------------------------------------------------------------------------------
-  def createCursorTable(self):
-
-    # Get number of metrics
-    numMetrics = len(self.metric_names)
-
-    # Get number of items in recording
-    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
-
-    # Delete existing table node if any
-    if self.cursorTableNode:
-      slicer.mrmlScene.RemoveNode(self.cursorTableNode)
-      self.cursorTableNode = None      
-
-    # Create table node
-    self.cursorTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
-    self.cursorTableNode.SetName('Cursor')
-
-    # Add one column for each metric
-    self.cursorTableNode.SetLocked(True) # lock table to avoid modifications
-    self.cursorTableNode.RemoveAllColumns() # reset
-    table = self.cursorTableNode.GetTable()
-    for metricID in range(numMetrics):
-      array = vtk.vtkFloatArray()
-      array.SetName(self.metric_names[metricID])
-      table.AddColumn(array)
-
-    # Fill table
-    table.SetNumberOfRows(1)
-    for metricID in range(numMetrics):
-      table.SetValue(0, metricID, max(self.metric_array[metricID][:]))
-    table.Modified()
-
-    # Set cursor to initial position
-    self.updateCursorPosition(0)
-
-  #------------------------------------------------------------------------------
-  def updateCursorPosition(self, itemID):
-    if self.cursorTableNode:
-      # Modify cursor table to force plot chart update
-      table = self.cursorTableNode.GetTable()
-      table.SetValue(0, 0, float(itemID))
-      table.Modified()
-
-  #------------------------------------------------------------------------------
-  def createPlotChart(self):
-
-    # Get number of metrics
-    numMetrics = len(self.metric_names)
-
-    # Delete previous plot series
-    if self.metricValuesPlotSeriesNodes:
-      for plotSeriesNode in self.metricValuesPlotSeriesNodes:
-        slicer.mrmlScene.RemoveNode(plotSeriesNode)
-      self.metricValuesPlotSeriesNodes = []
-
-    # Create plot series
-    self.metricValuesPlotSeriesNodes = []
-    for metricID in range(numMetrics-2):
-      plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
-      plotSeriesNode.SetName(self.metric_names[metricID+2])
-      plotSeriesNode.SetAndObserveTableNodeID(self.metricTableNode.GetID())
-      plotSeriesNode.SetXColumnName(self.metric_names[0])
-      plotSeriesNode.SetYColumnName(self.metric_names[metricID+2])
-      plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatter)
-      plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleNone)
-      plotSeriesNode.SetMarkerSize(15)
-      plotSeriesNode.SetLineWidth(4)
-      plotSeriesNode.SetColor([1,0,0]) # Red
-      self.metricValuesPlotSeriesNodes.append(plotSeriesNode)
-
-    # Delete previous cursor plot series
-    if self.cursorValuesPlotSeriesNodes:
-      for plotSeriesNode in self.cursorValuesPlotSeriesNodes:
-        slicer.mrmlScene.RemoveNode(plotSeriesNode)
-      self.cursorValuesPlotSeriesNodes = []
-
-    # Create cursor plot series
-    self.cursorValuesPlotSeriesNodes = []
-    for metricID in range(numMetrics-2):
-      plotSeriesNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotSeriesNode')
-      plotSeriesNode.SetName(self.metric_names[metricID+2] + '_Cursor')
-      plotSeriesNode.SetAndObserveTableNodeID(self.cursorTableNode.GetID())
-      plotSeriesNode.SetXColumnName(self.metric_names[0])
-      plotSeriesNode.SetYColumnName(self.metric_names[metricID+2])
-      plotSeriesNode.SetPlotType(slicer.vtkMRMLPlotSeriesNode.PlotTypeScatterBar)
-      plotSeriesNode.SetMarkerStyle(slicer.vtkMRMLPlotSeriesNode.MarkerStyleCircle)
-      plotSeriesNode.SetMarkerSize(15)
-      plotSeriesNode.SetLineWidth(4)
-      plotSeriesNode.SetColor([0,0,0]) # Black
-      self.cursorValuesPlotSeriesNodes.append(plotSeriesNode)
-
-    # Delete previous plot chart
-    if self.plotChartNode:
-      slicer.mrmlScene.RemoveNode(self.plotChartNode)
-      self.plotChartNode = None
-
-    # Create plot chart
-    self.plotChartNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPlotChartNode')
-    self.plotChartNode.SetName('Chart')
-    self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
-    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.metricValuesPlotSeriesNodes[0].GetID())
-    self.plotChartNode.AddAndObservePlotSeriesNodeID(self.cursorValuesPlotSeriesNodes[0].GetID())
-    self.plotChartNode.SetTitle('Metric Plot')
-    self.plotChartNode.SetXAxisTitle('Sample ID')
-    #self.plotChartNode.SetYAxisTitle('ANGLE (\xB0)')
-    self.plotChartNode.SetAxisLabelFontSize(20)
-    self.plotChartNode.LegendVisibilityOff() # hide legend
-    self.plotChartNode.GridVisibilityOff()
-
-    print('Plot chart has been created!')
-
-  #------------------------------------------------------------------------------
   def updatePlotChart(self):
 
     # Get selected metric name
     metricName = self.selectedMetric
 
-    # Get metric ID from name
-    selectedMetricID = -1
-    numMetrics = len(self.metric_names)
-    for metricID in range(numMetrics-2):
-      if metricName == self.metric_names[metricID+2]:
-        selectedMetricID = metricID
-
     # Update visible plot series in plot chart
-    if self.plotChartNode:
-      self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
-      self.plotChartNode.AddAndObservePlotSeriesNodeID(self.metricValuesPlotSeriesNodes[selectedMetricID].GetID())
-      self.plotChartNode.AddAndObservePlotSeriesNodeID(self.cursorValuesPlotSeriesNodes[selectedMetricID].GetID())
-      self.plotChartNode.SetTitle(metricName)
+    self.plotChartManager.updatePlotChart(metricName)
 
   #------------------------------------------------------------------------------
   def computeDistancePointToPoint(self, fromPoint, toPoint):
@@ -1500,9 +1337,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
-      if self.plotChartNode:
-        slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(self.plotChartNode.GetID())
-        slicer.app.applicationLogic().PropagatePlotChartSelection()    
+      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart())   
 
     else:
       # Restore last layout if any
