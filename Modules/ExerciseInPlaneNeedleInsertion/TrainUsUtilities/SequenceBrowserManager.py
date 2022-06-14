@@ -102,6 +102,18 @@ class SequenceBrowserManager:
     return selectedItem
 
   #------------------------------------------------------------------------------
+  def getSelectedTimestampInSequenceBrowser(self):
+    """
+    Get selected timestamp in sequence browser node.
+    """
+    if self.sequenceBrowserNode:
+      selectedItem = self.sequenceBrowserNode.GetSelectedItemNumber()
+      selectedTimestamp = self.getTimestampFromSequenceBrowserItem(selectedItem)
+    else:
+      selectedTimestamp = None
+    return selectedTimestamp
+
+  #------------------------------------------------------------------------------
   def getSequenceBrowserItemFromTimestamp(self, inputTimestamp):
     """
     Get corresponding item number from give time value.
@@ -120,6 +132,17 @@ class SequenceBrowserManager:
     # Get closest timestamp
     outputItemID = timestampsList.index(min(timestampsList, key=lambda x:abs(x-inputTimestamp)))
     return outputItemID
+
+  #------------------------------------------------------------------------------
+  def getTimestampFromSequenceBrowserItem(self, inputItemID):
+    """
+    Get corresponding timestamp from item ID.
+    """
+    try:
+      timestamp = self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(inputItemID)
+    except:
+      timestamp = None
+    return timestamp
 
   #------------------------------------------------------------------------------
   def selectFirstItemInSequenceBrowser(self):

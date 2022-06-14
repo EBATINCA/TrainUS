@@ -548,8 +548,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Add items to metric selection combo box
     listOfMetrics = self.logic.plotChartManager.getListOfMetrics()
     for metricName in listOfMetrics:
-      if (metricName != 'Sample ID') and (metricName != 'Timestamp'):
-        self.ui.metricSelectionComboBox.addItem(metricName)
+      self.ui.metricSelectionComboBox.addItem(metricName)
 
     # Hide plot
     self.logic.plotVisible = False
@@ -957,7 +956,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     """
     Update cursor position in plot chart.
     """
-    self.plotChartManager.updateCursorPosition(self.sequenceBrowserManager.getSelectedItemInSequenceBrowser())    
+    self.plotChartManager.updateCursorPosition(self.sequenceBrowserManager.getSelectedTimestampInSequenceBrowser())    
 
   #------------------------------------------------------------------------------
   def readRecordingInfoFile(self, filePath):
@@ -1087,16 +1086,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Next sample
       self.sequenceBrowserManager.SelectNextItemInSequenceBrowser()
 
-    # Store metrics
-    self.plotChartManager.addNewMetric('Sample ID', self.sampleID)
-    self.plotChartManager.addNewMetric('Timestamp', self.timestamp)
+    # Store metric values
     self.plotChartManager.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
     self.plotChartManager.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
     self.plotChartManager.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
     self.plotChartManager.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
 
+    # Store timestamps
+    self.plotChartManager.addMetricTimestamps(self.timestamp)
+
     # Create plot chart
-    self.plotChartManager.createPlotChart()
+    self.plotChartManager.createPlotChart(cursor = True)
 
   #------------------------------------------------------------------------------
   def computeNeedleTipToUsPlaneDistanceMm(self, needleTip, usPlaneCentroid, usPlaneNormal):
