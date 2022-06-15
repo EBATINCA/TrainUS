@@ -683,6 +683,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToUsPlaneAngleDeg = []
     self.needleToTargetLineInPlaneAngleDeg = []
 
+    # PerkTutor node
+    self.peNode = slicer.vtkMRMLPerkEvaluatorNode()
+    slicer.mrmlScene.AddNode(self.peNode)
+
   #------------------------------------------------------------------------------
   def loadData(self):
     logging.debug('Loading data')
@@ -1094,20 +1098,28 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartManager.createPlotChart(cursor = True)
 
     # PerkTutor metrics
-    #
-    #
-    # -----------add here
-    #
-    #
+
     # Create table node to store PerkTutor metrics
     self.perkTutorMetricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
     self.perkTutorMetricTableNode.SetName('MetricsTable')
     self.perkTutorMetricTableNode.SetLocked(True) # lock table to avoid modifications
     self.perkTutorMetricTableNode.RemoveAllColumns() # reset
 
-    # Inputs
-    # self.NeedleTipToNeedle
-    # sequenceBrowserNode = self.sequenceBrowserManager.getSequenceBrowser()
+    # assign table to PerkTutor node
+    self.peNode.SetMetricsTableID(self.perkTutorMetricTableNode.GetID())
+
+    # assign sequence browser to PerkTutor node
+    sequenceBrowserNode = self.sequenceBrowserManager.getSequenceBrowser()
+    self.peNode.SetTrackedSequenceBrowserNodeID(sequenceBrowserNode.GetID())
+
+    # assign roles to PerkTutor node
+    slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID(self.peNode, self.NeedleTipToNeedle.GetID(), "Needle", slicer.vtkMRMLMetricInstanceNode().TransformRole)
+    # slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID(peNode, tissueNode.GetID(), "Tissue", slicer.vtkMRMLMetricInstanceNode().AnatomyRole)
+    slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID( self.peNode, self.ImageToProbe.GetID(), "Ultrasound", slicer.vtkMRMLMetricInstanceNode().TransformRole )
+
+    # compute metrics
+    slicer.modules.perkevaluator.logic().ComputeMetrics(self.peNode)
+
 
   #------------------------------------------------------------------------------
   def updatePlotChart(self):
