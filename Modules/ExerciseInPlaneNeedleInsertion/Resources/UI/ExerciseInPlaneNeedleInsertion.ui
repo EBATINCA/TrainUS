@@ -361,10 +361,10 @@
       <string>Metrics</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0" colspan="2">
-       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox">
+      <item row="2" column="0" colspan="2">
+       <widget class="ctkCollapsibleGroupBox" name="PlotGroupBox">
         <property name="title">
-         <string>Plot 2D</string>
+         <string>Plot</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
@@ -391,6 +391,25 @@
         <property name="text">
          <string>Compute Metrics</string>
         </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="ctkCollapsibleGroupBox" name="TableGroupBox">
+        <property name="title">
+         <string>Table</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QPushButton" name="displayTableButton">
+           <property name="text">
+            <string>Display Table</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

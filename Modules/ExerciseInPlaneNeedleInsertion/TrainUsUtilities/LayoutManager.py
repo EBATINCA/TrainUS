@@ -23,6 +23,7 @@ class LayoutManager:
     self.customLayout_Dual3D3D_ID = 1000
     self.customLayout_FourUp3D_ID = 1001
     self.customLayout_Dual2D3D_withPlot_ID = 1002
+    self.customLayout_tableOnly_ID = 1003
 
     # Volume reslice driver (SlicerIGT extension)
     try:
@@ -95,6 +96,8 @@ class LayoutManager:
       layoutID = self.customLayout_FourUp3D_ID
     elif layoutName == 'Plot only':
       layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpPlotView
+    elif layoutName == 'Table only':
+      layoutID = self.customLayout_tableOnly_ID
     else:
       layoutID = 1
 
@@ -225,6 +228,15 @@ class LayoutManager:
     " </item>"
     "</layout>")
 
+    # Layout table only
+    customLayout_tableOnly = ("<layout type=\"horizontal\">"
+    " <item>"
+    "  <view class=\"vtkMRMLTableViewNode\" singletontag=\"TableView1\">"
+    "  <property name=\"viewlabel\" action=\"default\">T</property>"
+    "  </view>"
+    " </item>"
+    "</layout>")
+
     # Register custom layouts
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_red_ID, customLayout_2Donly_red)
@@ -232,6 +244,7 @@ class LayoutManager:
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_tableOnly_ID, customLayout_tableOnly)
 
   #------------------------------------------------------------------------------
   def showUltrasoundInSliceView(self, ultrasoundVolumeNode, sliceViewName):
@@ -335,3 +348,12 @@ class LayoutManager:
     if plotChartNode:
       slicer.app.applicationLogic().GetSelectionNode().SetReferenceActivePlotChartID(plotChartNode.GetID())
       slicer.app.applicationLogic().PropagatePlotChartSelection()
+
+  #------------------------------------------------------------------------------
+  def setActiveTable(self, tableNode):
+    """
+    Show input table node in table view
+    """
+    if tableNode:
+      slicer.app.applicationLogic().GetSelectionNode().SetReferenceActiveTableID(tableNode.GetID())
+      slicer.app.applicationLogic().PropagateTableSelection()

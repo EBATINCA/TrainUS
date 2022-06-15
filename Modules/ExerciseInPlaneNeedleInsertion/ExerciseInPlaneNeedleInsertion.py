@@ -135,6 +135,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
     # Compute metrics
     self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
+    self.ui.displayTableButton.clicked.connect(self.onDisplayTableButtonClicked)
     self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
     self.ui.metricSelectionComboBox.currentTextChanged.connect(self.onMetricSelectionComboBoxTextChanged)
     # Back to menu
@@ -176,6 +177,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.freeViewButton.clicked.disconnect()
     # Compute metrics
     self.ui.computeMetricsButton.clicked.disconnect()
+    self.ui.displayTableButton.clicked.disconnect()
     self.ui.displayPlotButton.clicked.disconnect()
     self.ui.metricSelectionComboBox.currentTextChanged.disconnect()
     # Back to menu
@@ -563,6 +565,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
+  def onDisplayTableButtonClicked(self):    
+    # Update plot visibility flag
+    self.logic.tableVisible = not self.logic.tableVisible
+
+    # Display metrics
+    self.logic.displayMetricTable()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
   def onDisplayPlotButtonClicked(self):    
     # Update plot visibility flag
     self.logic.plotVisible = not self.logic.plotVisible
@@ -654,6 +667,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetFileName = ''
     self.targetLineNode = None
     self.targetPointNode = None
+
+    # Table
+    self.tableVisible = False
+    self.perkTutorMetricTableNode = None
 
     # Plot
     self.plotVisible = False
@@ -1036,7 +1053,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
 
       #
-      # Metrics
+      # Real-time metrics
       #
       # Get current tool positions
       self.metricCalculationManager.getCurrentToolPositions(self.NeedleTipToNeedle, self.ProbeModelToProbe, self.ImageToProbe)
@@ -1064,17 +1081,33 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Next sample
       self.sequenceBrowserManager.SelectNextItemInSequenceBrowser()
 
-    # Store metric values
+    # Store real-time metric values
     self.plotChartManager.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
     self.plotChartManager.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
     self.plotChartManager.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
     self.plotChartManager.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
 
-    # Store timestamps
+    # Store real-time metric timestamps
     self.plotChartManager.addMetricTimestamps(self.timestamp)
 
-    # Create plot chart
+    # Create real-time plot chart
     self.plotChartManager.createPlotChart(cursor = True)
+
+    # PerkTutor metrics
+    #
+    #
+    # -----------add here
+    #
+    #
+    # Create table node to store PerkTutor metrics
+    self.perkTutorMetricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
+    self.perkTutorMetricTableNode.SetName('MetricsTable')
+    self.perkTutorMetricTableNode.SetLocked(True) # lock table to avoid modifications
+    self.perkTutorMetricTableNode.RemoveAllColumns() # reset
+
+    # Inputs
+    # self.NeedleTipToNeedle
+    # sequenceBrowserNode = self.sequenceBrowserManager.getSequenceBrowser()
 
   #------------------------------------------------------------------------------
   def updatePlotChart(self):
@@ -1086,9 +1119,22 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartManager.updatePlotChart(metricName)  
 
   #------------------------------------------------------------------------------
+  def displayMetricTable(self):
+    if self.tableVisible:
+      # Switch to table only layout
+      self.layoutManager.setCustomLayout('Table only')      
+
+      # Show table in table view
+      self.layoutManager.setActiveTable(self.perkTutorMetricTableNode)   
+
+    else:
+      # Restore last layout if any
+      self.layoutManager.restoreLastLayout()
+
+  #------------------------------------------------------------------------------
   def displayMetricPlot(self):
     if self.plotVisible:
-      # Switch to plot only layout
+      # Switch to layout with plot
       self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
@@ -1097,7 +1143,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     else:
       # Restore last layout if any
       self.layoutManager.restoreLastLayout()
-      
+
 #------------------------------------------------------------------------------
 #
 # ExerciseInPlaneNeedleInsertionTest
