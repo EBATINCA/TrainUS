@@ -626,10 +626,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
 
-    # Setup keyboard shortcuts
-    self.setupKeyboardShortcuts()
+    # Sequence browser manager
+    import TrainUsUtilities
+    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
+    self.layoutManager = TrainUsUtilities.LayoutManager()
+    self.plotChartManager = TrainUsUtilities.PlaybackPlotChartManager()
+    self.metricCalculationManager = TrainUsUtilities.MetricCalculationManager()
 
-    # Exercise settings
+    # Data path
+    self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
+
+    # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
     self.exerciseMode = 'Evaluation'
@@ -640,30 +647,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Viewpoint
     self.currentViewpointMode = 'Front' # default is front view
 
-    # Sequence browser manager
-    import TrainUsUtilities
-    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
-    self.layoutManager = TrainUsUtilities.LayoutManager()    
-    self.plotChartManager = TrainUsUtilities.PlaybackPlotChartManager()
-
     # Observer
     self.observerID = None
-
-    # Data path
-    self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
 
     # Target nodes
     self.targetFileName = ''
     self.targetLineNode = None
     self.targetPointNode = None
-
-    # Tool reference points
-    self.NEEDLE_TIP = [0.0, 0.0, 0.0]
-    self.NEEDLE_HANDLE = [0.0, 0.0, -50.0]
-    self.USPROBE_TIP = [0.0, 0.0, 0.0]
-    self.USPROBE_HANDLE = [0.0, 50.0, 0.0]
-    self.USPLANE_ORIGIN = [0.0, 0.0, 0.0]
-    self.USPLANE_NORMAL = [0.0, 0.0, 1.0]
 
     # Plot
     self.plotVisible = False
@@ -675,6 +665,88 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleTipToTargetDistanceMm = []
     self.needleToUsPlaneAngleDeg = []
     self.needleToTargetLineInPlaneAngleDeg = []
+
+  #------------------------------------------------------------------------------
+  def loadData(self):
+    logging.debug('Loading data')
+
+    # Load exercise instructions
+    try:
+        self.instructions = slicer.util.getNode('Instructions1')
+    except:
+      try:
+        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Instructions1.PNG')
+      except:
+        logging.error('ERROR: Instructions files could not be loaded...')
+
+    # Load models
+    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
+    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 1.0)
+
+    # Load transforms
+    self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
+    self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
+    #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
+    #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
+    self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
+    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
+    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
+    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
+
+    # Load camera transforms
+    self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')
+    self.FrontCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToProbeModel')
+    self.RightCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToProbeModel')
+    self.BottomCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToProbeModel')
+
+    # Get ultrasound image
+    try:
+      self.usImageVolumeNode = slicer.util.getNode('Image_Reference')
+    except:
+      try:
+        self.usImageVolumeNode = slicer.util.loadVolume(self.dataFolderPath + '/Image_Reference.nrrd') # ONLY FOR DEVELOPMENT
+      except:
+        self.usImageVolumeNode = slicer.vtkMRMLScalarVolumeNode()
+        self.usImageVolumeNode.SetName('Image_Reference')
+        slicer.mrmlScene.AddNode(self.usImageVolumeNode)
+        logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
+
+  #------------------------------------------------------------------------------
+  def setupScene(self):
+
+    # Load exercise data
+    self.loadData()
+
+    # Build transform tree
+    self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
+    self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
+    self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
+    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
+    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
+    self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
+    self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
+
+    # US probe camera transforms
+    self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
+
+    # Display US image in red slice view
+    self.layoutManager.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
+
+    # Remove 3D cube and 3D axis label from 3D view
+    self.layoutManager.hideCubeAndLabelsInThreeDView()
+
+    # Reset focal point in 3D view
+    self.layoutManager.resetFocalPointInThreeDView()
+
+    # Avoid needle model to be seen in yellow slice view during instructions display
+    self.needle_model.GetModelDisplayNode().SetViewNodeIDs(('vtkMRMLSliceNodeRed', 'vtkMRMLViewNode1'))
+
+    # Set difficulty parameters
+    self.updateDifficulty()
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -698,7 +770,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Update model slice visibility
     try:
-      self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.highlightModelsInImage)
+      # Display needle model projected in US image
+      self.needle_model.GetModelDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
+      self.needle_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
     except:
       pass
 
@@ -721,7 +795,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
       # Restore last layout if any
       self.layoutManager.restoreLastLayout()
-      #self.needle_model.GetModelDisplayNode().SetSliceIntersectionVisibility(self.lastLayout[1]) # set model intersection visibility in slice
+
+      # Restore difficulty settings
+      self.updateDifficulty()
 
   #------------------------------------------------------------------------------
   def previousExerciseInstruction(self):
@@ -804,89 +880,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetLineNode.GetDisplayNode().SetLineDiameter(0.5)
     self.targetLineNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green line
     self.targetLineNode.GetDisplayNode().SetOpacity(0.2)    
-
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-
-    # Load exercise data
-    self.loadData()
-
-    # Build transform tree
-    self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
-    self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
-    self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
-    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-    self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-
-    # US probe camera transforms
-    self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
-
-    # Display US image in red slice view
-    self.layoutManager.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
-
-    # Remove 3D cube and 3D axis label from 3D view
-    self.layoutManager.hideCubeAndLabelsInThreeDView()
-
-    # Reset focal point in 3D view
-    self.layoutManager.resetFocalPointInThreeDView()
-
-    # Display needle model projected in US image
-    self.needle_model.GetDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
-    self.needle_model.GetDisplayNode().SetVisibility2D(True)
-
-    # Set difficulty parameters
-    self.updateDifficulty()
-
-  #------------------------------------------------------------------------------
-  def loadData(self):
-    logging.debug('Loading data')
-
-    # Load exercise instructions
-    try:
-        self.instructions = slicer.util.getNode('Instructions1')
-    except:
-      try:
-        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Instructions1.PNG')
-      except:
-        logging.error('ERROR: Instructions files could not be loaded...')
-
-    # Load models
-    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
-    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 1.0)
-
-    # Load transforms
-    self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
-    self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
-    #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
-    #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
-    self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
-    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
-    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
-
-    # Load camera transforms
-    self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')
-    self.FrontCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToProbeModel')
-    self.RightCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToProbeModel')
-    self.BottomCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToProbeModel')
-
-    # Get ultrasound image
-    try:
-      self.usImageVolumeNode = slicer.util.getNode('Image_Reference')
-    except:
-      try:
-        self.usImageVolumeNode = slicer.util.loadVolume(self.dataFolderPath + '/Image_Reference.nrrd') # ONLY FOR DEVELOPMENT
-      except:
-        self.usImageVolumeNode = slicer.vtkMRMLScalarVolumeNode()
-        self.usImageVolumeNode.SetName('Image_Reference')
-        slicer.mrmlScene.AddNode(self.usImageVolumeNode)
-        logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
 
   #------------------------------------------------------------------------------
   def getOrCreateTransform(self, transformName):
@@ -1032,48 +1025,33 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Get timestamp
       timestamp = self.sequenceBrowserManager.GetTimestampFromItemID(currentItem)
 
-      # Get needle position
-      needleTip = self.getTransformedPoint(self.NEEDLE_TIP, self.NeedleTipToNeedle)
-      needleHandle = self.getTransformedPoint(self.NEEDLE_HANDLE, self.NeedleTipToNeedle)
-
-      # Get US probe position
-      usProbeTip = self.getTransformedPoint(self.USPROBE_TIP, self.ProbeModelToProbe)
-      usProbeHandle = self.getTransformedPoint(self.USPROBE_HANDLE, self.ProbeModelToProbe)
-
-      # Get US image plane orientation
-      usPlanePointA = self.getTransformedPoint(self.USPLANE_ORIGIN, self.ImageToProbe)
-      usPlanePointB = self.getTransformedPoint(self.USPLANE_NORMAL, self.ImageToProbe)
-      usPlaneCentroid = usPlanePointA
-      usPlaneNormal = (usPlanePointB - usPlanePointA) / np.linalg.norm(usPlanePointB - usPlanePointA)
-
       # Get target point position
       targetPoint = [0,0,0]
       self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
-      targetPoint = self.getTransformedPoint(targetPoint, None)
 
       # Get target line position
       targetLineStart = [0,0,0]
       targetLineEnd = [0,0,0]
       self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
       self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
-      targetLineStart = self.getTransformedPoint(targetLineStart, None)
-      targetLineEnd = self.getTransformedPoint(targetLineEnd, None)
 
       #
       # Metrics
       #
+      # Get current tool positions
+      self.metricCalculationManager.getCurrentToolPositions(self.NeedleTipToNeedle, self.ProbeModelToProbe, self.ImageToProbe)
 
       # Distance from needle tip to US plane
-      distance_NeedleTipToUSPlane = self.computeNeedleTipToUsPlaneDistanceMm(needleTip, usPlaneCentroid, usPlaneNormal)
+      distance_NeedleTipToUSPlane = self.metricCalculationManager.computeNeedleTipToUsPlaneDistanceMm()
 
       # Distance from needle tip to target point
-      distance_NeedleTipToTargetPoint = self.computeNeedleTipToTargetDistanceMm(needleTip, targetPoint)
+      distance_NeedleTipToTargetPoint = self.metricCalculationManager.computeNeedleTipToTargetDistanceMm(targetPoint)
 
       # Angle between needle and US plane
-      angle_NeedleToUsPlane = self.computeNeedleToUsPlaneAngleDeg(needleTip, needleHandle, usPlaneCentroid, usPlaneNormal)
+      angle_NeedleToUsPlane = self.metricCalculationManager.computeNeedleToUsPlaneAngleDeg()
 
       # Angle between needle and target trajectory
-      angle_NeedleToTargetLineInPlane = self.computeNeedleToTargetLineInPlaneAngleDeg(needleTip, needleHandle, targetLineStart, targetLineEnd, usPlaneCentroid, usPlaneNormal)
+      angle_NeedleToTargetLineInPlane = self.metricCalculationManager.computeNeedleToTargetLineInPlaneAngleDeg(targetLineStart, targetLineEnd)
 
       # Store metrics
       self.sampleID.append(currentItem)
@@ -1099,240 +1077,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartManager.createPlotChart(cursor = True)
 
   #------------------------------------------------------------------------------
-  def computeNeedleTipToUsPlaneDistanceMm(self, needleTip, usPlaneCentroid, usPlaneNormal):
-    """
-    Compute the distance in mm from the needle tip to the ultrasound image plane.
-
-    :param needleTip: needle tip position (numpy array)
-    :param usPlaneCentroid: position of the US plane centroid (numpy array)
-    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
-
-    :return float: output distance value in mm
-    """
-    # Compute distance from point to plane
-    distance = self.computeDistancePointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
-    
-    return distance
-
-  #------------------------------------------------------------------------------
-  def computeNeedleTipToTargetDistanceMm(self, needleTip, targetPoint):
-    """
-    Compute the distance in mm from the needle tip to a target 3D point.
-
-    :param needleTip: needle tip position (numpy array)
-    :param targetPoint: target point position (numpy array)
-
-    :return float: output distance value in mm
-    """
-    # Compute distance from point to point
-    distance = self.computeDistancePointToPoint(needleTip, targetPoint)
-    
-    return distance
-
-  #------------------------------------------------------------------------------
-  def computeNeedleToUsPlaneAngleDeg(self, needleTip, needleHandle, usPlaneCentroid, usPlaneNormal):
-    """
-    Compute the angle in degrees between the needle and the US plane.
-
-    :param needleTip: needle tip position (numpy array)
-    :param needleHandle: needle handle position (numpy array)
-    :param usPlaneCentroid: position of the US plane centroid (numpy array)
-    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
-
-    :return float: output angle value in degrees
-    """
-    # Project needle points into US plane
-    needleTip_proj = self.projectPointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
-    needleHandle_proj = self.projectPointToPlane(needleHandle, usPlaneCentroid, usPlaneNormal)
-
-    # Define needle vector
-    needleVector = needleTip - needleHandle
-
-    # Define needle projection vector
-    needleProjectionVector = needleTip_proj - needleHandle_proj
-
-    # Compute angular deviation
-    angle = self.computeAngularDeviation(needleVector, needleProjectionVector)
-
-    return angle
-
-  #------------------------------------------------------------------------------
-  def computeNeedleToTargetLineInPlaneAngleDeg(self, needleTip, needleHandle, targetLineStart, targetLineEnd, usPlaneCentroid, usPlaneNormal):
-    """
-    Compute the angle in degrees between the needle and the target line.
-
-    :param needleTip: needle tip position (numpy array)
-    :param needleHandle: needle handle position (numpy array)
-    :param targetLineStart: target line start position (numpy array)
-    :param targetLineEnd: target line end position (numpy array)
-    :param usPlaneCentroid: position of the US plane centroid (numpy array)
-    :param usPlaneNormal: unitary vector defining US plane normal (numpy array)
-
-    :return float: output angle value in degrees
-    """
-    # Project needle points into US plane
-    needleTip_proj = self.projectPointToPlane(needleTip, usPlaneCentroid, usPlaneNormal)
-    needleHandle_proj = self.projectPointToPlane(needleHandle, usPlaneCentroid, usPlaneNormal)
-
-    # Project target line points into US plane (NOT NEEDED, SINCE LINE IS SUPPOSED TO BE WITHIN PLANE)
-    targetLineStart_proj = self.projectPointToPlane(targetLineStart, usPlaneCentroid, usPlaneNormal)
-    targetLineEnd_proj = self.projectPointToPlane(targetLineEnd, usPlaneCentroid, usPlaneNormal)
-
-    # Define needle projection vector
-    needleProjectionVector = needleTip_proj - needleHandle_proj
-
-    # Define target projection vector
-    targetProjectionVector = targetLineEnd_proj - targetLineStart_proj    
-
-    # Compute angular deviation
-    angle = self.computeAngularDeviation(needleProjectionVector, targetProjectionVector)
-
-    return angle
-
-  #------------------------------------------------------------------------------
   def updatePlotChart(self):
 
     # Get selected metric name
     metricName = self.selectedMetric
 
     # Update visible plot series in plot chart
-    self.plotChartManager.updatePlotChart(metricName)
-
-  #------------------------------------------------------------------------------
-  def computeDistancePointToPoint(self, fromPoint, toPoint):
-
-    # Compute distance
-    distance = np.linalg.norm(np.array(toPoint) - np.array(fromPoint))
-
-    return distance
-
-  #------------------------------------------------------------------------------
-  def computeDistancePointToPlane(self, point, planeCentroid, planeNormal):
-
-    # Project point to plane
-    projectedPoint = self.projectPointToPlane(point, planeCentroid, planeNormal)
-    
-    # Compute distance
-    distance = np.linalg.norm(np.array(projectedPoint) - np.array(point))
-
-    return distance
-
-  #------------------------------------------------------------------------------
-  def projectPointToPlane(self, point, planeCentroid, planeNormal):
-
-    # Project point to plane
-    projectedPoint = np.subtract(np.array(point), np.dot(np.subtract(np.array(point), np.array(planeCentroid)), np.array(planeNormal)) * np.array(planeNormal))
-    
-    return projectedPoint
-
-  # ------------------------------------------------------------------------------
-  def computeAngularDeviation(self, vec1, vec2):
-    """
-    Compute angle between two vectors.
-
-    :param vec1: Vector 1 numpy array
-    :param vec2: Vector 2 numpy array
-
-    :return float: Angle between vector 1 and vector 2 in degrees.
-    """
-    try:
-      # Cosine value
-      cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
-      # Cosine value can only be between [-1, 1].
-      if cos_value > 1.0:
-        cos_value = 1.0
-      elif cos_value < -1.0:
-        cos_value = -1.0
-      # Compute angle in degrees
-      angle = np.rad2deg (np.arccos(cos_value))
-    except:
-      angle = -1.0
-    return angle
-
-  #------------------------------------------------------------------------------
-  def getTransformedPoint(self, point, transformNode):
-
-    # Convert to homogenous coordinates
-    point_hom = np.hstack((np.array(point), 1.0))
-
-    # Get transform to world
-    if transformNode:
-      transformToWorld_array = self.getToolToWorldTransform(transformNode)
-    else:
-      transformToWorld_array = np.eye(4) # identity
-
-    # Get world to ultrasound transform
-    #worldToUltrasound_array = self.getWorldToUltrasoundTransform()
-    
-    # Get transformed point
-    point_transformed_hom = np.dot(transformToWorld_array, point_hom)
-    #point_transformed_hom = np.dot(worldToUltrasound_array, np.dot(transformToWorld_array, point_hom))
-
-    # Output points
-    point_transformed = np.array([point_transformed_hom[0], point_transformed_hom[1], point_transformed_hom[2]])
-
-    return point_transformed
-
-  #------------------------------------------------------------------------------
-  def getWorldToUltrasoundTransform(self):
-
-    if not self.ImageToProbe:
-      logging.error('ImageToProbe transform does not exist. WorldToUltrasoundTransform cannot be computed.')
-
-    # Get transform from image to world
-    ultrasoundToWorldMatrix = vtk.vtkMatrix4x4()
-    self.ImageToProbe.GetMatrixTransformToWorld(ultrasoundToWorldMatrix)
-
-    # Get inverse transform
-    worldToUltrasoundMatrix = vtk.vtkMatrix4x4()
-    worldToUltrasoundMatrix.DeepCopy( ultrasoundToWorldMatrix )
-    worldToUltrasoundMatrix.Invert()
-
-    # Get numpy array
-    worldToUltrasoundArray = self.convertVtkMatrixToNumpyArray(worldToUltrasoundMatrix)
-    return worldToUltrasoundArray
-
-  #------------------------------------------------------------------------------
-  def getToolToParentTransform(self, node):
-    # Get matrix
-    transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
-    node.GetMatrixTransformToParent(transform_matrix) # get vtk matrix
-    return self.convertVtkMatrixToNumpyArray(transform_matrix)
-
-  #------------------------------------------------------------------------------
-  def getToolToWorldTransform(self, node):
-    # Get matrix
-    transform_matrix = vtk.vtkMatrix4x4() # vtk matrix
-    node.GetMatrixTransformToWorld(transform_matrix) # get vtk matrix
-    return self.convertVtkMatrixToNumpyArray(transform_matrix)
-
-  #------------------------------------------------------------------------------
-  def convertVtkMatrixToNumpyArray(self, vtkMatrix):
-    # Build array
-    R00 = vtkMatrix.GetElement(0, 0) 
-    R01 = vtkMatrix.GetElement(0, 1) 
-    R02 = vtkMatrix.GetElement(0, 2)
-    Tx = vtkMatrix.GetElement(0, 3)
-    R10 = vtkMatrix.GetElement(1, 0)
-    R11 = vtkMatrix.GetElement(1, 1)
-    R12 = vtkMatrix.GetElement(1, 2)
-    Ty = vtkMatrix.GetElement(1, 3)
-    R20 = vtkMatrix.GetElement(2, 0)
-    R21 = vtkMatrix.GetElement(2, 1)
-    R22 = vtkMatrix.GetElement(2, 2)
-    Tz = vtkMatrix.GetElement(2, 3)
-    H0 = vtkMatrix.GetElement(3, 0)
-    H1 = vtkMatrix.GetElement(3, 1)
-    H2 = vtkMatrix.GetElement(3, 2)
-    H3 = vtkMatrix.GetElement(3, 3)
-    return np.array([[R00, R01, R02, Tx],[R10, R11, R12, Ty], [R20, R21, R22, Tz], [H0, H1, H2, H3]])
+    self.plotChartManager.updatePlotChart(metricName)  
 
   #------------------------------------------------------------------------------
   def displayMetricPlot(self):
     if self.plotVisible:
-      # TODO store model slice intersection
-      #needleSliceIntersectionVisibility = self.needle_model.GetModelDisplayNode().GetSliceIntersectionVisibility()
-    
       # Switch to plot only layout
       self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
@@ -1342,34 +1097,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     else:
       # Restore last layout if any
       self.layoutManager.restoreLastLayout()
-
-  #------------------------------------------------------------------------------
-  def exitApplication(self, status=slicer.util.EXIT_SUCCESS, message=None):
-    """Exit application.
-    If ``status`` is ``slicer.util.EXIT_SUCCESS``, ``message`` is logged using ``logging.info(message)``
-    otherwise it is logged using ``logging.error(message)``.
-    """
-    def _exitApplication():
-      if message:
-        if status == slicer.util.EXIT_SUCCESS:
-          logging.info(message)
-        else:
-          logging.error(message)
-      slicer.util.mainWindow().hide()
-      slicer.util.exit(slicer.util.EXIT_FAILURE)
-    qt.QTimer.singleShot(0, _exitApplication)
-
-  #------------------------------------------------------------------------------
-  def setupKeyboardShortcuts(self):
-    shortcuts = [
-        ('Ctrl+3', lambda: slicer.util.mainWindow().pythonConsole().parent().setVisible(not slicer.util.mainWindow().pythonConsole().parent().visible))
-        ]
-
-    for (shortcutKey, callback) in shortcuts:
-        shortcut = qt.QShortcut(slicer.util.mainWindow())
-        shortcut.setKey(qt.QKeySequence(shortcutKey))
-        shortcut.connect('activated()', callback)    
-
+      
 #------------------------------------------------------------------------------
 #
 # ExerciseInPlaneNeedleInsertionTest
