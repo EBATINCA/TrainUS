@@ -323,7 +323,8 @@ class PlaybackPlotChartManager:
     """
     Update visible plot series in plot chart.
     """
-    if self.plotChartNode:
+    listOfMetrics = self.getListOfMetrics()
+    if (selectedMetricName in listOfMetrics) and (self.plotChartNode):
       self.plotChartNode.RemoveAllPlotSeriesNodeIDs() # reset
       self.plotChartNode.AddAndObservePlotSeriesNodeID(self.metricPlotSeries_dict[selectedMetricName].GetID())
       if self.cursorEnabled:
