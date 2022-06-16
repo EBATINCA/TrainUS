@@ -277,6 +277,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.displayPlotButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
     self.ui.displayPlotButton.checked = self.logic.plotVisible
 
+    # Display table
+    self.ui.displayTableButton.checked = self.logic.tableVisible
+
     # Update viewpoint
     self.logic.updateViewpoint()
     self.ui.leftViewButton.checked = False
@@ -537,10 +540,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
 
     # Create message window to indicate to user what is happening
-    progressDialog = self.showProgressDialog()
+    progressDialog = self.showProgressDialog()    
 
-    # Compute metrics
-    self.logic.computeMetricsFromRecording(progressDialog)
+    # Compute real-time metrics
+    self.logic.computeRealTimeMetricsFromRecording(progressDialog)
+
+    # Hide progress dialog
+    progressDialog.hide()
+    progressDialog.deleteLater()
+
+    # Compute overall metrics using PerkTutor
+    self.logic.computeOverallMetricsFromRecording()
 
     # Remove current items in combo box
     numItems = self.ui.metricSelectionComboBox.count
@@ -552,15 +562,14 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     for metricName in listOfMetrics:
       self.ui.metricSelectionComboBox.addItem(metricName)
 
-    # Hide plot
+    # Restore layout
     self.logic.plotVisible = False
-    self.logic.displayMetricPlot()
+    self.logic.tableVisible = False
+    self.logic.updateDifficulty()
 
-    # Restore cursor and hide progress dialog
+    # Restore cursor
     qt.QApplication.restoreOverrideCursor()
-    progressDialog.hide()
-    progressDialog.deleteLater()
-
+    
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -648,6 +657,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
+    self.metricsDirectory = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/Metrics/')
 
     # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
@@ -684,8 +694,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.needleToTargetLineInPlaneAngleDeg = []
 
     # PerkTutor node
-    self.peNode = slicer.vtkMRMLPerkEvaluatorNode()
-    slicer.mrmlScene.AddNode(self.peNode)
+    self.perkEvaluatorNode = None
 
   #------------------------------------------------------------------------------
   def loadData(self):
@@ -1010,7 +1019,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.layoutManager.activateViewpoint(cameraTransform)
 
   #------------------------------------------------------------------------------
-  def computeMetricsFromRecording(self, progressDialog = None):
+  def computeRealTimeMetricsFromRecording(self, progressDialog = None):
     # Get number of items
     numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
 
@@ -1097,29 +1106,93 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Create real-time plot chart
     self.plotChartManager.createPlotChart(cursor = True)
 
-    # PerkTutor metrics
 
+  #------------------------------------------------------------------------------
+  def computeOverallMetricsFromRecording(self):    
+    # Get Perk Evaluator logic
+    peLogic = slicer.modules.perkevaluator.logic()
+    if (peLogic is None):
+      logging.error( "Could not find Perk Evaluator logic." )
+      return
+
+    # Delete existing metric script nodes
+    oldMetricScriptNodes = vtk.vtkCollection()
+    for oldMetricScriptNode in oldMetricScriptNodes:
+      slicer.mrmlScene.RemoveNode(oldMetricScriptNode)
+
+    # Delete existing metric instance nodes
+    oldMetricInstanceNodes = vtk.vtkCollection()
+    for oldMetricInstanceNode in oldMetricInstanceNodes:
+      slicer.mrmlScene.RemoveNode(oldMetricInstanceNode)
+
+    # Delete existing perk evaluator node if any
+    if self.perkEvaluatorNode:
+      slicer.mrmlScene.RemoveNode(self.perkEvaluatorNode)
+      self.perkEvaluatorNode = None 
+
+    # Create Perk Evaluator node
+    self.perkEvaluatorNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPerkEvaluatorNode')
+
+    # Delete existing table node if any
+    if self.perkTutorMetricTableNode:
+      slicer.mrmlScene.RemoveNode(self.perkTutorMetricTableNode)
+      self.perkTutorMetricTableNode = None 
+    
     # Create table node to store PerkTutor metrics
     self.perkTutorMetricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
     self.perkTutorMetricTableNode.SetName('MetricsTable')
     self.perkTutorMetricTableNode.SetLocked(True) # lock table to avoid modifications
     self.perkTutorMetricTableNode.RemoveAllColumns() # reset
 
-    # assign table to PerkTutor node
-    self.peNode.SetMetricsTableID(self.perkTutorMetricTableNode.GetID())
+    # Assign table to PerkTutor node
+    self.perkEvaluatorNode.SetMetricsTableID(self.perkTutorMetricTableNode.GetID())
 
-    # assign sequence browser to PerkTutor node
+    # Assign sequence browser to PerkTutor node
     sequenceBrowserNode = self.sequenceBrowserManager.getSequenceBrowser()
-    self.peNode.SetTrackedSequenceBrowserNodeID(sequenceBrowserNode.GetID())
+    self.perkEvaluatorNode.SetTrackedSequenceBrowserNodeID(sequenceBrowserNode.GetID())
 
-    # assign roles to PerkTutor node
-    slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID(self.peNode, self.NeedleTipToNeedle.GetID(), "Needle", slicer.vtkMRMLMetricInstanceNode().TransformRole)
-    # slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID(peNode, tissueNode.GetID(), "Tissue", slicer.vtkMRMLMetricInstanceNode().AnatomyRole)
-    slicer.modules.perkevaluator.logic().SetMetricInstancesRolesToID( self.peNode, self.ImageToProbe.GetID(), "Ultrasound", slicer.vtkMRMLMetricInstanceNode().TransformRole )
+    # Remove all pervasive metric instances and just recreate the ones for the relevant transforms
+    metricInstanceNodes = slicer.mrmlScene.GetNodesByClass( "vtkMRMLMetricInstanceNode" )
+    for i in range( metricInstanceNodes.GetNumberOfItems() ):
+      node = metricInstanceNodes.GetItemAsObject( i )
+      pervasive = peLogic.GetMetricPervasive( node.GetAssociatedMetricScriptID() )
+      needleTipRole = node.GetRoleID( "Any", slicer.vtkMRMLMetricInstanceNode.TransformRole ) == self.NeedleTipToNeedle.GetID()
+      ultrasoundRole = node.GetRoleID( "Any", slicer.vtkMRMLMetricInstanceNode.TransformRole ) == self.ImageToProbe.GetID()
+      if ( pervasive and not needleTipRole and not ultrasoundRole ):
+        self.perkEvaluatorNode.RemoveMetricInstanceID( node.GetID() )
 
-    # compute metrics
-    slicer.modules.perkevaluator.logic().ComputeMetrics(self.peNode)
+    # Load Python metric scripts
+    metricScriptNodes = []
+    dirfiles = os.listdir(self.metricsDirectory)
+    for fileName in dirfiles:
+      scriptNode = slicer.util.loadNodeFromFile( os.path.join( self.metricsDirectory, fileName ), "Python Metric Script", {} )
+      if scriptNode:
+        metricScriptNodes.append(scriptNode)
 
+    # Add metric instances from script nodes
+    for scriptNode in metricScriptNodes:
+      metricInstanceNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMetricInstanceNode')
+      metricInstanceNode.SetAssociatedMetricScriptID(scriptNode.GetID())
+      self.perkEvaluatorNode.AddMetricInstanceID(metricInstanceNode.GetID())      
+
+    # Assign roles to PerkTutor node
+    peLogic.SetMetricInstancesRolesToID(self.perkEvaluatorNode, self.NeedleTipToNeedle.GetID(), "Any", slicer.vtkMRMLMetricInstanceNode().TransformRole)
+    peLogic.SetMetricInstancesRolesToID(self.perkEvaluatorNode, self.NeedleTipToNeedle.GetID(), "Needle", slicer.vtkMRMLMetricInstanceNode().TransformRole)
+    # peLogic.SetMetricInstancesRolesToID(peNode, tissueNode.GetID(), "Tissue", slicer.vtkMRMLMetricInstanceNode().AnatomyRole)
+    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.ImageToProbe.GetID(), "Ultrasound", slicer.vtkMRMLMetricInstanceNode().TransformRole )
+    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.perkTutorMetricTableNode.GetID(), "Parameter", slicer.vtkMRMLMetricInstanceNode.AnatomyRole )
+    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.targetPointNode.GetID(), "Targets", slicer.vtkMRMLMetricInstanceNode.AnatomyRole )
+
+    # Create progress dialog
+    analysisDialogWidget = slicer.qSlicerPerkEvaluatorAnalysisDialogWidget()
+    analysisDialogWidget.setPerkEvaluatorNode( self.perkEvaluatorNode )
+    analysisDialogWidget.show()
+
+    # Compute metrics
+    peLogic.ComputeMetrics(self.perkEvaluatorNode)
+
+    # Hide progress dialog
+    analysisDialogWidget.hide()
 
   #------------------------------------------------------------------------------
   def updatePlotChart(self):
@@ -1134,7 +1207,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def displayMetricTable(self):
     if self.tableVisible:
       # Switch to table only layout
-      self.layoutManager.setCustomLayout('Table only')      
+      self.layoutManager.setCustomLayout('3D + Table') #('Table only')      
 
       # Show table in table view
       self.layoutManager.setActiveTable(self.perkTutorMetricTableNode)   
