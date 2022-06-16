@@ -539,18 +539,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Set wait cursor
     qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
 
-    # Create message window to indicate to user what is happening
-    progressDialog = self.showProgressDialog()    
-
-    # Compute real-time metrics
-    self.logic.computeRealTimeMetricsFromRecording(progressDialog)
-
-    # Hide progress dialog
-    progressDialog.hide()
-    progressDialog.deleteLater()
-
     # Compute overall metrics using PerkTutor
     self.logic.computeOverallMetricsFromRecording()
+
+    # Compute real-time metrics
+    self.logic.computeRealTimeMetricsFromRecording()
 
     # Remove current items in combo box
     numItems = self.ui.metricSelectionComboBox.count
@@ -611,22 +604,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     # Go back to Home module
     #slicer.util.selectModule('Home') 
     print('Back to home!')
-
-  #------------------------------------------------------------------------------
-  def showProgressDialog(self):
-    """
-    Show progress dialog during metric computation.
-    """
-    progressDialog = qt.QProgressDialog('Computing performance metrics. Please, wait...', 'Cancel', 0, 100, slicer.util.mainWindow())
-    progressDialog.setCancelButton(None) # hide cancel button in dialog
-    progressDialog.setMinimumWidth(300) # dialog size
-    font = qt.QFont()
-    font.setPointSize(12)
-    progressDialog.setFont(font) # font size
-    progressDialog.show()
-    slicer.app.processEvents()
-    return progressDialog
-
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -1019,7 +996,11 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.layoutManager.activateViewpoint(cameraTransform)
 
   #------------------------------------------------------------------------------
-  def computeRealTimeMetricsFromRecording(self, progressDialog = None):
+  def computeRealTimeMetricsFromRecording(self):
+
+    # Create message window to indicate to user what is happening
+    progressDialog = self.showProgressDialog('Computing performance metrics. Please, wait...') 
+
     # Get number of items
     numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
 
@@ -1106,6 +1087,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Create real-time plot chart
     self.plotChartManager.createPlotChart(cursor = True)
 
+    # Hide progress dialog
+    progressDialog.hide()
+    progressDialog.deleteLater()
 
   #------------------------------------------------------------------------------
   def computeOverallMetricsFromRecording(self):    
@@ -1228,6 +1212,21 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     else:
       # Restore last layout if any
       self.layoutManager.restoreLastLayout()
+
+  #------------------------------------------------------------------------------
+  def showProgressDialog(self, messageText):
+    """
+    Show progress dialog during metric computation.
+    """
+    progressDialog = qt.QProgressDialog(messageText, 'Cancel', 0, 100, slicer.util.mainWindow())
+    progressDialog.setCancelButton(None) # hide cancel button in dialog
+    progressDialog.setMinimumWidth(300) # dialog size
+    font = qt.QFont()
+    font.setPointSize(12)
+    progressDialog.setFont(font) # font size
+    progressDialog.show()
+    slicer.app.processEvents()
+    return progressDialog
 
 #------------------------------------------------------------------------------
 #
