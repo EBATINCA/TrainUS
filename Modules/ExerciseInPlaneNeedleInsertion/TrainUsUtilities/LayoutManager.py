@@ -23,7 +23,8 @@ class LayoutManager:
     self.customLayout_Dual3D3D_ID = 1000
     self.customLayout_FourUp3D_ID = 1001
     self.customLayout_Dual2D3D_withPlot_ID = 1002
-    self.customLayout_tableOnly_ID = 1003
+    self.customLayout_TableOnly_ID = 1003
+    self.customLayout_Dual3DTable_ID = 1004
 
     # Volume reslice driver (SlicerIGT extension)
     try:
@@ -97,7 +98,9 @@ class LayoutManager:
     elif layoutName == 'Plot only':
       layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpPlotView
     elif layoutName == 'Table only':
-      layoutID = self.customLayout_tableOnly_ID
+      layoutID = self.customLayout_TableOnly_ID
+    elif layoutName == '3D + Table':
+      layoutID = self.customLayout_Dual3DTable_ID
     else:
       layoutID = 1
 
@@ -229,13 +232,27 @@ class LayoutManager:
     "</layout>")
 
     # Layout table only
-    customLayout_tableOnly = ("<layout type=\"horizontal\">"
+    customLayout_TableOnly = ("<layout type=\"horizontal\">"
     " <item>"
     "  <view class=\"vtkMRMLTableViewNode\" singletontag=\"TableView1\">"
     "  <property name=\"viewlabel\" action=\"default\">T</property>"
     "  </view>"
     " </item>"
     "</layout>")
+
+    # Layout 3D (left) + Table (right)
+    customLayout_Dual3DTable = ("<layout type=\"horizontal\" split=\"true\" >\n"
+    " <item splitSize=\"500\" >\n"
+    "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+    "  <property name=\"viewlabel\" action=\"default\">T</property>"
+    "  </view>"
+    " </item>"
+    " <item splitSize=\"500\" >\n"
+    "  <view class=\"vtkMRMLTableViewNode\" singletontag=\"TableView1\">"
+    "  <property name=\"viewlabel\" action=\"default\">T</property>"
+    "  </view>"
+    " </item>"
+    "</layout>")    
 
     # Register custom layouts
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
@@ -244,7 +261,8 @@ class LayoutManager:
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_tableOnly_ID, customLayout_tableOnly)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_TableOnly_ID, customLayout_TableOnly)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3DTable_ID, customLayout_Dual3DTable)
 
   #------------------------------------------------------------------------------
   def showUltrasoundInSliceView(self, ultrasoundVolumeNode, sliceViewName):
