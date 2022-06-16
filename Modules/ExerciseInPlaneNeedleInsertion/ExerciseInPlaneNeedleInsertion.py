@@ -134,10 +134,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.bottomViewButton.clicked.connect(self.onBottomViewButtonClicked)
     self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
     # Compute metrics
-    self.ui.computeMetricsButton.clicked.connect(self.onComputeMetricsButtonClicked)
-    self.ui.displayTableButton.clicked.connect(self.onDisplayTableButtonClicked)
+    self.ui.computeRealTimeMetricsButton.clicked.connect(self.onComputeRealTimeMetricsButtonClicked)
     self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
     self.ui.metricSelectionComboBox.currentTextChanged.connect(self.onMetricSelectionComboBoxTextChanged)
+    self.ui.computeOverallMetricsButton.clicked.connect(self.onComputeOverallMetricsButtonClicked)
+    self.ui.displayTableButton.clicked.connect(self.onDisplayTableButtonClicked)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
@@ -176,10 +177,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.bottomViewButton.clicked.disconnect()
     self.ui.freeViewButton.clicked.disconnect()
     # Compute metrics
-    self.ui.computeMetricsButton.clicked.disconnect()
-    self.ui.displayTableButton.clicked.disconnect()
+    self.ui.computeRealTimeMetricsButton.clicked.disconnect()
     self.ui.displayPlotButton.clicked.disconnect()
     self.ui.metricSelectionComboBox.currentTextChanged.disconnect()
+    self.ui.computeOverallMetricsButton.clicked.disconnect()
+    self.ui.displayTableButton.clicked.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -270,15 +272,23 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.minValueTrimSequenceLabel.text = '-'
 
     # Metric computation
-    self.ui.computeMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
-    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()) and self.logic.plotVisible
-
+    self.ui.computeRealTimeMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
+    self.ui.computeOverallMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
+    
     # Display plot
-    self.ui.displayPlotButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
-    self.ui.displayPlotButton.checked = self.logic.plotVisible
+    plotVisible = self.logic.layoutManager.isPlotVisibleInCurrentLayout()
+    if plotVisible:
+      self.ui.displayPlotButton.setText('Hide results')
+    else:
+      self.ui.displayPlotButton.setText('Show results')
+    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()) and plotVisible
 
-    # Display table
-    self.ui.displayTableButton.checked = self.logic.tableVisible
+    # Display table    
+    tableVisible = self.logic.layoutManager.isTableVisibleInCurrentLayout()
+    if tableVisible:
+      self.ui.displayTableButton.setText('Hide results')
+    else:
+      self.ui.displayTableButton.setText('Show results')
 
     # Update viewpoint
     self.logic.updateViewpoint()
@@ -534,13 +544,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onComputeMetricsButtonClicked(self):    
+  def onComputeRealTimeMetricsButtonClicked(self):    
     
     # Set wait cursor
     qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
-
-    # Compute overall metrics using PerkTutor
-    self.logic.computeOverallMetricsFromRecording()
 
     # Compute real-time metrics
     self.logic.computeRealTimeMetricsFromRecording()
@@ -555,11 +562,6 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     for metricName in listOfMetrics:
       self.ui.metricSelectionComboBox.addItem(metricName)
 
-    # Restore layout
-    self.logic.plotVisible = False
-    self.logic.tableVisible = False
-    self.logic.updateDifficulty()
-
     # Restore cursor
     qt.QApplication.restoreOverrideCursor()
     
@@ -567,23 +569,32 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onDisplayTableButtonClicked(self):    
-    # Update plot visibility flag
-    self.logic.tableVisible = not self.logic.tableVisible
+  def onComputeOverallMetricsButtonClicked(self):    
+    
+    # Set wait cursor
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
 
+    # Compute overall metrics using PerkTutor
+    self.logic.computeOverallMetricsFromRecording()
+
+    # Restore cursor
+    qt.QApplication.restoreOverrideCursor()
+    
+    # Update GUI
+    self.updateGUIFromMRML()    
+
+  #------------------------------------------------------------------------------
+  def onDisplayPlotButtonClicked(self):    
     # Display metrics
-    self.logic.displayMetricTable()
+    self.logic.displayMetricPlot()
 
     # Update GUI
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onDisplayPlotButtonClicked(self):    
-    # Update plot visibility flag
-    self.logic.plotVisible = not self.logic.plotVisible
-
+  def onDisplayTableButtonClicked(self):    
     # Display metrics
-    self.logic.displayMetricPlot()
+    self.logic.displayMetricTable()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -655,13 +666,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetLineNode = None
     self.targetPointNode = None
 
-    # Table
-    self.tableVisible = False
-    self.perkTutorMetricTableNode = None
-
-    # Plot
-    self.plotVisible = False
-
     # Metric data
     self.sampleID = []
     self.timestamp = []
@@ -672,6 +676,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # PerkTutor node
     self.perkEvaluatorNode = None
+    self.perkTutorMetricTableNode = None
 
   #------------------------------------------------------------------------------
   def loadData(self):
@@ -775,6 +780,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Update layout
     self.layoutManager.setCustomLayout(self.exerciseLayout)
 
+    # Set exercise layout as default layout 
+    self.layoutManager.setDefaultLayout(self.layoutManager.getCurrentLayout())
+
     # Update model slice visibility
     try:
       # Display needle model projected in US image
@@ -801,7 +809,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.layoutManager.updateSliceControllerVisibility(True)
 
       # Restore last layout if any
-      self.layoutManager.restoreLastLayout()
+      self.layoutManager.restoreDefaultLayout()
 
       # Restore difficulty settings
       self.updateDifficulty()
@@ -1091,6 +1099,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     progressDialog.hide()
     progressDialog.deleteLater()
 
+    # Display metrics
+    self.displayMetricPlot()
+
   #------------------------------------------------------------------------------
   def computeOverallMetricsFromRecording(self):    
     # Get Perk Evaluator logic
@@ -1178,6 +1189,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Hide progress dialog
     analysisDialogWidget.hide()
 
+    # Display metrics
+    self.displayMetricTable()
+
   #------------------------------------------------------------------------------
   def updatePlotChart(self):
 
@@ -1188,30 +1202,30 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.plotChartManager.updatePlotChart(metricName)  
 
   #------------------------------------------------------------------------------
-  def displayMetricTable(self):
-    if self.tableVisible:
-      # Switch to table only layout
-      self.layoutManager.setCustomLayout('3D + Table') #('Table only')      
-
-      # Show table in table view
-      self.layoutManager.setActiveTable(self.perkTutorMetricTableNode)   
-
-    else:
-      # Restore last layout if any
-      self.layoutManager.restoreLastLayout()
-
-  #------------------------------------------------------------------------------
   def displayMetricPlot(self):
-    if self.plotVisible:
+    plotVisible = self.layoutManager.isPlotVisibleInCurrentLayout()
+    if plotVisible:
+      # Restore last layout if any
+      self.layoutManager.restoreDefaultLayout()
+    else:
       # Switch to layout with plot
       self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
-      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart())   
+      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart()) 
 
-    else:
+  #------------------------------------------------------------------------------
+  def displayMetricTable(self):
+    tableVisible = self.layoutManager.isTableVisibleInCurrentLayout()
+    if tableVisible:
       # Restore last layout if any
-      self.layoutManager.restoreLastLayout()
+      self.layoutManager.restoreDefaultLayout()
+    else:
+      # Switch to table only layout
+      self.layoutManager.setCustomLayout('2D + 3D + Table')    
+
+      # Show table in table view
+      self.layoutManager.setActiveTable(self.perkTutorMetricTableNode)
 
   #------------------------------------------------------------------------------
   def showProgressDialog(self, messageText):

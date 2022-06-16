@@ -16,6 +16,9 @@ class LayoutManager:
     # Previous layout
     self.lastLayout = None
 
+    # Default layout
+    self.defaultLayout = None
+
     # Layout IDs
     self.customLayout_Dual2D3D_ID = 997
     self.customLayout_2Donly_red_ID = 998
@@ -23,8 +26,9 @@ class LayoutManager:
     self.customLayout_Dual3D3D_ID = 1000
     self.customLayout_FourUp3D_ID = 1001
     self.customLayout_Dual2D3D_withPlot_ID = 1002
-    self.customLayout_TableOnly_ID = 1003
-    self.customLayout_Dual3DTable_ID = 1004
+    self.customLayout_Dual2D3D_withTable_ID = 1003
+    self.customLayout_TableOnly_ID = 1004
+    self.customLayout_Dual3DTable_ID = 1005
 
     # Volume reslice driver (SlicerIGT extension)
     try:
@@ -56,6 +60,28 @@ class LayoutManager:
   #------------------------------------------------------------------------------
   def getLastLayout(self):
     return self.lastLayout
+
+  #------------------------------------------------------------------------------
+  def getDefaultLayout(self):
+    return self.defaultLayout
+
+  #------------------------------------------------------------------------------
+  def setDefaultLayout(self, layoutID):
+    self.defaultLayout = layoutID
+
+  #------------------------------------------------------------------------------
+  def isPlotVisibleInCurrentLayout(self):
+    if not self.currentLayout:
+      return False
+    layoutDescription = slicer.app.layoutManager().layoutLogic().GetLayoutNode().GetLayoutDescription(self.currentLayout)
+    return ('vtkMRMLPlotViewNode' in layoutDescription)
+
+  #------------------------------------------------------------------------------
+  def isTableVisibleInCurrentLayout(self):
+    if not self.currentLayout:
+      return False
+    layoutDescription = slicer.app.layoutManager().layoutLogic().GetLayoutNode().GetLayoutDescription(self.currentLayout)
+    return ('vtkMRMLTableViewNode' in layoutDescription)
 
   #------------------------------------------------------------------------------
   def updateSliceControllerVisibility(self, visible):
@@ -93,6 +119,8 @@ class LayoutManager:
       layoutID = self.customLayout_Dual3D3D_ID
     elif layoutName == '2D + 3D + Plot':
       layoutID = self.customLayout_Dual2D3D_withPlot_ID
+    elif layoutName == '2D + 3D + Table':
+      layoutID = self.customLayout_Dual2D3D_withTable_ID
     elif layoutName == 'Four Up 3D':
       layoutID = self.customLayout_FourUp3D_ID
     elif layoutName == 'Plot only':
@@ -104,18 +132,30 @@ class LayoutManager:
     else:
       layoutID = 1
 
-    # Store previous layout
+    # Update previous layout
     self.lastLayout = slicer.app.layoutManager().layout
 
     # Set layout
     slicer.app.layoutManager().setLayout(layoutID)
 
-    # Store current layout
+    # Update current layout
     self.currentLayout = slicer.app.layoutManager().layout    
 
   #------------------------------------------------------------------------------
   def restoreLastLayout(self):
+    # Switch to last layout
     slicer.app.layoutManager().setLayout(self.lastLayout)
+
+    # Update current layout
+    self.currentLayout = slicer.app.layoutManager().layout
+
+  #------------------------------------------------------------------------------
+  def restoreDefaultLayout(self):
+    # Switch to default layout
+    slicer.app.layoutManager().setLayout(self.defaultLayout)
+
+    # Update current layout
+    self.currentLayout = slicer.app.layoutManager().layout
 
   #------------------------------------------------------------------------------
   def registerCustomLayouts(self):
@@ -207,7 +247,7 @@ class LayoutManager:
     "</layout>")
 
     # Layout 2D (top left) + 3D (top right) + Plot (bottom)
-    customLayout_Dual2D3DwithPlot = ("<layout type=\"vertical\" split=\"true\" >\n"
+    customLayout_Dual2D3D_withPlot = ("<layout type=\"vertical\" split=\"true\" >\n"
     " <item splitSize=\"700\" >\n"
     "  <layout type=\"horizontal\" split=\"true\">"
     "   <item>"
@@ -227,6 +267,31 @@ class LayoutManager:
     " <item splitSize=\"300\" >\n"
     "  <view class=\"vtkMRMLPlotViewNode\" singletontag=\"PlotView1\">"
     "  <property name=\"viewlabel\" action=\"default\">1</property>"
+    "  </view>"
+    " </item>"
+    "</layout>")
+
+    # Layout 2D (top left) + 3D (top right) + Table (bottom)
+    customLayout_Dual2D3D_withTable = ("<layout type=\"vertical\" split=\"true\" >\n"
+    " <item splitSize=\"700\" >\n"
+    "  <layout type=\"horizontal\" split=\"true\">"
+    "   <item>"
+    "    <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+    "       <property name=\"orientation\" action=\"default\">Axial</property>"
+    "       <property name=\"viewlabel\" action=\"default\">R</property>"
+    "       <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+    "    </view>"
+    "   </item>"
+    "   <item>"
+    "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+    "    <property name=\"viewlabel\" action=\"default\">T</property>"
+    "    </view>"
+    "   </item>"
+    "  </layout>"
+    " </item>"
+    " <item splitSize=\"300\" >\n"
+    "  <view class=\"vtkMRMLTableViewNode\" singletontag=\"TableView1\">"
+    "  <property name=\"viewlabel\" action=\"default\">T</property>"
     "  </view>"
     " </item>"
     "</layout>")
@@ -260,7 +325,8 @@ class LayoutManager:
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_yellow_ID, customLayout_2Donly_yellow)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3DwithPlot)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3D_withPlot)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withTable_ID, customLayout_Dual2D3D_withTable)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_TableOnly_ID, customLayout_TableOnly)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3DTable_ID, customLayout_Dual3DTable)
 
