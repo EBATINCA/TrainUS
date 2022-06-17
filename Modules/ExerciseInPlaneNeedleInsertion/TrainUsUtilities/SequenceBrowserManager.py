@@ -271,6 +271,14 @@ class SequenceBrowserManager:
     # Get number of items
     numItems = self.getNumberOfItemsInSequenceBrowser()  
 
+    # Start modification
+    modifiedFlag = self.sequenceBrowserNode.StartModify()
+
+    # Get synchronized sequence nodes
+    synchronizedSequenceNodes = vtk.vtkCollection()
+    self.sequenceBrowserNode.GetSynchronizedSequenceNodes(synchronizedSequenceNodes)
+    synchronizedSequenceNodes.AddItem(self.sequenceBrowserNode.GetMasterSequenceNode())
+
     # Get list of timestamps
     valuesToBeRemoved = list()
     for itemID in range(numItems):
@@ -280,7 +288,11 @@ class SequenceBrowserManager:
 
     # Remove data nodes from sequences
     for value in valuesToBeRemoved:
-      self.sequenceBrowserNode.GetMasterSequenceNode().RemoveDataNodeAtValue(value)
+      for sequenceNode in synchronizedSequenceNodes:
+        sequenceNode.RemoveDataNodeAtValue(value)
+
+    # Finish modification
+    self.sequenceBrowserNode.EndModify(modifiedFlag)  
 
     # Select first item
     self.sequenceBrowserNode.SelectFirstItem() # reset
