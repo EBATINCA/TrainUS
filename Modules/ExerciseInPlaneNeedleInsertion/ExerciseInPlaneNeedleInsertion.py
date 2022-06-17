@@ -93,6 +93,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.showInstructionsButton.setText('Show')
     self.ui.trimSequenceGroupBox.collapsed = True
     self.ui.recordingTimerWidget.slider().visible = False
+    self.ui.metricSelectionFrame.visible = False
 
     # Disable slice annotations immediately
     sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
@@ -1103,6 +1104,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Display metrics
     self.displayMetricPlot()
+    plotVisible = self.layoutManager.isPlotVisibleInCurrentLayout()
+    if not plotVisible:
+      self.displayMetricPlot()
 
   #------------------------------------------------------------------------------
   def computeOverallMetricsFromRecording(self):    
@@ -1214,7 +1218,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.layoutManager.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
-      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart()) 
+      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart())
+
+      # Add combo box to plot controller
+      metricSelectionFrame = self.moduleWidget.ui.metricSelectionFrame
+      metricSelectionFrame.visible = True
+      slicer.app.layoutManager().plotWidget(0).plotController().barWidget().layout().insertWidget(4,metricSelectionFrame)
+      slicer.app.layoutManager().plotWidget(0).plotController().barWidget().layout().setStretch(4,1)
 
   #------------------------------------------------------------------------------
   def displayMetricTable(self):
