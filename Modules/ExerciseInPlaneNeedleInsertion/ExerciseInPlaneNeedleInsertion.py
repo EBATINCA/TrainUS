@@ -375,6 +375,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.logic.sequenceBrowserManager.stopSequenceBrowserRecording()
     else:
       # Start recording
+      synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
+      self.logic.sequenceBrowserManager.setSynchronizedNodes(synchronizedNodes)
       self.logic.sequenceBrowserManager.startSequenceBrowserRecording()
 
     # Update GUI
@@ -389,9 +391,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.logic.sequenceBrowserManager.clearSequenceBrowser()
 
     # Create new recording
-    browserName = 'TrainUS_Recording'
     synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
-    self.logic.sequenceBrowserManager.createNewSequenceBrowser(browserName, synchronizedNodes)
+    self.logic.sequenceBrowserManager.setSynchronizedNodes(synchronizedNodes)
+    self.logic.sequenceBrowserManager.createNewSequenceBrowser()
 
     # Add observer
     self.logic.addObserverToMasterSequenceNode()
@@ -413,7 +415,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
     print('Date:', time.strftime("%Y%m%d"))
     print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.sequenceBrowserManager.getRecordingLength())
+    print('Recording length:', self.logic.sequenceBrowserManager.getRecordingLength())
     print('Target:', self.logic.targetFileName)
     print('User:', 'XXXXXXXXXXX')
     print('Hardware setup:', 'XXXXXXXXXXX')
@@ -1042,7 +1044,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         progressDialog.setValue(progress)
 
       # Get timestamp
-      timestamp = self.sequenceBrowserManager.GetTimestampFromItemID(currentItem)
+      timestamp = self.sequenceBrowserManager.getTimestampFromItemID(currentItem)
 
       # Get target point position
       targetPoint = [0,0,0]
@@ -1081,7 +1083,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.needleToTargetLineInPlaneAngleDeg.append(angle_NeedleToTargetLineInPlane)
 
       # Next sample
-      self.sequenceBrowserManager.SelectNextItemInSequenceBrowser()
+      self.sequenceBrowserManager.selectNextItemInSequenceBrowser()
 
     # Store real-time metric values
     self.plotChartManager.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)

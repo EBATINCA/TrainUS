@@ -12,6 +12,10 @@ class SequenceBrowserManager:
   def __init__( self ):
     # Sequence browser
     self.sequenceBrowserNode = None
+    self.sequenceBrowserNodeName = 'TrainUS_Recording'
+
+    # Synchronized nodes
+    self.synchronizedNodes = None
 
     # Recording info
     self.recordingLength = 0.0
@@ -33,6 +37,21 @@ class SequenceBrowserManager:
     :return sequence browser node (vtkMRMLSequenceBrowserNode)
     """
     return self.sequenceBrowserNode
+
+  #------------------------------------------------------------------------------
+  def getSynchronizedNodes(self):
+    """
+    Get list of synchronized nodes.
+    :return synchronized nodes (list)
+    """
+    return self.synchronizedNodes  
+
+  #------------------------------------------------------------------------------
+  def setSynchronizedNodes(self, synchronizedNodes):
+    """
+    Set list of synchronized nodes.
+    """
+    self.synchronizedNodes = synchronizedNodes
 
   #------------------------------------------------------------------------------
   def getRecordingLength(self):
@@ -149,30 +168,28 @@ class SequenceBrowserManager:
     self.sequenceBrowserNode.SelectFirstItem()
 
   #------------------------------------------------------------------------------
-  def SelectNextItemInSequenceBrowser(self):
+  def selectNextItemInSequenceBrowser(self):
     self.sequenceBrowserNode.SelectNextItem() 
 
   #------------------------------------------------------------------------------
-  def GetTimestampFromItemID(self, itemID):
+  def getTimestampFromItemID(self, itemID):
     return self.sequenceBrowserNode.GetMasterSequenceNode().GetNthIndexValue(itemID)
 
   #------------------------------------------------------------------------------
-  def createNewSequenceBrowser(self, browserName, synchronizedNodes):
+  def createNewSequenceBrowser(self):
     """
     Create new sequence browser node to manage data recording.    
-    :param browserName: sequence browser node name (string)
-    :param synchronizedNodes: list of nodes to be synchronized for recording (list)
     :return success (bool)
     """
     try:
       # Create a sequence browser node
-      self.sequenceBrowserNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSequenceBrowserNode', slicer.mrmlScene.GenerateUniqueName(browserName))
+      self.sequenceBrowserNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSequenceBrowserNode', slicer.mrmlScene.GenerateUniqueName(self.sequenceBrowserNodeName))
 
       # Start modification
       modifiedFlag = self.sequenceBrowserNode.StartModify()
 
       # Add synchronized nodes
-      for node in synchronizedNodes:
+      for node in self.synchronizedNodes:
         self.sequencesLogic.AddSynchronizedNode(None, node, self.sequenceBrowserNode)
 
       # Stop overwritting and saving changes to all nodes
