@@ -4,10 +4,10 @@ import numpy as np
 
 #------------------------------------------------------------------------------
 #
-# MetricCalculationManager
+# MetricCalculationUtils
 #
 #------------------------------------------------------------------------------
-class MetricCalculationManager:
+class MetricCalculationUtils:
 
   #------------------------------------------------------------------------------
   def __init__( self ):

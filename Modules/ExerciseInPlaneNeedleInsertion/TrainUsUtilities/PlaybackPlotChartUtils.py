@@ -4,10 +4,10 @@ from itertools import groupby
 
 #------------------------------------------------------------------------------
 #
-# PlaybackPlotChartManager
+# PlaybackPlotChartUtils
 #
 #------------------------------------------------------------------------------
-class PlaybackPlotChartManager:
+class PlaybackPlotChartUtils:
   """
   Enable the creation of plot charts to visualize metric values during sequence playback.
 
@@ -16,32 +16,32 @@ class PlaybackPlotChartManager:
   (1) Register computed metric values using the "addNewMetric" function
 
     Example:
-      >> myPlaybackPlotChartManager.addNewMetric('DistanceFromNeedleTipToUsPlane', distanceValues)
-      >> myPlaybackPlotChartManager.addNewMetric('AngleBetweenNeedleTipAndUsPlane', angleValues)
+      >> myPlaybackPlotChartUtils.addNewMetric('DistanceFromNeedleTipToUsPlane', distanceValues)
+      >> myPlaybackPlotChartUtils.addNewMetric('AngleBetweenNeedleTipAndUsPlane', angleValues)
 
   (2) Register the timestamps for those metrics
 
     Example:
-      >> myPlaybackPlotChartManager.addMetricTimestamps(timestampValues)
+      >> myPlaybackPlotChartUtils.addMetricTimestamps(timestampValues)
 
   (3) Create the plot chart
 
     Example:
-      >> myPlaybackPlotChartManager.createPlotChart()
+      >> myPlaybackPlotChartUtils.createPlotChart()
 
   (4) Select the metric you want to visualize using the "updatePlotChart" function
 
     Example:
-      >> myPlaybackPlotChartManager.updatePlotChart('AngleBetweenNeedleTipAndUsPlane')
+      >> myPlaybackPlotChartUtils.updatePlotChart('AngleBetweenNeedleTipAndUsPlane')
 
   (*) If you want to show a cursor to indicate the corresponding metric value during playback,
       you can do the following:
 
       - Create plot with "cursor" parameter equal to True: 
-          >> myPlaybackPlotChartManager.createPlotChart(cursor = True)
+          >> myPlaybackPlotChartUtils.createPlotChart(cursor = True)
 
       - Update cursor position for each new sample in the recording:
-          >> myPlaybackPlotChartManager.updateCursorPosition(currentTimestamp)
+          >> myPlaybackPlotChartUtils.updateCursorPosition(currentTimestamp)
   """
 
   #------------------------------------------------------------------------------

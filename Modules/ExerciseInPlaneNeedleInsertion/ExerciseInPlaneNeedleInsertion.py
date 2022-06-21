@@ -237,55 +237,55 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.hardRadioButton.checked = True
 
     # Start/Stop recording
-    if self.logic.sequenceBrowserManager.getRecordingInProgress():
+    if self.logic.sequenceBrowserUtils.getRecordingInProgress():
       self.ui.startStopRecordingButton.setText('Stop')
       self.ui.clearRecordingButton.enabled = False
       self.ui.saveRecordingButton.enabled = False
     else:
       self.ui.startStopRecordingButton.setText('Start')
-      self.ui.clearRecordingButton.enabled = bool(self.logic.sequenceBrowserManager.getSequenceBrowser())
-      self.ui.saveRecordingButton.enabled = bool(self.logic.sequenceBrowserManager.getSequenceBrowser())
+      self.ui.clearRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+      self.ui.saveRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
 
     # Recording info
-    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.sequenceBrowserManager.getRecordingLength()))
-    if bool(self.logic.sequenceBrowserManager.getSequenceBrowser()):
-      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
+    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.sequenceBrowserUtils.getRecordingLength()))
+    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
+      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
 
     # Playback
-    if bool(self.logic.sequenceBrowserManager.getSequenceBrowser()):
+    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
       self.ui.SequenceBrowserPlayWidget.enabled = True
-      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
+      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
       self.ui.SequenceBrowserSeekWidget.enabled = True
-      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserManager.getSequenceBrowser())
+      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
     else:
       self.ui.SequenceBrowserPlayWidget.enabled = False
       self.ui.SequenceBrowserSeekWidget.enabled = False
 
     # Trim sequence
-    rangeSequence = self.logic.sequenceBrowserManager.getTimeRangeInSequenceBrowser()
+    rangeSequence = self.logic.sequenceBrowserUtils.getTimeRangeInSequenceBrowser()
     if rangeSequence:
       self.ui.trimSequenceDoubleRangeSlider.minimum = rangeSequence[0]
       self.ui.trimSequenceDoubleRangeSlider.maximum = rangeSequence[1]
       self.ui.trimSequenceDoubleRangeSlider.minimumValue = rangeSequence[0]
       self.ui.trimSequenceDoubleRangeSlider.maximumValue = rangeSequence[1]
-    if self.logic.sequenceBrowserManager.isSequenceBrowserEmpty():
+    if self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty():
       self.ui.maxValueTrimSequenceLabel.text = '-'
       self.ui.minValueTrimSequenceLabel.text = '-'
 
     # Metric computation
-    self.ui.computeRealTimeMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
-    self.ui.computeOverallMetricsButton.enabled = not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()
+    self.ui.computeRealTimeMetricsButton.enabled = not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()
+    self.ui.computeOverallMetricsButton.enabled = not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()
     
     # Display plot
-    plotVisible = self.logic.layoutManager.isPlotVisibleInCurrentLayout()
+    plotVisible = self.logic.layoutUtils.isPlotVisibleInCurrentLayout()
     if plotVisible:
       self.ui.displayPlotButton.setText('Hide results')
     else:
       self.ui.displayPlotButton.setText('Show results')
-    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserManager.isSequenceBrowserEmpty()) and plotVisible
+    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()) and plotVisible
 
     # Display table    
-    tableVisible = self.logic.layoutManager.isTableVisibleInCurrentLayout()
+    tableVisible = self.logic.layoutUtils.isTableVisibleInCurrentLayout()
     if tableVisible:
       self.ui.displayTableButton.setText('Hide results')
     else:
@@ -368,17 +368,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onStartStopRecordingButtonClicked(self):    
     # Check recording status
-    recordingInProgress = self.logic.sequenceBrowserManager.getRecordingInProgress()
+    recordingInProgress = self.logic.sequenceBrowserUtils.getRecordingInProgress()
 
     # Update sequence browser recording status
     if recordingInProgress:
       # Stop recording
-      self.logic.sequenceBrowserManager.stopSequenceBrowserRecording()
+      self.logic.sequenceBrowserUtils.stopSequenceBrowserRecording()
     else:
       # Start recording
       synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
-      self.logic.sequenceBrowserManager.setSynchronizedNodes(synchronizedNodes)
-      self.logic.sequenceBrowserManager.startSequenceBrowserRecording()
+      self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
+      self.logic.sequenceBrowserUtils.startSequenceBrowserRecording()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -389,12 +389,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.logic.removeObserverToMasterSequenceNode()
 
     # Delete previous recording
-    self.logic.sequenceBrowserManager.clearSequenceBrowser()
+    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
 
     # Create new recording
     synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
-    self.logic.sequenceBrowserManager.setSynchronizedNodes(synchronizedNodes)
-    self.logic.sequenceBrowserManager.createNewSequenceBrowser()
+    self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
+    self.logic.sequenceBrowserUtils.createNewSequenceBrowser()
 
     # Add observer
     self.logic.addObserverToMasterSequenceNode()
@@ -410,13 +410,13 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     filePath = os.path.join(directory, filename)
 
     # Save sequence browser node
-    self.logic.sequenceBrowserManager.saveSequenceBrowser(filePath)
+    self.logic.sequenceBrowserUtils.saveSequenceBrowser(filePath)
 
     # Recording info to save in JSON file
     print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
     print('Date:', time.strftime("%Y%m%d"))
     print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.logic.sequenceBrowserManager.getRecordingLength())
+    print('Recording length:', self.logic.sequenceBrowserUtils.getRecordingLength())
     print('Target:', self.logic.targetFileName)
     print('User:', 'XXXXXXXXXXX')
     print('Hardware setup:', 'XXXXXXXXXXX')
@@ -446,16 +446,16 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.logic.removeObserverToMasterSequenceNode()
 
     # Delete previous recording
-    self.logic.sequenceBrowserManager.clearSequenceBrowser()
+    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
 
     # Load sequence browser node
-    self.logic.sequenceBrowserManager.loadSequenceBrowser(filePath)
+    self.logic.sequenceBrowserUtils.loadSequenceBrowser(filePath)
 
     # Add observer
     self.logic.addObserverToMasterSequenceNode()
 
     # Reset focal point in 3D view
-    self.logic.layoutManager.resetFocalPointInThreeDView()
+    self.logic.layoutUtils.resetFocalPointInThreeDView()
 
     # Load recording info file
     recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
@@ -484,12 +484,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onTrimSequenceMinPosDoubleRangeSliderModified(self, minValue):
     # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserManager.getSequenceBrowserItemFromTimestamp(minValue)
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(minValue)
 
   #------------------------------------------------------------------------------
   def onTrimSequenceMaxPosDoubleRangeSliderModified(self, maxValue):
     # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserManager.getSequenceBrowserItemFromTimestamp(maxValue)
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(maxValue)
 
   #------------------------------------------------------------------------------
   def onTrimSequenceButtonClicked(self):
@@ -501,7 +501,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.trimSequenceGroupBox.collapsed = True
 
     # Trim sequence
-    self.logic.sequenceBrowserManager.trimSequenceBrowserRecording(minValue, maxValue)
+    self.logic.sequenceBrowserUtils.trimSequenceBrowserRecording(minValue, maxValue)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -561,7 +561,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.metricSelectionComboBox.removeItem(0)
 
     # Add items to metric selection combo box
-    listOfMetrics = self.logic.plotChartManager.getListOfMetrics()
+    listOfMetrics = self.logic.plotChartUtils.getListOfMetrics()
     for metricName in listOfMetrics:
       self.ui.metricSelectionComboBox.addItem(metricName)
 
@@ -639,12 +639,12 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Only defined in case there is no other way but having to use the widget from the logic
     self.moduleWidget = widgetInstance
 
-    # Sequence browser manager
+    # Import utility classes
     import TrainUsUtilities
-    self.sequenceBrowserManager = TrainUsUtilities.SequenceBrowserManager()
-    self.layoutManager = TrainUsUtilities.LayoutManager()
-    self.plotChartManager = TrainUsUtilities.PlaybackPlotChartManager()
-    self.metricCalculationManager = TrainUsUtilities.MetricCalculationManager()
+    self.sequenceBrowserUtils= TrainUsUtilities.SequenceBrowserUtils()
+    self.layoutUtils= TrainUsUtilities.LayoutUtils()
+    self.plotChartUtils= TrainUsUtilities.PlaybackPlotChartUtils()
+    self.metricCalculationUtils= TrainUsUtilities.MetricCalculationUtils()
 
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseInPlaneNeedleInsertionData/')
@@ -749,13 +749,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
 
     # Display US image in red slice view
-    self.layoutManager.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
+    self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
 
     # Remove 3D cube and 3D axis label from 3D view
-    self.layoutManager.hideCubeAndLabelsInThreeDView()
+    self.layoutUtils.hideCubeAndLabelsInThreeDView()
 
     # Reset focal point in 3D view
-    self.layoutManager.resetFocalPointInThreeDView()
+    self.layoutUtils.resetFocalPointInThreeDView()
 
     # Avoid needle model to be seen in yellow slice view during instructions display
     self.needle_model.GetModelDisplayNode().SetViewNodeIDs(('vtkMRMLSliceNodeRed', 'vtkMRMLViewNode1'))
@@ -781,10 +781,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       logging.warning('Invalid difficulty level was selected.')
 
     # Update layout
-    self.layoutManager.setCustomLayout(self.exerciseLayout)
+    self.layoutUtils.setCustomLayout(self.exerciseLayout)
 
     # Set exercise layout as default layout 
-    self.layoutManager.setDefaultLayout(self.layoutManager.getCurrentLayout())
+    self.layoutUtils.setDefaultLayout(self.layoutUtils.getCurrentLayout())
 
     # Update model slice visibility
     try:
@@ -799,20 +799,20 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     if self.intructionsVisible:
       # Hide slice controller visibility
-      self.layoutManager.updateSliceControllerVisibility(False)
+      self.layoutUtils.updateSliceControllerVisibility(False)
 
       # Switch to 2D only layout
-      self.layoutManager.setCustomLayout('2D only yellow')
+      self.layoutUtils.setCustomLayout('2D only yellow')
 
       # Display instructions in yellow view
-      self.layoutManager.showImageInstructionsInSliceView(self.instructions, 'Yellow')
+      self.layoutUtils.showImageInstructionsInSliceView(self.instructions, 'Yellow')
 
     else:
       # Restore slice controller visibility
-      self.layoutManager.updateSliceControllerVisibility(True)
+      self.layoutUtils.updateSliceControllerVisibility(True)
 
       # Restore last layout if any
-      self.layoutManager.restoreDefaultLayout()
+      self.layoutUtils.restoreDefaultLayout()
 
       # Restore difficulty settings
       self.updateDifficulty()
@@ -821,13 +821,13 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def previousExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      self.layoutManager.previousInstructionInSliceView('Yellow')
+      self.layoutUtils.previousInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
   def nextExerciseInstruction(self):
     # Modify slice offset
     if self.intructionsVisible:
-      self.layoutManager.nextInstructionInSliceView('Yellow')
+      self.layoutUtils.nextInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
   def getRandomTargetID(self):
@@ -967,7 +967,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     """
     Update cursor position in plot chart.
     """
-    self.plotChartManager.updateCursorPosition(self.sequenceBrowserManager.getSelectedTimestampInSequenceBrowser())    
+    self.plotChartUtils.updateCursorPosition(self.sequenceBrowserUtils.getSelectedTimestampInSequenceBrowser())    
 
   #------------------------------------------------------------------------------
   def readRecordingInfoFile(self, filePath):
@@ -978,8 +978,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     :return recording info (dict)
     """
-    logging.debug('RecordingManager.readRecordingInfoFile')
-    
     try:
       with open(filePath, 'r') as inputFile:
         recordingInfo =  json.loads(inputFile.read())
@@ -1004,7 +1002,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       return
 
     # Update viewpoint in 3D view
-    self.layoutManager.activateViewpoint(cameraTransform)
+    self.layoutUtils.activateViewpoint(cameraTransform)
 
   #------------------------------------------------------------------------------
   def computeRealTimeMetricsFromRecording(self):
@@ -1013,7 +1011,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     progressDialog = self.showProgressDialog('Computing performance metrics. Please, wait...') 
 
     # Get number of items
-    numItems = self.sequenceBrowserManager.getNumberOfItemsInSequenceBrowser()
+    numItems = self.sequenceBrowserUtils.getNumberOfItemsInSequenceBrowser()
 
     # Metrics
     self.sampleID = []
@@ -1036,7 +1034,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       return
 
     # Iterate along items
-    self.sequenceBrowserManager.selectFirstItemInSequenceBrowser() # reset
+    self.sequenceBrowserUtils.selectFirstItemInSequenceBrowser() # reset
     for currentItem in range(numItems):
 
       # Update progress dialog if any
@@ -1045,7 +1043,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         progressDialog.setValue(progress)
 
       # Get timestamp
-      timestamp = self.sequenceBrowserManager.getTimestampFromItemID(currentItem)
+      timestamp = self.sequenceBrowserUtils.getTimestampFromItemID(currentItem)
 
       # Get target point position
       targetPoint = [0,0,0]
@@ -1061,19 +1059,19 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       # Real-time metrics
       #
       # Get current tool positions
-      self.metricCalculationManager.getCurrentToolPositions(self.NeedleTipToNeedle, self.ProbeModelToProbe, self.ImageToProbe)
+      self.metricCalculationUtils.getCurrentToolPositions(self.NeedleTipToNeedle, self.ProbeModelToProbe, self.ImageToProbe)
 
       # Distance from needle tip to US plane
-      distance_NeedleTipToUSPlane = self.metricCalculationManager.computeNeedleTipToUsPlaneDistanceMm()
+      distance_NeedleTipToUSPlane = self.metricCalculationUtils.computeNeedleTipToUsPlaneDistanceMm()
 
       # Distance from needle tip to target point
-      distance_NeedleTipToTargetPoint = self.metricCalculationManager.computeNeedleTipToTargetDistanceMm(targetPoint)
+      distance_NeedleTipToTargetPoint = self.metricCalculationUtils.computeNeedleTipToTargetDistanceMm(targetPoint)
 
       # Angle between needle and US plane
-      angle_NeedleToUsPlane = self.metricCalculationManager.computeNeedleToUsPlaneAngleDeg()
+      angle_NeedleToUsPlane = self.metricCalculationUtils.computeNeedleToUsPlaneAngleDeg()
 
       # Angle between needle and target trajectory
-      angle_NeedleToTargetLineInPlane = self.metricCalculationManager.computeNeedleToTargetLineInPlaneAngleDeg(targetLineStart, targetLineEnd)
+      angle_NeedleToTargetLineInPlane = self.metricCalculationUtils.computeNeedleToTargetLineInPlaneAngleDeg(targetLineStart, targetLineEnd)
 
       # Store metrics
       self.sampleID.append(currentItem)
@@ -1084,19 +1082,19 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.needleToTargetLineInPlaneAngleDeg.append(angle_NeedleToTargetLineInPlane)
 
       # Next sample
-      self.sequenceBrowserManager.selectNextItemInSequenceBrowser()
+      self.sequenceBrowserUtils.selectNextItemInSequenceBrowser()
 
     # Store real-time metric values
-    self.plotChartManager.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
-    self.plotChartManager.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
-    self.plotChartManager.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
-    self.plotChartManager.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
+    self.plotChartUtils.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
+    self.plotChartUtils.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
+    self.plotChartUtils.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
+    self.plotChartUtils.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
 
     # Store real-time metric timestamps
-    self.plotChartManager.addMetricTimestamps(self.timestamp)
+    self.plotChartUtils.addMetricTimestamps(self.timestamp)
 
     # Create real-time plot chart
-    self.plotChartManager.createPlotChart(cursor = True)
+    self.plotChartUtils.createPlotChart(cursor = True)
 
     # Hide progress dialog
     progressDialog.hide()
@@ -1104,7 +1102,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Display metrics
     self.displayMetricPlot()
-    plotVisible = self.layoutManager.isPlotVisibleInCurrentLayout()
+    plotVisible = self.layoutUtils.isPlotVisibleInCurrentLayout()
     if not plotVisible:
       self.displayMetricPlot()
 
@@ -1149,7 +1147,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.perkEvaluatorNode.SetMetricsTableID(self.perkTutorMetricTableNode.GetID())
 
     # Assign sequence browser to PerkTutor node
-    sequenceBrowserNode = self.sequenceBrowserManager.getSequenceBrowser()
+    sequenceBrowserNode = self.sequenceBrowserUtils.getSequenceBrowser()
     self.perkEvaluatorNode.SetTrackedSequenceBrowserNodeID(sequenceBrowserNode.GetID())
 
     # Remove all pervasive metric instances and just recreate the ones for the relevant transforms
@@ -1205,20 +1203,20 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     metricName = self.selectedMetric
 
     # Update visible plot series in plot chart
-    self.plotChartManager.updatePlotChart(metricName)  
+    self.plotChartUtils.updatePlotChart(metricName)  
 
   #------------------------------------------------------------------------------
   def displayMetricPlot(self):
-    plotVisible = self.layoutManager.isPlotVisibleInCurrentLayout()
+    plotVisible = self.layoutUtils.isPlotVisibleInCurrentLayout()
     if plotVisible:
       # Restore last layout if any
-      self.layoutManager.restoreDefaultLayout()
+      self.layoutUtils.restoreDefaultLayout()
     else:
       # Switch to layout with plot
-      self.layoutManager.setCustomLayout('2D + 3D + Plot')
+      self.layoutUtils.setCustomLayout('2D + 3D + Plot')
 
       # Show plot chart in plot view
-      self.layoutManager.setActivePlotChart(self.plotChartManager.getPlotChart())
+      self.layoutUtils.setActivePlotChart(self.plotChartUtils.getPlotChart())
 
       # Add combo box to plot controller
       metricSelectionFrame = self.moduleWidget.ui.metricSelectionFrame
@@ -1228,16 +1226,16 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
   #------------------------------------------------------------------------------
   def displayMetricTable(self):
-    tableVisible = self.layoutManager.isTableVisibleInCurrentLayout()
+    tableVisible = self.layoutUtils.isTableVisibleInCurrentLayout()
     if tableVisible:
       # Restore last layout if any
-      self.layoutManager.restoreDefaultLayout()
+      self.layoutUtils.restoreDefaultLayout()
     else:
       # Switch to table only layout
-      self.layoutManager.setCustomLayout('2D + 3D + Table')    
+      self.layoutUtils.setCustomLayout('2D + 3D + Table')    
 
       # Show table in table view
-      self.layoutManager.setActiveTable(self.perkTutorMetricTableNode)
+      self.layoutUtils.setActiveTable(self.perkTutorMetricTableNode)
 
   #------------------------------------------------------------------------------
   def showProgressDialog(self, messageText):

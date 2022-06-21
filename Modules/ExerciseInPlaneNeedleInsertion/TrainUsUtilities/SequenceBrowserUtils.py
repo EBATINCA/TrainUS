@@ -3,10 +3,10 @@ import logging
 
 #------------------------------------------------------------------------------
 #
-# SequenceBrowserManager
+# SequenceBrowserUtils
 #
 #------------------------------------------------------------------------------
-class SequenceBrowserManager:
+class SequenceBrowserUtils:
 
   #------------------------------------------------------------------------------
   def __init__( self ):
