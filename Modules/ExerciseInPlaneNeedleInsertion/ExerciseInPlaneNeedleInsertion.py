@@ -687,10 +687,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Load exercise instructions
     try:
-        self.instructions = slicer.util.getNode('Instructions1')
+        self.instructions = slicer.util.getNode('Slide1')
     except:
       try:
-        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Instructions1.PNG')
+        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Slide1.PNG')
       except:
         logging.error('ERROR: Instructions files could not be loaded...')
 
