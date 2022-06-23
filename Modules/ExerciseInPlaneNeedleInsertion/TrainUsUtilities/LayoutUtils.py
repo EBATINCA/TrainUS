@@ -20,9 +20,7 @@ class LayoutUtils:
     self.defaultLayout = None
 
     # Layout IDs
-    self.customLayout_Dual2D3D_ID = 997
-    self.customLayout_2Donly_red_ID = 998
-    self.customLayout_2Donly_yellow_ID = 999
+    self.customLayout_Dual2D3D_ID = 999
     self.customLayout_Dual3D3D_ID = 1000
     self.customLayout_FourUp3D_ID = 1001
     self.customLayout_Dual2D3D_withPlot_ID = 1002
@@ -110,9 +108,11 @@ class LayoutUtils:
     if layoutName == '3D only':
       layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUp3DView
     elif layoutName == '2D only red':
-      layoutID = self.customLayout_2Donly_red_ID
+      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView
     elif layoutName == '2D only yellow':
-      layoutID = self.customLayout_2Donly_yellow_ID
+      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpYellowSliceView
+    elif layoutName == '2D only green':
+      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpGreenSliceView
     elif layoutName == '2D + 3D':
       layoutID = self.customLayout_Dual2D3D_ID
     elif layoutName == 'Dual 3D':
@@ -130,7 +130,7 @@ class LayoutUtils:
     elif layoutName == '3D + Table':
       layoutID = self.customLayout_Dual3DTable_ID
     else:
-      layoutID = 1
+      layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutDefaultView
 
     # Update previous layout
     self.lastLayout = slicer.app.layoutManager().layout
@@ -174,28 +174,6 @@ class LayoutUtils:
     " <item splitSize=\"600\" >\n"
     "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
     "  <property name=\"viewlabel\" action=\"default\">T</property>"
-    "  </view>"
-    " </item>"
-    "</layout>")
-
-    # Layout 2D only (red view)
-    customLayout_2Donly_red = ("<layout type=\"horizontal\">"
-    " <item>"
-    "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
-    "   <property name=\"orientation\" action=\"default\">Axial</property>"
-    "     <property name=\"viewlabel\" action=\"default\">R</property>"
-    "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
-    "  </view>"
-    " </item>"
-    "</layout>")
-
-    # Layout 2D only (yellow view)
-    customLayout_2Donly_yellow = ("<layout type=\"horizontal\">"
-    " <item>"
-    "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
-    "   <property name=\"orientation\" action=\"default\">Axial</property>"
-    "     <property name=\"viewlabel\" action=\"default\">Y</property>"
-    "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
     "  </view>"
     " </item>"
     "</layout>")
@@ -321,8 +299,6 @@ class LayoutUtils:
 
     # Register custom layouts
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_red_ID, customLayout_2Donly_red)
-    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_2Donly_yellow_ID, customLayout_2Donly_yellow)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3D_withPlot)
