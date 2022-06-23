@@ -344,7 +344,29 @@ class LayoutUtils:
     sliceLogic.SetSliceOffset(0)
 
     # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
-    sliceWidget.enabled = False
+    #sliceWidget.enabled = False
+
+  #------------------------------------------------------------------------------
+  def showVideoInstructionsInSliceView(self, instructionsVolumeNode, sliceViewName):
+    # Get slice widget
+    sliceWidget = slicer.app.layoutManager().sliceWidget(sliceViewName)
+
+    # Get slice logic
+    sliceLogic = sliceWidget.sliceLogic()
+
+    # Select background volume in slice view
+    sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(instructionsVolumeNode.GetID())
+
+    # Deactivate volume reslice driver
+    self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_NONE, sliceLogic.GetSliceNode())
+
+    # Set slice properties
+    sliceLogic.GetSliceNode().SetOrientationToAxial()
+    sliceLogic.FitSliceToAll()
+    sliceLogic.SetSliceOffset(0)
+
+    # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
+    #sliceWidget.enabled = False
 
   #------------------------------------------------------------------------------
   def previousInstructionInSliceView(self, sliceViewName):

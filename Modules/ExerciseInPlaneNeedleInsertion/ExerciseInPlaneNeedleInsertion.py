@@ -94,6 +94,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.trimSequenceGroupBox.collapsed = True
     self.ui.recordingTimerWidget.slider().visible = False
     self.ui.metricSelectionFrame.visible = False
+    self.ui.videoInstructionsButton.setIcon(qt.QIcon(self.resourcePath('Icons/videoIcon_small.png')))    
+    self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
 
     # Disable slice annotations immediately
     sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
@@ -110,6 +112,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.showInstructionsButton.clicked.connect(self.onShowInstructionsButtonClicked)
     self.ui.previousInstructionButton.clicked.connect(self.onPreviousInstructionButtonClicked)
     self.ui.nextInstructionButton.clicked.connect(self.onNextInstructionButtonClicked)
+    self.ui.videoInstructionsButton.clicked.connect(self.onVideoInstructionsButtonClicked)
     # Difficulty
     self.ui.easyRadioButton.toggled.connect(self.onDifficultyRadioButtonToggled)
     self.ui.mediumRadioButton.toggled.connect(self.onDifficultyRadioButtonToggled)
@@ -153,6 +156,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.showInstructionsButton.clicked.disconnect()
     self.ui.previousInstructionButton.clicked.disconnect()
     self.ui.nextInstructionButton.clicked.disconnect()    
+    self.ui.videoInstructionsButton.clicked.disconnect()    
     # Difficulty
     self.ui.easyRadioButton.clicked.disconnect()
     self.ui.mediumRadioButton.clicked.disconnect()
@@ -218,15 +222,25 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     else:
       logging.error('Invalid exercise mode...')
 
-    # Show/Hide instructions
-    if self.logic.intructionsVisible:
+    # Show/Hide instruction images
+    if self.logic.instructionsImagesVisible:
       self.ui.showInstructionsButton.setText('Hide')
       self.ui.previousInstructionButton.enabled = True
       self.ui.nextInstructionButton.enabled = True
+      self.ui.videoInstructionsButton.enabled = False
     else:
       self.ui.showInstructionsButton.setText('Show')
       self.ui.previousInstructionButton.enabled = False
       self.ui.nextInstructionButton.enabled = False
+      self.ui.videoInstructionsButton.enabled = True
+
+    # Show/Hide instruction video
+    if self.logic.instructionsVideoVisible:
+      self.ui.videoInstructionsButton.checked = True
+      self.ui.showInstructionsButton.enabled = False
+    else:
+      self.ui.videoInstructionsButton.checked = False
+      self.ui.showInstructionsButton.enabled = True    
 
     # Difficulty
     if self.logic.exerciseDifficulty == 'Easy':
@@ -341,10 +355,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onShowInstructionsButtonClicked(self):
     # Update instructions visibility flag
-    self.logic.intructionsVisible = not self.logic.intructionsVisible
+    self.logic.instructionsImagesVisible = not self.logic.instructionsImagesVisible
 
     # Update instruction display
-    self.logic.updateDisplayExerciseInstructions()
+    self.logic.updateDisplayExerciseInstructionsImages()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -356,6 +370,17 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onNextInstructionButtonClicked(self):
     self.logic.nextExerciseInstruction()
+
+  #------------------------------------------------------------------------------
+  def onVideoInstructionsButtonClicked(self):
+    # Update instructions visibility flag
+    self.logic.instructionsVideoVisible = not self.logic.instructionsVideoVisible
+
+    # Update instruction display
+    self.logic.updateDisplayExerciseInstructionsVideo()
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onGenerateTargetButtonClicked(self):    
@@ -656,7 +681,8 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.exerciseMode = 'Evaluation'
 
     # Instructions
-    self.intructionsVisible = False
+    self.instructionsImagesVisible = False
+    self.instructionsVideoVisible = False
 
     # Viewpoint
     self.currentViewpointMode = 'Front' # default is front view
@@ -685,14 +711,21 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def loadData(self):
     logging.debug('Loading data')
 
-    # Load exercise instructions
+    # Load instructions images
     try:
-        self.instructions = slicer.util.getNode('Slide1')
+        self.instructionsImageVolume = slicer.util.getNode('Slide1')
     except:
       try:
-        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Slide1.PNG')
+        self.instructionsImageVolume = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Slide1.PNG')
       except:
         logging.error('ERROR: Instructions files could not be loaded...')
+
+    # Load instructions video
+    try:
+      self.instructionsSequenceBrowser = slicer.util.loadNodeFromFile(self.dataFolderPath + '/Instructions/video.sqbr', 'Tracked Sequence Browser')
+      self.instructionsVideoVolume = slicer.util.getNode('video')
+    except:
+      logging.error('ERROR:  Video instructions could not be loaded...')     
 
     # Load models
     self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
@@ -795,18 +828,16 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       pass
 
   #------------------------------------------------------------------------------
-  def updateDisplayExerciseInstructions(self):
-
-    if self.intructionsVisible:
+  def updateDisplayExerciseInstructionsImages(self):
+    if self.instructionsImagesVisible:
       # Hide slice controller visibility
       self.layoutUtils.updateSliceControllerVisibility(False)
-
+      
       # Switch to 2D only layout
       self.layoutUtils.setCustomLayout('2D only yellow')
 
       # Display instructions in yellow view
-      self.layoutUtils.showImageInstructionsInSliceView(self.instructions, 'Yellow')
-
+      self.layoutUtils.showImageInstructionsInSliceView(self.instructionsImageVolume, 'Yellow')
     else:
       # Restore slice controller visibility
       self.layoutUtils.updateSliceControllerVisibility(True)
@@ -818,15 +849,46 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.updateDifficulty()
 
   #------------------------------------------------------------------------------
+  def updateDisplayExerciseInstructionsVideo(self):
+    if self.instructionsVideoVisible:
+      # Hide slice controller visibility
+      self.layoutUtils.updateSliceControllerVisibility(False)
+      
+      # Switch to 2D only layout
+      self.layoutUtils.setCustomLayout('2D only green')
+
+      # Display instructions in yellow view
+      self.layoutUtils.showVideoInstructionsInSliceView(self.instructionsVideoVolume, 'Green')
+
+      # Play video
+      self.instructionsSequenceBrowser.SetPlaybackRateFps(5.0)
+      self.instructionsSequenceBrowser.SelectFirstItem() # reset
+      self.instructionsSequenceBrowser.SetPlaybackLooped(True)
+      self.instructionsSequenceBrowser.SetPlaybackActive(True)
+    else:
+      # Restore slice controller visibility
+      self.layoutUtils.updateSliceControllerVisibility(True)
+
+      # Restore last layout if any
+      self.layoutUtils.restoreDefaultLayout()
+
+      # Restore difficulty settings
+      self.updateDifficulty()
+
+      # Stop video
+      self.instructionsSequenceBrowser.SelectFirstItem() # reset
+      self.instructionsSequenceBrowser.SetPlaybackActive(False)
+
+  #------------------------------------------------------------------------------
   def previousExerciseInstruction(self):
     # Modify slice offset
-    if self.intructionsVisible:
+    if self.instructionsImagesVisible:
       self.layoutUtils.previousInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
   def nextExerciseInstruction(self):
     # Modify slice offset
-    if self.intructionsVisible:
+    if self.instructionsImagesVisible:
       self.layoutUtils.nextInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
