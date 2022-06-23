@@ -44,7 +44,7 @@ class TargetsHit( PerkEvaluatorMetric ):
     for i in range( self.targets.GetNumberOfFiducials() ):    
       # Find the centre of the fiducial
       currTargetPosition = [ 0, 0, 0 ]
-      self.targets.GetNthFiducialPosition( i, currTargetPosition )
+      self.targets.GetNthControlPointPositionWorld( i, currTargetPosition )
       currTargetPosition_RAS = [ currTargetPosition[ 0 ], currTargetPosition[ 1 ], currTargetPosition[ 2 ] ]
       
       # Find the needle tip in RAS
