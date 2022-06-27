@@ -12,9 +12,13 @@ set(MODULE_PYTHON_SCRIPTS
   Widgets/PlugAndPlay.py
   Widgets/ReviewSelection.py
   Widgets/TrainingSession.py
-  Managers/__init__.py
-  Managers/RecordingManager.py
-  Managers/DeviceManager.py
+  TrainUsUtilities/__init__.py
+  TrainUsUtilities/RecordingManager.py
+  TrainUsUtilities/DeviceManager.py
+  TrainUsUtilities/LayoutUtils.py
+  TrainUsUtilities/MetricCalculationUtils.py
+  TrainUsUtilities/PlaybackPlotChartUtils.py
+  TrainUsUtilities/SequenceBrowserUtils.py
   )
 
 set(MODULE_PYTHON_RESOURCES

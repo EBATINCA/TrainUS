@@ -7,7 +7,7 @@ from slicer.util import VTKObservationMixin
 
 import logging
 
-import Managers
+import TrainUsUtilities
 
 import TrainUSLib.TrainUSParameters as Parameters
 
@@ -239,11 +239,11 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.deviceDirectoryPath = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
 
     # Data manager to handle participants and recordings
-    self.recordingManager = Managers.RecordingManager()
+    self.recordingManager = TrainUsUtilities.RecordingManager()
     self.recordingManager.setRootDirectory(self.rootDirectoryPath)
 
     # Device manager to access device info
-    self.deviceManager = Managers.DeviceManager()
+    self.deviceManager = TrainUsUtilities.DeviceManager()
     self.deviceManager.setMainDirectory(self.deviceDirectoryPath)
 
     # Hardware configurations
