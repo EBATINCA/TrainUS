@@ -191,7 +191,8 @@ FetchContent_Populate(${extension_name}
   QUIET
   )
 list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
-option(SlicerIGSIO_USE_VP9 OFF)
+set(SlicerIGSIO_USE_VP9 OFF CACHE BOOL "Build with VP9 support" FORCE)
+set(SlicerIGSIO_USE_GPU OFF CACHE BOOL "Build with GPU support" FORCE)
 set(vtkAddon_DIR "${CMAKE_BINARY_DIR}/IGSIO-build/vtkAddon-bin")
 mark_as_superbuild(vtkAddon_DIR:PATH)
 set(vtkAddon_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/bin)
