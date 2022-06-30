@@ -15,7 +15,7 @@ if(NOT DEFINED slicersources_SOURCE_DIR)
   # Download Slicer sources and set variables slicersources_SOURCE_DIR and slicersources_BINARY_DIR
   FetchContent_Populate(slicersources
     GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/Slicer/Slicer
-    GIT_TAG        a4420c378ebe8d84928f10bd3040d48181890a3b  # 5.0.2
+    GIT_TAG        df1116d7685d8e9ea903aab47141224a14db62cf  # 5.1.0 2022-06-28
     GIT_PROGRESS   1
     )
 else()
@@ -204,7 +204,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkTutor/PerkTutor.git
-  GIT_TAG        afd9f5768c3e4d8e310c8bf08666bca80d327f55  # branch: master
+  GIT_TAG        839b9aabc38c16fa05c5ea0099d2e8ab21d81de2  # branch: master 2022-06-22
   GIT_PROGRESS   1
   QUIET
   )
