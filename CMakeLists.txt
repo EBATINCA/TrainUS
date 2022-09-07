@@ -204,7 +204,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/PerkTutor/PerkTutor.git
-  GIT_TAG        839b9aabc38c16fa05c5ea0099d2e8ab21d81de2  # branch: master 2022-06-22
+  GIT_TAG        260dc95cca30778ab4a0fe3f8979b87e21d5bc30  # branch: master 2022-09-06
   GIT_PROGRESS   1
   QUIET
   )
