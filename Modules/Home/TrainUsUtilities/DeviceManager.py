@@ -54,45 +54,13 @@ class DeviceManager():
     """
     logging.debug('DeviceManager.readMainDirectory')
 
-    # Get list of device IDs
-    deviceID_list = self.getListOfFoldersInDirectory(self.mainDirectory)
-
-    # Get individial device info and store in list of dictionaries
-    deviceInfo_list = list() # list of dictionaries
-    for deviceID in deviceID_list:
-      # Device info file path
-      deviceInfoFilePath = self.getDeviceInfoFilePath(deviceID)
-      # Get device info
-      deviceInfo = self.readDeviceInfoFile(deviceInfoFilePath)
-      deviceInfo_list.append(deviceInfo)
+    # Get list of registered devices
+    listOfRegisteredDevices = self.getListOfRegisteredDevices()
 
     # Display
     print('\n>>>>>DeviceManager.readMainDirectory<<<<<<<<<<<<')
     print('\nDirectory: ', self.mainDirectory)
-    print('\nDevices in directory: ', deviceID_list)
-    print('\nInfo JSON: ', deviceInfo_list)
-
-    return deviceInfo_list
-
-  #------------------------------------------------------------------------------
-  def getListOfFoldersInDirectory(self, directory):
-    """
-    Gets list of folders contained in input directory.
-
-    :param directory: input directory (string)
-
-    :return list of folder names (list)
-    """
-    logging.debug('DeviceManager.getListOfFoldersInDirectory')
-
-    dirfiles = os.listdir(directory)
-    fullpaths = map(lambda name: os.path.join(directory, name), dirfiles)
-    folderList = []
-    for fileID, filePath in enumerate(fullpaths):
-      if os.path.isdir(filePath): 
-        folderList.append(dirfiles[fileID])
-    return list(folderList)
-
+    print('\nDevices in directory: ', listOfRegisteredDevices)
   
   #------------------------------------------------------------------------------
   #
@@ -101,24 +69,23 @@ class DeviceManager():
   #------------------------------------------------------------------------------
   
   #------------------------------------------------------------------------------
-  def readDeviceInfoFile(self, filePath):
+  def getDictionaryFromJSONFile(self, filePath):
     """
-    Reads device's information from .json file.
+    Get Python dictionary from .json file.
 
     :param filePath: path to JSON file (string)
 
-    :return device info (dict)
+    :return file content (dict)
     """
-    logging.debug('DeviceManager.readDeviceInfoFile')
+    logging.debug('DeviceManager.getDictionaryFromJSONFile')
     
     try:
       with open(filePath, 'r') as inputFile:
-        deviceInfo =  json.loads(inputFile.read())
+        outputDictionary =  json.loads(inputFile.read())
     except:
-      logging.error('Cannot read device information from JSON file at ' + filePath)
-      deviceInfo = None
-    return deviceInfo
-
+      logging.error('Cannot read JSON file: ' + filePath)
+      outputDictionary = None
+    return outputDictionary
 
   #------------------------------------------------------------------------------
   #
@@ -127,30 +94,7 @@ class DeviceManager():
   #------------------------------------------------------------------------------
   
   #------------------------------------------------------------------------------
-  def getDeviceInfoFromID(self, deviceID):
-    """
-    Get device's information from device ID.
-
-    :param deviceID: device ID (string)
-
-    :return device info (dict)
-    """
-    logging.debug('DeviceManager.getDeviceInfoFromID')
-    
-    # Abort if device ID is not valid
-    if deviceID == '' or deviceID == 'None':
-      return
-
-    # Get device info file path
-    deviceInfoFilePath = self.getDeviceInfoFilePath(deviceID)
-    
-    # Read device info
-    deviceInfo = self.readDeviceInfoFile(deviceInfoFilePath)
-
-    return deviceInfo
-
-  #------------------------------------------------------------------------------
-  def getDeviceInfoFilePath(self, deviceID):
+  def getDeviceInfoFilePath(self):
     """
     Get path to device's information JSON file.
 
@@ -161,12 +105,94 @@ class DeviceManager():
     logging.debug('DeviceManager.getDeviceInfoFilePath')
     
     # Device directory
-    deviceDirectory = os.path.join(self.mainDirectory, deviceID)
-
-    # Device info file
-    deviceInfoFilePath = os.path.join(deviceDirectory, 'Device_Info.json')
+    deviceInfoFilePath = os.path.join(self.mainDirectory, 'Device_Info.json')
 
     return deviceInfoFilePath
+
+  #------------------------------------------------------------------------------
+  def getRegisteredDevicesInfo(self):
+    # Get JSON file path
+    deviceListFilePath = self.getDeviceInfoFilePath()
+
+    # Read JSON file content
+    deviceListDictionary = self.getDictionaryFromJSONFile(deviceListFilePath)
+    if not deviceListDictionary:
+      return None
+
+    return deviceListDictionary
+
+  #------------------------------------------------------------------------------
+  def getListOfRegisteredDevices(self):
+    # Read registered devices info from JSON file
+    deviceListDictionary = self.getRegisteredDevicesInfo()
+
+    # Get list of registered devices
+    listOfRegisteredDevices = list(deviceListDictionary.keys())
+
+    return listOfRegisteredDevices
+
+  #------------------------------------------------------------------------------
+  def getDeviceInfoFromName(self, deviceName):
+    # Get list of registered device names
+    listOfRegisteredDevices = self.getListOfRegisteredDevices()
+    if not listOfRegisteredDevices:
+      logging.error('No registered devices were found')
+      return
+
+    # Check if input device is registered
+    if deviceName not in listOfRegisteredDevices:
+      logging.error('Input device with name %s is not registered. Device information cannot be retrieved.' % deviceName)
+      return
+
+    # Get registered devices info
+    deviceListDictionary = self.getRegisteredDevicesInfo()    
+
+    # Get device info
+    deviceInfoDictionary = deviceListDictionary[deviceName]
+
+    return deviceInfoDictionary
+
+  #------------------------------------------------------------------------------
+  def getListOfRegisteredUltrasoundDevices(self):
+    # Get list of registered devices
+    listOfRegisteredDevices = self.getListOfRegisteredDevices()
+
+    # Get registered devices info
+    deviceListDictionary = self.getRegisteredDevicesInfo()  
+
+    # Check device type
+    listOfRegisteredUltrasoundDevices = list()
+    for deviceName in listOfRegisteredDevices:
+      # Get device info
+      deviceInfoDictionary = deviceListDictionary[deviceName]
+      # Get device type: tracker or ultrasound
+      deviceType = deviceInfoDictionary['device type']
+      # Populate list of ultrasound devices
+      if deviceType == 'ultrasound':
+        listOfRegisteredUltrasoundDevices.append(deviceName)
+
+    return listOfRegisteredUltrasoundDevices
+
+  #------------------------------------------------------------------------------
+  def getListOfRegisteredTrackerDevices(self):
+    # Get list of registered devices
+    listOfRegisteredDevices = self.getListOfRegisteredDevices()
+
+    # Get registered devices info
+    deviceListDictionary = self.getRegisteredDevicesInfo()  
+
+    # Check device type
+    listOfRegisteredTrackerDevices = list()
+    for deviceName in listOfRegisteredDevices:
+      # Get device info
+      deviceInfoDictionary = deviceListDictionary[deviceName]
+      # Get device type: tracker or ultrasound
+      deviceType = deviceInfoDictionary['device type']
+      # Populate list of tracker devices
+      if deviceType == 'tracker':
+        listOfRegisteredTrackerDevices.append(deviceName)
+
+    return listOfRegisteredTrackerDevices
 
 
   #------------------------------------------------------------------------------
@@ -228,7 +254,7 @@ class DeviceManager():
     selectedUltrasoundDevice = self.getSelectedUltrasoundDevice()
 
     # Get device info from ID
-    selectedUltrasoundDeviceInfo = self.getDeviceInfoFromID(selectedUltrasoundDevice)
+    selectedUltrasoundDeviceInfo = self.getDeviceInfoFromName(selectedUltrasoundDevice)
 
     return selectedUltrasoundDeviceInfo
 
@@ -249,8 +275,7 @@ class DeviceManager():
 
     # Get config file path
     if selectedUltrasoundDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedUltrasoundDevice)
-      configFilePath = os.path.join(devicePath, selectedUltrasoundDeviceInfo['config'])
+      configFilePath = os.path.join(self.mainDirectory, selectedUltrasoundDeviceInfo['plus config file'])
     else:
       configFilePath = ''
 
@@ -273,8 +298,7 @@ class DeviceManager():
 
     # Get config file path
     if selectedUltrasoundDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedUltrasoundDevice)
-      plusServerPath = os.path.join(devicePath, selectedUltrasoundDeviceInfo['plus server'])
+      plusServerPath = selectedUltrasoundDeviceInfo['plus server']
     else:
       plusServerPath = ''
 
@@ -297,14 +321,11 @@ class DeviceManager():
 
     # Get config file path
     if selectedUltrasoundDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedUltrasoundDevice)
-      plusServerLauncherPath = os.path.join(devicePath, selectedUltrasoundDeviceInfo['plus launcher'])
+      plusServerLauncherPath = selectedUltrasoundDeviceInfo['plus launcher']
     else:
       plusServerLauncherPath = ''
 
     return plusServerLauncherPath
-
-
     
 
   #------------------------------------------------------------------------------
@@ -366,7 +387,7 @@ class DeviceManager():
     selectedTrackerDevice = self.getSelectedTrackerDevice()
 
     # Get device info from ID
-    selectedTrackerDeviceInfo = self.getDeviceInfoFromID(selectedTrackerDevice)
+    selectedTrackerDeviceInfo = self.getDeviceInfoFromName(selectedTrackerDevice)
 
     return selectedTrackerDeviceInfo
 
@@ -387,8 +408,7 @@ class DeviceManager():
 
     # Get config file path
     if selectedTrackerDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
-      configFilePath = os.path.join(devicePath, selectedTrackerDeviceInfo['config'])
+      configFilePath = os.path.join(self.mainDirectory, selectedTrackerDeviceInfo['plus config file'])
     else:
       configFilePath = ''
 
@@ -411,8 +431,7 @@ class DeviceManager():
 
     # Get config file path
     if selectedTrackerDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
-      plusServerPath = os.path.join(devicePath, selectedTrackerDeviceInfo['plus server'])
+      plusServerPath = selectedTrackerDeviceInfo['plus server']
     else:
       plusServerPath = ''
 
@@ -435,8 +454,7 @@ class DeviceManager():
 
     # Get config file path
     if selectedTrackerDeviceInfo:
-      devicePath = os.path.join(self.mainDirectory, selectedTrackerDevice)
-      plusServerLauncherPath = os.path.join(devicePath, selectedTrackerDeviceInfo['plus launcher'])
+      plusServerLauncherPath = selectedTrackerDeviceInfo['plus launcher']
     else:
       plusServerLauncherPath = ''
 

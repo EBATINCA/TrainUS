@@ -226,7 +226,7 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
     # Constants
     self.rootDirectoryPath = self.setupRootDirectory()
-    self.deviceDirectoryPath = os.path.join(self.moduleWidget.resourcePath(''), 'Devices')
+    self.deviceDirectoryPath = self.moduleWidget.resourcePath('DeviceConfig')
 
     # Data manager to handle participants and recordings
     self.recordingManager = TrainUsUtilities.RecordingManager()
@@ -235,10 +235,11 @@ class TrainUSLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     # Device manager to access device info
     self.deviceManager = TrainUsUtilities.DeviceManager()
     self.deviceManager.setMainDirectory(self.deviceDirectoryPath)
+    self.deviceManager.readMainDirectory()
 
     # Hardware configurations
-    self.ultrasoundDeviceOptions = ['None', 'Simulated US - Linear Probe', 'Simulated US - Convex Probe', 'Telemed MicrUS - Linear Probe', 'Telemed MicrUS - Convex Probe']
-    self.trackingSystemOptions = ['None', 'Simulated Tracker', 'Optitrack Duo (OTS)', 'trakSTAR 3D Guidance (EMTS)']
+    self.ultrasoundDeviceOptions = ['None'] + self.deviceManager.getListOfRegisteredUltrasoundDevices()
+    self.trackingSystemOptions = ['None'] + self.deviceManager.getListOfRegisteredTrackerDevices()
     self.simulationPhantomOptions = ['None', 'Soft biopsy phantom', 'Vascular access phantom']
 
     # Default parameters map

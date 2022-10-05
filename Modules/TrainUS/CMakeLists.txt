@@ -13,7 +13,18 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Icons/Gears.png
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Settings.ui  
-  Resources/TrainUS.qss  
+  Resources/TrainUS.qss
+  Resources/DeviceConfig/Device_Info.json
+  Resources/DeviceConfig/Ultrasound_TelemedMicrUsLinearProbe_PlusConfigFile.xml
+  Resources/DeviceConfig/Ultrasound_TelemedMicrUsConvexProbe_PlusConfigFile.xml
+  Resources/DeviceConfig/Ultrasound_SimulatorLinearProbe_PlusConfigFile.xml
+  Resources/DeviceConfig/Ultrasound_SimulatorConvexProbe_PlusConfigFile.xml
+  Resources/DeviceConfig/Tracker_trakSTAR3DGuidance_PlusConfigFile.xml
+  Resources/DeviceConfig/Tracker_Simulator_PlusConfigFile.xml
+  Resources/DeviceConfig/Tracker_OptitrackDuo_PlusConfigFile.xml
+  Resources/DeviceConfig/Tracker_OptitrackDuo_ProjectFile.ttp
+  Resources/DeviceConfig/UltrasoundRecordingLinear.mha
+  Resources/DeviceConfig/UltrasoundRecordingConvex.mha
   )
 
 slicerFunctionAddPythonQtResources(MODULE_PYTHON_QRC_RESOURCES

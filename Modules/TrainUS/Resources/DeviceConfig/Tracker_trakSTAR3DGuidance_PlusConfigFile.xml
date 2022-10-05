@@ -1,0 +1,53 @@
+<PlusConfiguration version="2.3">
+
+  <DataCollection StartupDelaySec="1.0" >
+    <DeviceSet 
+      Name="PlusServer: Ascension 3DG tracker (Probe, Patient, Stylus, Needle)"
+      Description="Broadcasting tool tracking data through OpenIGTLink
+      Ascension3DG sensors should be plugged in to the Ascension3DG DriveBayin the following order from to leftmost slot (Transducer 1) to the right: 1 Probe, 2 Patient, 3 Stylus, 4 Needle." 
+    />
+    <Device
+      Id="TrackerDevice" 
+      Type="Ascension3DG" 
+      FilterAcWideNotch="1"
+      ToolReferenceFrame="Tracker" >
+      <DataSources>
+        <DataSource Type="Tool" Id="Probe" PortName="0"  />
+        <DataSource Type="Tool" Id="Patient" PortName="1"  />
+        <DataSource Type="Tool" Id="Stylus" PortName="2"  />
+        <DataSource Type="Tool" Id="Needle" PortName="3"  />
+      </DataSources>
+      <OutputChannels>
+        <OutputChannel Id="TrackerStream" >
+          <DataSource Id="Probe"/>
+          <DataSource Id="Patient"/>
+          <DataSource Id="Stylus"/>
+          <DataSource Id="Needle"/>
+        </OutputChannel>
+      </OutputChannels>
+    </Device>
+  </DataCollection>
+
+  <PlusOpenIGTLinkServer
+    MaxNumberOfIgtlMessagesToSend="10"
+    MaxTimeSpentWithProcessingMs="50"
+    ListeningPort="18945"
+    SendValidTransformsOnly="true"
+    OutputChannelId="TrackerStream" >
+    <DefaultClientInfo>
+      <MessageTypes>
+        <Message Type="TRANSFORM" />
+      </MessageTypes>
+      <TransformNames>
+        <Transform Name="StylusToTracker" />
+        <Transform Name="ProbeToTracker" />
+        <Transform Name="NeedleToTracker" />
+        <Transform Name="TrackerToStylus" />
+        <Transform Name="TrackerToProbe" />
+        <Transform Name="PatientToTracker" />
+        <Transform Name="TrackerToPatient" />
+      </TransformNames>
+    </DefaultClientInfo>
+  </PlusOpenIGTLinkServer>
+
+</PlusConfiguration>

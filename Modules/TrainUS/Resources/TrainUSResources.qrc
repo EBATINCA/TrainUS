@@ -11,4 +11,18 @@
     <file alias="TrainUS.png">Icons/TrainUS.png</file> 
   </qresource>
 
+  <qresource prefix="DeviceConfig">    
+    <file alias="Device_Info.json">DeviceConfig/Device_Info.json</file>
+    <file alias="Ultrasound_TelemedMicrUsLinearProbe_PlusConfigFile.xml">DeviceConfig/Ultrasound_TelemedMicrUsLinearProbe_PlusConfigFile.xml</file>
+    <file alias="Ultrasound_TelemedMicrUsConvexProbe_PlusConfigFile.xml">DeviceConfig/Ultrasound_TelemedMicrUsConvexProbe_PlusConfigFile.xml</file>
+    <file alias="Ultrasound_SimulatorLinearProbe_PlusConfigFile.xml">DeviceConfig/Ultrasound_SimulatorLinearProbe_PlusConfigFile.xml</file>
+    <file alias="Ultrasound_SimulatorConvexProbe_PlusConfigFile.xml">DeviceConfig/Ultrasound_SimulatorConvexProbe_PlusConfigFile.xml</file>
+    <file alias="Tracker_trakSTAR3DGuidance_PlusConfigFile.xml">DeviceConfig/Tracker_trakSTAR3DGuidance_PlusConfigFile.xml</file>
+    <file alias="Tracker_Simulator_PlusConfigFile.xml">DeviceConfig/Tracker_Simulator_PlusConfigFile.xml</file>
+    <file alias="Tracker_OptitrackDuo_PlusConfigFile.xml">DeviceConfig/Tracker_OptitrackDuo_PlusConfigFile.xml</file>
+    <file alias="Tracker_OptitrackDuo_ProjectFile.ttp">DeviceConfig/Tracker_OptitrackDuo_ProjectFile.ttp</file>
+    <file alias="UltrasoundRecordingLinear.mha">DeviceConfig/UltrasoundRecordingLinear.mha</file>
+    <file alias="UltrasoundRecordingConvex.mha">DeviceConfig/UltrasoundRecordingConvex.mha</file>
+  </qresource>
+
 </RCC>

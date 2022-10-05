@@ -1,0 +1,45 @@
+{
+    "Simulated US - Linear Probe": {
+                                    "device type": "ultrasound",
+                                    "plus config file": "Ultrasound_SimulatorLinearProbe_PlusConfigFile.xml",
+                                    "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                                    "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                                    },
+    "Simulated US - Convex Probe": {
+                                    "device type": "ultrasound",
+                                    "plus config file": "Ultrasound_SimulatorConvexProbe_PlusConfigFile.xml",
+                                    "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                                    "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                                    },
+    "Telemed MicrUS - Linear Probe": {
+                                    "device type": "ultrasound",
+                                    "plus config file": "Ultrasound_TelemedMicrUsLinearProbe_PlusConfigFile.xml",
+                                    "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                                    "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                                    },
+    "Telemed MicrUS - Convex Probe": {
+                                    "device type": "ultrasound",
+                                    "plus config file": "Ultrasound_TelemedMicrUsConvexProbe_PlusConfigFile.xml",
+                                    "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                                    "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                                    },
+    "Simulated Tracker": {
+                            "device type": "tracker",
+                            "plus config file": "Tracker_Simulator_PlusConfigFile.xml",
+                            "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                            "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                         },
+    "Optitrack Duo (OTS)": {
+                            "device type": "tracker",
+                            "plus config file": "Tracker_OptitrackDuo_PlusConfigFile.xml",
+                            "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                            "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                           },
+    "TrakSTAR 3D Guidance (EMTS)": {
+                            "device type": "tracker",
+                            "plus config file": "Tracker_trakSTAR3DGuidance_PlusConfigFile.xml",
+                            "plus server": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServer.exe",
+                            "plus launcher": "C:/PlusApp/PlusApp-2.9.0.20220210-Telemed-Win32/bin/PlusServerLauncher.exe"
+                           }
+
+}
