@@ -41,11 +41,11 @@ set(Slicer_DEFAULT_HOME_MODULE "TrainUS")
 set(Slicer_DEFAULT_FAVORITE_MODULES "Data, Volumes, Models, Transforms, Markups, SegmentEditor")
 
 # Configure dashboard configuration to enable building by CTest
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/DartConfiguration.tcl.in
-  ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
-  @ONLY
-  )
+# configure_file(
+#   ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/DartConfiguration.tcl.in
+#   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl
+#   @ONLY
+#   )
 
 # Configure SuperBuild
 set(SUPERBUILD_TOPLEVEL_PROJECT Slicer)
@@ -224,3 +224,5 @@ list(APPEND Slicer_EXTENSION_SOURCE_DIRS ${${extension_name}_SOURCE_DIR})
 
 # Add Slicer sources
 add_subdirectory(${slicersources_SOURCE_DIR} ${slicersources_BINARY_DIR})
+
+include(CTest)
