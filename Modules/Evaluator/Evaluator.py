@@ -5,42 +5,28 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 
+#------------------------------------------------------------------------------
 #
 # Evaluator
 #
-
+#------------------------------------------------------------------------------
 class Evaluator(ScriptedLoadableModule):
-  """Uses ScriptedLoadableModule base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Evaluator"
     self.parent.categories = ["TrainUS"]
     self.parent.dependencies = []  # TODO: add here list of module names that this module requires
     self.parent.contributors = ["Csaba Pinter (Ebatinca), David Garcia Mato (Ebatinca)"]
-    # TODO: update with short description of the module and a link to online module documentation
-    self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-See more information in <a href="https://github.com/organization/projectname#Evaluator">module documentation</a>.
-"""
-    # TODO: replace with organization, grant and thanks
-    self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc., Andras Lasso, PerkLab,
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-"""
+    self.parent.helpText = """ """
+    self.parent.acknowledgementText = """This project has been funded by NEOTEC grant from the Centre for the Development of Technology and Innovation (CDTI) of the Ministry for Science and Innovation of the Government of Spain."""
 
 
+#------------------------------------------------------------------------------
 #
 # EvaluatorWidget
 #
-
+#------------------------------------------------------------------------------
 class EvaluatorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
-  """Uses ScriptedLoadableModuleWidget base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
   def __init__(self, parent=None):
     """
     Called when the user opens the module the first time and the widget is initialized.
@@ -234,20 +220,12 @@ class EvaluatorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       traceback.print_exc()
 
 
+#------------------------------------------------------------------------------
 #
 # EvaluatorLogic
 #
-
+#------------------------------------------------------------------------------
 class EvaluatorLogic(ScriptedLoadableModuleLogic):
-  """This class should implement all the actual
-  computation done by your module.  The interface
-  should be such that other python code can import
-  this class and make use of the functionality without
-  requiring an instance of the Widget.
-  Uses ScriptedLoadableModuleLogic base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
   def __init__(self):
     """
     Called when the logic class is instantiated. Can be used for initializing member variables.
@@ -295,17 +273,13 @@ class EvaluatorLogic(ScriptedLoadableModuleLogic):
     stopTime = time.time()
     logging.info(f'Processing completed in {stopTime-startTime:.2f} seconds')
 
+
+#------------------------------------------------------------------------------
 #
 # EvaluatorTest
 #
-
+#------------------------------------------------------------------------------
 class EvaluatorTest(ScriptedLoadableModuleTest):
-  """
-  This is the test case for your scripted module.
-  Uses ScriptedLoadableModuleTest base class, available at:
-  https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
-  """
-
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """

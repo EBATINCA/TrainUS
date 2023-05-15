@@ -31,7 +31,7 @@ class Home(ScriptedLoadableModule):
     self.parent.contributors = ["Csaba Pinter (Ebatinca), David Garcia Mato (Ebatinca)"]
     self.parent.helpText = """The Home screen of the custom application"""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """EBATINCA, S.L.""" # replace with organization, grant and thanks.
+    self.parent.acknowledgementText = """This project has been funded by NEOTEC grant from the Centre for the Development of Technology and Innovation (CDTI) of the Ministry for Science and Innovation of the Government of Spain."""
 
 
 #------------------------------------------------------------------------------

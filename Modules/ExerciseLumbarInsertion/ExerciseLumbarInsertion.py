@@ -22,10 +22,11 @@ class ExerciseLumbarInsertion(ScriptedLoadableModule):
     self.parent.title = "Exercise Lumbar Insertion"
     self.parent.categories = ["TrainUS"]
     self.parent.dependencies = []
-    self.parent.contributors = ["Monica Garcia Sevilla (ULPGC)"]
+    self.parent.contributors = ["Monica Garcia Sevilla (ULPGC), David Garcia Mato (Ebatinca)"]
     self.parent.helpText = """ Module to train US-guided lumbar needle insertion. """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """Universidad de Las Palmas de Gran Canaria (ULPGC), EBATINCA, S.L."""
+    self.parent.acknowledgementText = """This project has been funded by NEOTEC grant from the Centre for the Development of Technology and Innovation (CDTI) of the Ministry for Science and Innovation of the Government of Spain."""
+
 
 #------------------------------------------------------------------------------
 #

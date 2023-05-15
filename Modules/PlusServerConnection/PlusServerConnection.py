@@ -24,7 +24,7 @@ class PlusServerConnection(ScriptedLoadableModule):
     self.parent.contributors = ["David Garcia Mato (Ebatinca), Csaba Pinter (Ebatinca)"]
     self.parent.helpText = """ Module to establish connection with PLUS server. """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
-    self.parent.acknowledgementText = """EBATINCA, S.L."""
+    self.parent.acknowledgementText = """This project has been funded by NEOTEC grant from the Centre for the Development of Technology and Innovation (CDTI) of the Ministry for Science and Innovation of the Government of Spain."""
 
 #------------------------------------------------------------------------------
 #
