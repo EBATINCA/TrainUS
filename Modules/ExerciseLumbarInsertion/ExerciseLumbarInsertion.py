@@ -323,9 +323,11 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     # Show result
     if success:
-      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep2OutputLabel.setText('CORRECT')
+      self.ui.checkStep2OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
     else:
-      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep2OutputLabel.setText('INCORRECT')
+      self.ui.checkStep2OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
   def onCheckStep3ButtonClicked(self):
@@ -334,9 +336,11 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     # Show result
     if success:
-      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep3OutputLabel.setText('CORRECT')
+      self.ui.checkStep3OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
     else:
-      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep3OutputLabel.setText('INCORRECT')
+      self.ui.checkStep3OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
   def onCheckStep4ButtonClicked(self):
@@ -345,9 +349,11 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     # Show result
     if success:
-      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep4OutputLabel.setText('CORRECT')
+      self.ui.checkStep4OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
     else:
-      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep4OutputLabel.setText('INCORRECT')
+      self.ui.checkStep4OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
   def onCheckStep5ButtonClicked(self):
@@ -356,9 +362,11 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     # Show result
     if success:
-      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep5OutputLabel.setText('CORRECT')
+      self.ui.checkStep5OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
     else:
-      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep5OutputLabel.setText('INCORRECT')
+      self.ui.checkStep5OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
@@ -701,19 +709,14 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     if stepId == 1: # Check if L1 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l1_model)
-      print('checkWorkflowStep --- Step 1 = ', success)
     if stepId == 2: # Check if L2 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l2_model)
-      print('checkWorkflowStep --- Step 2 = ', success)
     if stepId == 3: # Check if L3 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l3_model)
-      print('checkWorkflowStep --- Step 3 = ', success)
     if stepId == 4: # Check if L4 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l4_model)
-      print('checkWorkflowStep --- Step 4 = ', success)
     if stepId == 5: # Check if L5 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l5_model)
-      print('checkWorkflowStep --- Step 5 = ', success)
 
     return success
 
