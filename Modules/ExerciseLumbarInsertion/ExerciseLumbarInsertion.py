@@ -452,11 +452,14 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.l4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L4', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
     self.l5_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L5', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
     
+    # Load tracker transforms (ONLY FOR DEVELOPMENT)
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'StylusToTracker') # ONLY FOR DEVELOPMENT
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'TrackerToPatient') # ONLY FOR DEVELOPMENT
+    
     # Load transforms
     self.NeedleToTracker = self.getOrCreateTransform('StylusToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
-    #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
-    #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
     self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
@@ -745,7 +748,6 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     collide.SetMatrix(1, modelBToWorldMatrix)
     collide.Update()
     numContacts = collide.GetNumberOfContacts()
-    print('getCollisionWithUltrasoundPlane ---> # contacts = ', numContacts)
 
     # Output
     if numContacts > 0:
