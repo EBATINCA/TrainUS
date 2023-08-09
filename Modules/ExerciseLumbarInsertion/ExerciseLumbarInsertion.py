@@ -451,6 +451,15 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.l3_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L3', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
     self.l4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L4', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
     self.l5_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L5', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
+
+    # Load reference planes
+    self.usProbe_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_US_Image', [0.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.sagittal_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Sagittal', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l1_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L1', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l2_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L2', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l3_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L3', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l4_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l5_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L5', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
     
     # Load tracker transforms (ONLY FOR DEVELOPMENT)
     _ = self.loadTransformFromFile(self.dataFolderPath, 'StylusToTracker') # ONLY FOR DEVELOPMENT
@@ -496,6 +505,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usProbe_plane_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.usProbe_plane.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
     self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
     self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
@@ -644,7 +654,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
   #------------------------------------------------------------------------------
   def loadTransformFromFile(self, transformFilePath, transformFileName):
     try:
-        node = slicer.util.getNode(transformName)
+        node = slicer.util.getNode(transformFileName)
     except:
         try:
           node = slicer.util.loadTransform(transformFilePath +  '/' + transformFileName + '.h5')
@@ -670,6 +680,27 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
         except:
           node = None
           logging.error('ERROR: ' + modelFileName + ' model not found in path')
+    return node
+  
+  #------------------------------------------------------------------------------
+  def loadMarkupsPlaneFromFile(self, markupsPlaneFilePath, markupsPlaneFileName, colorRGB_array, visibility_bool, opacityValue):
+    try:
+        node = slicer.util.getNode(markupsPlaneFileName)
+    except:
+        try:
+          node = slicer.util.loadMarkups(markupsPlaneFilePath + '/' + markupsPlaneFileName + '.mrk.json')
+          node.SetLocked(True)
+          node.GetDisplayNode().SetGlyphScale(0.0)
+          node.GetDisplayNode().SetOpacity(opacityValue)
+          node.GetDisplayNode().SetSelectedColor(colorRGB_array)
+          node.GetDisplayNode().SetPropertiesLabelVisibility(False) # hide text
+          node.GetDisplayNode().SetHandlesInteractive(False)
+          node.GetDisplayNode().SetVisibility2D(False)
+          node.GetDisplayNode().SetVisibility(visibility_bool)
+          print(markupsPlaneFileName + ' markups plane loaded')
+        except:
+          node = None
+          logging.error('ERROR: ' + markupsPlaneFileName + ' markups plane not found in path')
     return node
 
   #------------------------------------------------------------------------------
@@ -712,14 +743,24 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     if stepId == 1: # Check if L1 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l1_model)
+      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l1_plane)
+      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l1_plane)
     if stepId == 2: # Check if L2 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l2_model)
+      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l2_plane)
+      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l2_plane)
     if stepId == 3: # Check if L3 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l3_plane)
+      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l3_plane)
     if stepId == 4: # Check if L4 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l4_plane)
+      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l4_plane)
     if stepId == 5: # Check if L5 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l5_model)
+      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l5_plane)
+      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l5_plane)
 
     return success
 
@@ -756,6 +797,127 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
       collision = False
     
     return collision
+  
+  #------------------------------------------------------------------------------
+  def computeVertebraAngleDeviationAP(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Get coronal plane
+    IS_axis = vertebraAxial_plane_normal
+    LR_axis = sagittal_plane_normal
+    PA_axis = np.cross(IS_axis, LR_axis)/np.linalg.norm(np.cross(IS_axis, LR_axis))
+    coronal_plane_centroid = vertebraAxial_plane_centroid
+    coronal_plane_normal = np.array(PA_axis)    
+
+    # Project US plane normal to coronal plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+    #print('US plane projected points: ', usPlane_pointA_proj, usPlane_pointB_proj)
+
+    # Project vertebra axial plane to coronal plane
+    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
+    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10*vertebraAxial_plane_normal
+    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+    #print('Vertebra axial plane projected points: ', vertebraAxialPlane_pointA_proj, vertebraAxialPlane_pointB_proj)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    print('Angle AP: ', angle)
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeVertebraAngleDeviationRL(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Project US plane normal to coronal plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10.0*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+    #print('US plane projected points: ', usPlane_pointA_proj, usPlane_pointB_proj)
+
+    # Project vertebra axial plane to coronal plane
+    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
+    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10.0*vertebraAxial_plane_normal
+    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+    #print('Vertebra axial plane projected points: ', vertebraAxialPlane_pointA_proj, vertebraAxialPlane_pointB_proj)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    print('Angle RL: ', angle)
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def projectPointToPlane(self, point, planeCentroid, planeNormal):
+
+    # Project point to plane
+    projectedPoint = np.subtract(np.array(point), np.dot(np.subtract(np.array(point), np.array(planeCentroid)), np.array(planeNormal)) * np.array(planeNormal))
+    
+    return projectedPoint
+
+  # ------------------------------------------------------------------------------
+  def computeAngularDeviation(self, vec1, vec2):
+    """
+    Compute angle between two vectors.
+
+    :param vec1: Vector 1 numpy array
+    :param vec2: Vector 2 numpy array
+
+    :return float: Angle between vector 1 and vector 2 in degrees.
+    """
+    try:
+      # Cosine value
+      cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
+      # Cosine value can only be between [-1, 1].
+      if cos_value > 1.0:
+        cos_value = 1.0
+      elif cos_value < -1.0:
+        cos_value = -1.0
+      # Compute angle in degrees
+      angle = np.rad2deg (np.arccos(cos_value))
+    except:
+      angle = -1.0
+    return angle
 
 #------------------------------------------------------------------------------
 #
