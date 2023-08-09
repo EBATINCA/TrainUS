@@ -121,6 +121,10 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
     # Workflow
     self.ui.checkStep1Button.clicked.connect(self.onCheckStep1ButtonClicked)
+    self.ui.checkStep2Button.clicked.connect(self.onCheckStep2ButtonClicked)
+    self.ui.checkStep3Button.clicked.connect(self.onCheckStep3ButtonClicked)
+    self.ui.checkStep4Button.clicked.connect(self.onCheckStep4ButtonClicked)
+    self.ui.checkStep5Button.clicked.connect(self.onCheckStep5ButtonClicked)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
@@ -145,6 +149,10 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.freeViewButton.clicked.disconnect()
     # Workflow
     self.ui.checkStep1Button.clicked.disconnect()
+    self.ui.checkStep2Button.clicked.disconnect()
+    self.ui.checkStep3Button.clicked.disconnect()
+    self.ui.checkStep4Button.clicked.disconnect()
+    self.ui.checkStep5Button.clicked.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -298,7 +306,59 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
   #------------------------------------------------------------------------------
   def onCheckStep1ButtonClicked(self):
     # Check workflow step
-    self.logic.checkWorkflowStep(stepId = 1)
+    success = self.logic.checkWorkflowStep(stepId = 1)
+
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep1OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep1OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep2ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 2)
+
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+
+  #------------------------------------------------------------------------------
+  def onCheckStep3ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 3)
+
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+
+  #------------------------------------------------------------------------------
+  def onCheckStep4ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 4)
+
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+
+  #------------------------------------------------------------------------------
+  def onCheckStep5ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 5)
+
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
@@ -639,10 +699,21 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     Check performance on each workflow step.
     """
-    if stepId == 1:
-      # Check if L1 spinous process if intersected by ultrasound plane
+    if stepId == 1: # Check if L1 spinous process if intersected by ultrasound plane
       success = self.getCollisionWithUltrasoundPlane(self.l1_model)
       print('checkWorkflowStep --- Step 1 = ', success)
+    if stepId == 2: # Check if L2 spinous process if intersected by ultrasound plane
+      success = self.getCollisionWithUltrasoundPlane(self.l2_model)
+      print('checkWorkflowStep --- Step 2 = ', success)
+    if stepId == 3: # Check if L3 spinous process if intersected by ultrasound plane
+      success = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      print('checkWorkflowStep --- Step 3 = ', success)
+    if stepId == 4: # Check if L4 spinous process if intersected by ultrasound plane
+      success = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      print('checkWorkflowStep --- Step 4 = ', success)
+    if stepId == 5: # Check if L5 spinous process if intersected by ultrasound plane
+      success = self.getCollisionWithUltrasoundPlane(self.l5_model)
+      print('checkWorkflowStep --- Step 5 = ', success)
 
     return success
 

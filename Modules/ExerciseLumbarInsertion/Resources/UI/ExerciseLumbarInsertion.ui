@@ -197,21 +197,21 @@
          <string>Step 1</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="1" column="0" colspan="2">
+         <item row="1" column="0">
           <widget class="QPushButton" name="checkStep1Button">
            <property name="text">
             <string>Check</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
+         <item row="1" column="1">
           <widget class="QLabel" name="checkStep1OutputLabel">
            <property name="text">
-            <string>-</string>
+            <string/>
            </property>
           </widget>
          </item>
-         <item row="0" column="0" colspan="3">
+         <item row="0" column="0" colspan="2">
           <widget class="QLabel" name="checkStep1InfoLabel">
            <property name="text">
             <string>Localize the spinous process of L1 vertebra using the ultrasound probe. Click the button below to evaluate the ultrasound probe position.</string>
@@ -225,31 +225,95 @@
        </widget>
       </item>
       <item>
-       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_2">
+       <widget class="ctkCollapsibleGroupBox" name="step2GroupBox">
         <property name="title">
          <string>Step 2</string>
         </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="checkStep2Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="checkStep2OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_3">
+       <widget class="ctkCollapsibleGroupBox" name="step3GroupBox">
         <property name="title">
          <string>Step 3</string>
         </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="checkStep3Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="checkStep3OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_4">
+       <widget class="ctkCollapsibleGroupBox" name="step4GroupBox">
         <property name="title">
          <string>Step 4</string>
         </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="checkStep4Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="checkStep4OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_5">
+       <widget class="ctkCollapsibleGroupBox" name="step5GroupBox">
         <property name="title">
          <string>Step 5</string>
         </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="checkStep5Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="checkStep5OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
