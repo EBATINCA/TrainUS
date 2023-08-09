@@ -741,26 +741,61 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     Check performance on each workflow step.
     """
+    # Define thresholds for angle deviation
+    angle_AP_threshold = 15.0 # degrees
+    angle_RL_threshold = 15.0 # degrees
+
+    # Evaluate US probe position
     if stepId == 1: # Check if L1 spinous process if intersected by ultrasound plane
-      success = self.getCollisionWithUltrasoundPlane(self.l1_model)
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l1_model)
       angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l1_plane)
       angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l1_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 1:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
     if stepId == 2: # Check if L2 spinous process if intersected by ultrasound plane
-      success = self.getCollisionWithUltrasoundPlane(self.l2_model)
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l2_model)
       angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l2_plane)
       angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l2_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 2:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
     if stepId == 3: # Check if L3 spinous process if intersected by ultrasound plane
-      success = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l3_model)
       angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l3_plane)
       angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l3_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 3:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
     if stepId == 4: # Check if L4 spinous process if intersected by ultrasound plane
-      success = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l4_model)
       angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l4_plane)
       angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l4_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 4:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
     if stepId == 5: # Check if L5 spinous process if intersected by ultrasound plane
-      success = self.getCollisionWithUltrasoundPlane(self.l5_model)
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l5_model)
       angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l5_plane)
       angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l5_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 5:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
 
     return success
 
