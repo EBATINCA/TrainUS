@@ -209,7 +209,7 @@
          <string>Step 1: Localize L5</string>
         </property>
         <property name="collapsed">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
@@ -253,7 +253,7 @@
          <string>Step 2: Localize L4</string>
         </property>
         <property name="collapsed">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="1" column="1">
@@ -297,7 +297,7 @@
          <string>Step 3: Localize L3</string>
         </property>
         <property name="collapsed">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
          <item row="1" column="0">
@@ -341,7 +341,7 @@
          <string>Step 4: Localize L2</string>
         </property>
         <property name="collapsed">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="1" column="1">
@@ -385,7 +385,7 @@
          <string>Step 5: Localize L1</string>
         </property>
         <property name="collapsed">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="1" column="1">
@@ -423,6 +423,9 @@
         <property name="title">
          <string>Step 6: Localize the L3-L4 interspinous space</string>
         </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="1" column="0">
           <widget class="QPushButton" name="checkStep6Button">
@@ -442,6 +445,42 @@
           <widget class="QLabel" name="checkStep6InfoLabel">
            <property name="text">
             <string>Localize the L3-L4 interspinous space aligning the ultrasound probe beam longitudinally over the midline. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step7GroupBox">
+        <property name="title">
+         <string>Step 7: Define needle insertion point</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep7Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep7OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep7InfoLabel">
+           <property name="text">
+            <string>Hold the needle in the initial position before insertion and check if the selected trajectory is appropriate. Do not insert the needle yet.</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

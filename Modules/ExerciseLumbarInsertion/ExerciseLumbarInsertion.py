@@ -107,15 +107,26 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
                                       'Step 3': self.ui.step3GroupBox,
                                       'Step 4': self.ui.step4GroupBox,
                                       'Step 5': self.ui.step5GroupBox,
-                                      'Step 6': self.ui.step6GroupBox}
+                                      'Step 6': self.ui.step6GroupBox,
+                                      'Step 7': self.ui.step7GroupBox}
     
     # Set up default visibility for workflow step group boxes
     self.ui.step1GroupBox.visible = True
     self.ui.step2GroupBox.visible = False
     self.ui.step3GroupBox.visible = False
     self.ui.step4GroupBox.visible = False
-    self.ui.step5GroupBox.visible = False 
-    self.ui.step6GroupBox.visible = False    
+    self.ui.step5GroupBox.visible = False
+    self.ui.step6GroupBox.visible = False
+    self.ui.step7GroupBox.visible = False
+
+    # Uncollapse all workflow step group boxes
+    self.ui.step1GroupBox.collapsed = False
+    self.ui.step2GroupBox.collapsed = False
+    self.ui.step3GroupBox.collapsed = False
+    self.ui.step4GroupBox.collapsed = False
+    self.ui.step5GroupBox.collapsed = False
+    self.ui.step6GroupBox.collapsed = False
+    self.ui.step7GroupBox.collapsed = False
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
@@ -143,6 +154,7 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.checkStep4Button.clicked.connect(self.onCheckStep4ButtonClicked)
     self.ui.checkStep5Button.clicked.connect(self.onCheckStep5ButtonClicked)
     self.ui.checkStep6Button.clicked.connect(self.onCheckStep6ButtonClicked)
+    self.ui.checkStep7Button.clicked.connect(self.onCheckStep7ButtonClicked)
     self.ui.previousStepButton.clicked.connect(self.onPreviousStepButtonClicked)
     self.ui.nextStepButton.clicked.connect(self.onNextStepButtonClicked)
     # Back to menu
@@ -174,6 +186,7 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.checkStep4Button.clicked.disconnect()
     self.ui.checkStep5Button.clicked.disconnect()
     self.ui.checkStep6Button.clicked.disconnect()
+    self.ui.checkStep7Button.clicked.disconnect()
     self.ui.previousStepButton.clicked.disconnect()
     self.ui.nextStepButton.clicked.disconnect()
     # Back to menu
@@ -405,6 +418,19 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
       self.ui.checkStep6OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
+  def onCheckStep7ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 7)
+
+    # Show result
+    if success:
+      self.ui.checkStep7OutputLabel.setText('CORRECT')
+      self.ui.checkStep7OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep7OutputLabel.setText('INCORRECT')
+      self.ui.checkStep7OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
   def onPreviousStepButtonClicked(self):
     # Update current workflow step
     if self.currentWorkflowStep == 0:
@@ -526,6 +552,9 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.l4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L4', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
     self.l5_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L5', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
 
+    # Load additional models
+    self.targetL3L4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousSpace_L3-L4_Target', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
+
     # Load reference planes
     self.usProbe_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_US_Image', [0.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
     self.sagittal_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Sagittal', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
@@ -534,6 +563,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.axial_l3_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L3', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
     self.axial_l4_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
     self.axial_l5_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L5', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+
+    # Load reference landmarks
+    self.needleTrajectory_fiducials = self.loadMarkupsFiducialListFromFile(self.dataFolderPath + '/Landmarks/', 'NeedleTrajectory_TipHandle', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)    
+    self.optimalTrajectoryL3L4_fiducials = self.loadMarkupsFiducialListFromFile(self.dataFolderPath + '/Landmarks/', 'OptimalTrajectory_L3-L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
     
     # Load tracker transforms (ONLY FOR DEVELOPMENT)
     _ = self.loadTransformFromFile(self.dataFolderPath, 'StylusToTracker') # ONLY FOR DEVELOPMENT
@@ -576,6 +609,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.needle_trajectory_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
+    self.needleTrajectory_fiducials.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usProbe_plane_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
@@ -757,6 +791,23 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     return node
   
   #------------------------------------------------------------------------------
+  def loadMarkupsFiducialListFromFile(self, markupsFiducialListFilePath, markupsFiducialListFileName, colorRGB_array, visibility_bool, opacityValue):
+    try:
+        node = slicer.util.getNode(markupsFiducialListFileName)
+    except:
+        try:
+          node = slicer.util.loadMarkups(markupsFiducialListFilePath + '/' + markupsFiducialListFileName + '.mrk.json')
+          node.SetLocked(True)
+          node.GetDisplayNode().SetSelectedColor(colorRGB_array)
+          node.GetDisplayNode().SetPropertiesLabelVisibility(False) # hide text
+          node.GetDisplayNode().SetVisibility(visibility_bool)
+          print(markupsFiducialListFileName + ' markups fiducial list loaded')
+        except:
+          node = None
+          logging.error('ERROR: ' + markupsFiducialListFileName + ' markups fiducial list not found in path')
+    return node
+    
+  #------------------------------------------------------------------------------
   def loadMarkupsPlaneFromFile(self, markupsPlaneFilePath, markupsPlaneFileName, colorRGB_array, visibility_bool, opacityValue):
     try:
         node = slicer.util.getNode(markupsPlaneFileName)
@@ -817,8 +868,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     # Define thresholds for angle deviation
     angle_RL_threshold = 15.0 # degrees
-    angle_AP_threshold = 15.0 # degrees    
-    angle_SI_threshold = 15.0 # degrees    
+    angle_AP_threshold = 15.0 # degrees
+    angle_SI_threshold = 15.0 # degrees
+    needle_linear_deviation_threshold = 10.0 # mm
+    needle_angle_deviation_threshold = 15.0 # degrees
 
     # Evaluate US probe position
     #
@@ -895,14 +948,49 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
       angle_AP = self.computeLongitudinalPlaneAngleDeviationAP(self.axial_l4_plane) # using L4 axial plane for angle computation
       angle_SI = self.computeLongitudinalPlaneAngleDeviationSI(self.axial_l4_plane) # using L4 axial plane for angle computation
       success = l3SpinousProcessIntersected and l4SpinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_SI < angle_SI_threshold)
-      print('\nStep 5:')
+      print('\nStep 6:')
       print('  - spinousProcessIntersected (L3) = ', l3SpinousProcessIntersected)
       print('  - spinousProcessIntersected (L4) = ', l4SpinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle SI = ', angle_SI)
       print('  - success = ', success)
 
+    #
+    # Step 7: Check needle trajectory before insertion in L3-L$ interspinous process
+    #
+    if stepId == 7:
+      targetIntersected = self.getCollisionWithNeedleTrajectory(self.targetL3L4_model)
+      spineIntersected = self.getCollisionWithNeedleTrajectory(self.spine_model)
+      needle_linear_deviation, needle_angle_deviation = self.computeNeedleDeviationFromOptimalTrajectory(self.optimalTrajectoryL3L4_fiducials)
+      print('\nStep 7:')
+      print('  - Target intersected = ', targetIntersected)
+      print('  - Spine intersected = ', spineIntersected)
+      print('  - Needle tip linear deviation = ', needle_linear_deviation)
+      print('  - Needle angle deviation = ', needle_angle_deviation)
+      success = targetIntersected and (not spineIntersected) and (needle_linear_deviation < needle_linear_deviation_threshold) and (needle_angle_deviation < needle_angle_deviation_threshold)
+      print('  - success = ', success)
+
     return success
+
+  #------------------------------------------------------------------------------
+  def computeNeedleDeviationFromOptimalTrajectory(self, optimalTrajectoryFiducials):
+    # Get optimal trajectory vector
+    optimalTrajectory_pointA = np.array(optimalTrajectoryFiducials.GetNthControlPointPositionWorld(1))
+    optimalTrajectory_pointB = np.array(optimalTrajectoryFiducials.GetNthControlPointPositionWorld(0))
+    optimalTrajectory_vector = optimalTrajectory_pointB - optimalTrajectory_pointA
+
+    # Get needle trajectory vector
+    needleTrajectory_pointA = np.array(self.needleTrajectory_fiducials.GetNthControlPointPositionWorld(1))
+    needleTrajectory_pointB = np.array(self.needleTrajectory_fiducials.GetNthControlPointPositionWorld(0))
+    needleTrajectory_vector = needleTrajectory_pointB - needleTrajectory_pointA
+
+    # Compute needle tip deviation
+    needle_linear_deviation = self.computeDistanceFromPointToLine(needleTrajectory_pointB, optimalTrajectory_pointA, optimalTrajectory_pointB)
+
+    # Compute angle between needle trajectory and optimal trajectory
+    needle_angle_deviation = self.computeAngularDeviation(needleTrajectory_vector, optimalTrajectory_vector)
+
+    return needle_linear_deviation, needle_angle_deviation
 
   #------------------------------------------------------------------------------
   def getCollisionWithUltrasoundPlane(self, inputModelNode):
@@ -911,6 +999,40 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     # Get models
     modelA = self.usProbe_plane_model
+    modelB = inputModelNode
+
+    # Model world transforms
+    modelAToWorldMatrix = vtk.vtkMatrix4x4()
+    modelA.GetParentTransformNode().GetMatrixTransformToWorld(modelAToWorldMatrix)
+    modelBToWorldMatrix = vtk.vtkMatrix4x4()
+    if modelB.GetParentTransformNode():
+      modelB.GetParentTransformNode().GetMatrixTransformToWorld(modelBToWorldMatrix)
+
+    # Model collision
+    collide = vtk.vtkCollisionDetectionFilter()
+    collide.SetInputData(0, modelA.GetPolyData())
+    collide.SetInputData(1, modelB.GetPolyData())
+    collide.SetCollisionModeToFirstContact()
+    collide.SetMatrix(0, modelAToWorldMatrix)
+    collide.SetMatrix(1, modelBToWorldMatrix)
+    collide.Update()
+    numContacts = collide.GetNumberOfContacts()
+
+    # Output
+    if numContacts > 0:
+      collision = True
+    else:
+      collision = False
+    
+    return collision
+
+  #------------------------------------------------------------------------------
+  def getCollisionWithNeedleTrajectory(self, inputModelNode):
+    """
+    Check collision between needle trajectory model and input model.
+    """
+    # Get models
+    modelA = self.needle_trajectory_model
     modelB = inputModelNode
 
     # Model world transforms
@@ -1107,6 +1229,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     projectedPoint = np.subtract(np.array(point), np.dot(np.subtract(np.array(point), np.array(planeCentroid)), np.array(planeNormal)) * np.array(planeNormal))
     
     return projectedPoint
+
+  #------------------------------------------------------------------------------
+  def computeDistanceFromPointToLine(self, point, linePointA, linePointB):
+    return np.linalg.norm(np.cross(linePointB-linePointA, point-linePointA) / np.linalg.norm(linePointB-linePointA))
 
   # ------------------------------------------------------------------------------
   def computeAngularDeviation(self, vec1, vec2):
