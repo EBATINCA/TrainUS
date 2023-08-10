@@ -271,7 +271,7 @@
           </widget>
          </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="checkStep2InfoLabel">
            <property name="text">
             <string>Localize the spinous process of L4 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
            </property>
@@ -315,7 +315,7 @@
           </widget>
          </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="checkStep3InfoLabel">
            <property name="text">
             <string>Localize the spinous process of L3 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
            </property>
@@ -359,7 +359,7 @@
           </widget>
          </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="checkStep4InfoLabel">
            <property name="text">
             <string>Localize the spinous process of L2 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
            </property>
@@ -403,9 +403,45 @@
           </widget>
          </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="checkStep5InfoLabel">
            <property name="text">
             <string>Localize the spinous process of L1 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step6GroupBox">
+        <property name="title">
+         <string>Step 6: Localize the L3-L4 interspinous space</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep6Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep6OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep6InfoLabel">
+           <property name="text">
+            <string>Localize the L3-L4 interspinous space aligning the ultrasound probe beam longitudinally over the midline. Click the button below to evaluate the  probe position.</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignJustify|Qt::AlignVCenter</set>

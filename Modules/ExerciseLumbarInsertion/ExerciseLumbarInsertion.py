@@ -106,14 +106,16 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
                                       'Step 2': self.ui.step2GroupBox,
                                       'Step 3': self.ui.step3GroupBox,
                                       'Step 4': self.ui.step4GroupBox,
-                                      'Step 5': self.ui.step5GroupBox}
+                                      'Step 5': self.ui.step5GroupBox,
+                                      'Step 6': self.ui.step6GroupBox}
     
     # Set up default visibility for workflow step group boxes
     self.ui.step1GroupBox.visible = True
     self.ui.step2GroupBox.visible = False
     self.ui.step3GroupBox.visible = False
     self.ui.step4GroupBox.visible = False
-    self.ui.step5GroupBox.visible = False    
+    self.ui.step5GroupBox.visible = False 
+    self.ui.step6GroupBox.visible = False    
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
@@ -140,6 +142,7 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.checkStep3Button.clicked.connect(self.onCheckStep3ButtonClicked)
     self.ui.checkStep4Button.clicked.connect(self.onCheckStep4ButtonClicked)
     self.ui.checkStep5Button.clicked.connect(self.onCheckStep5ButtonClicked)
+    self.ui.checkStep6Button.clicked.connect(self.onCheckStep6ButtonClicked)
     self.ui.previousStepButton.clicked.connect(self.onPreviousStepButtonClicked)
     self.ui.nextStepButton.clicked.connect(self.onNextStepButtonClicked)
     # Back to menu
@@ -170,6 +173,7 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.checkStep3Button.clicked.disconnect()
     self.ui.checkStep4Button.clicked.disconnect()
     self.ui.checkStep5Button.clicked.disconnect()
+    self.ui.checkStep6Button.clicked.disconnect()
     self.ui.previousStepButton.clicked.disconnect()
     self.ui.nextStepButton.clicked.disconnect()
     # Back to menu
@@ -386,6 +390,19 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     else:
       self.ui.checkStep5OutputLabel.setText('INCORRECT')
       self.ui.checkStep5OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep6ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 6)
+
+    # Show result
+    if success:
+      self.ui.checkStep6OutputLabel.setText('CORRECT')
+      self.ui.checkStep6OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep6OutputLabel.setText('INCORRECT')
+      self.ui.checkStep6OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
   def onPreviousStepButtonClicked(self):
@@ -799,59 +816,90 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     Check performance on each workflow step.
     """
     # Define thresholds for angle deviation
-    angle_AP_threshold = 15.0 # degrees
     angle_RL_threshold = 15.0 # degrees
+    angle_AP_threshold = 15.0 # degrees    
+    angle_SI_threshold = 15.0 # degrees    
 
     # Evaluate US probe position
-    if stepId == 1: # Check if L5 spinous process if intersected by ultrasound plane
+    #
+    # Step 1: Check if L5 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 1:
       spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l5_model)
-      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l5_plane)
-      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l5_plane)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l5_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l5_plane)
       success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
       print('\nStep 1:')
       print('  - spinousProcessIntersected = ', spinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle RL = ', angle_RL)
       print('  - success = ', success)
-    if stepId == 2: # Check if L4 spinous process if intersected by ultrasound plane
+    #
+    # Step 2: Check if L4 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 2:
       spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l4_model)
-      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l4_plane)
-      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l4_plane)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l4_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l4_plane)
       success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
       print('\nStep 2:')
       print('  - spinousProcessIntersected = ', spinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle RL = ', angle_RL)
       print('  - success = ', success)
-    if stepId == 3: # Check if L3 spinous process if intersected by ultrasound plane
+    #
+    # Step 3: Check if L3 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 3:
       spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l3_model)
-      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l3_plane)
-      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l3_plane)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l3_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l3_plane)
       success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
       print('\nStep 3:')
       print('  - spinousProcessIntersected = ', spinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle RL = ', angle_RL)
       print('  - success = ', success)
-    if stepId == 4: # Check if L2 spinous process if intersected by ultrasound plane
+    #
+    # Step 4: Check if L2 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 4:
       spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l2_model)
-      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l2_plane)
-      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l2_plane)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l2_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l2_plane)
       success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
       print('\nStep 4:')
       print('  - spinousProcessIntersected = ', spinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle RL = ', angle_RL)
       print('  - success = ', success)
-    if stepId == 5: # Check if L1 spinous process if intersected by ultrasound plane
+    #
+    # Step 5: Check if L1 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 5:
       spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l1_model)
-      angle_AP = self.computeVertebraAngleDeviationAP(self.axial_l1_plane)
-      angle_RL = self.computeVertebraAngleDeviationRL(self.axial_l1_plane)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l1_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l1_plane)
       success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
       print('\nStep 5:')
       print('  - spinousProcessIntersected = ', spinousProcessIntersected)
       print('  - Angle AP = ', angle_AP)
       print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 6: Check if L3-L4 interspinous space is aligned with ultrasound beam
+    #
+    if stepId == 6: 
+      l3SpinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      l4SpinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      angle_AP = self.computeLongitudinalPlaneAngleDeviationAP(self.axial_l4_plane) # using L4 axial plane for angle computation
+      angle_SI = self.computeLongitudinalPlaneAngleDeviationSI(self.axial_l4_plane) # using L4 axial plane for angle computation
+      success = l3SpinousProcessIntersected and l4SpinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_SI < angle_SI_threshold)
+      print('\nStep 5:')
+      print('  - spinousProcessIntersected (L3) = ', l3SpinousProcessIntersected)
+      print('  - spinousProcessIntersected (L4) = ', l4SpinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle SI = ', angle_SI)
       print('  - success = ', success)
 
     return success
@@ -891,7 +939,44 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     return collision
   
   #------------------------------------------------------------------------------
-  def computeVertebraAngleDeviationAP(self, vertebraAxialPlane):
+  def computeTransversePlaneAngleDeviationRL(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Project US plane normal to coronal plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10.0*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+
+    # Project vertebra axial plane to coronal plane
+    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
+    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10.0*vertebraAxial_plane_normal
+    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeTransversePlaneAngleDeviationAP(self, vertebraAxialPlane):
     # Get US image plane
     usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
     usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
@@ -935,7 +1020,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     return angle
   
   #------------------------------------------------------------------------------
-  def computeVertebraAngleDeviationRL(self, vertebraAxialPlane):
+  def computeLongitudinalPlaneAngleDeviationAP(self, vertebraAxialPlane):
     # Get US image plane
     usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
     usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
@@ -948,22 +1033,66 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
     sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
 
-    # Project US plane normal to coronal plane
-    usPlane_pointA = usImage_plane_centroid
-    usPlane_pointB = usImage_plane_centroid + 10.0*usImage_plane_normal
-    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
-    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+    # Get coronal plane
+    IS_axis = vertebraAxial_plane_normal
+    LR_axis = sagittal_plane_normal
+    PA_axis = np.cross(IS_axis, LR_axis)/np.linalg.norm(np.cross(IS_axis, LR_axis))
+    coronal_plane_centroid = vertebraAxial_plane_centroid
+    coronal_plane_normal = np.array(PA_axis)    
 
-    # Project vertebra axial plane to coronal plane
-    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
-    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10.0*vertebraAxial_plane_normal
-    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
-    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+    # Project US plane normal to reference axial plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+
+    # Project sagittal plane to reference axial plane
+    sagittalPlane_pointA = sagittal_plane_centroid
+    sagittalPlane_pointB = sagittal_plane_centroid + 10*sagittal_plane_normal
+    sagittalPlane_pointA_proj = self.projectPointToPlane(sagittalPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    sagittalPlane_pointB_proj = self.projectPointToPlane(sagittalPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
 
     # Compute angular deviation within coronal plane
     usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
-    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
-    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    sagittalPlane_orientation_vector = sagittalPlane_pointB_proj - sagittalPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, sagittalPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeLongitudinalPlaneAngleDeviationSI(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Project US plane normal to reference axial plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+
+    # Project sagittal plane to reference axial plane
+    sagittalPlane_pointA = sagittal_plane_centroid
+    sagittalPlane_pointB = sagittal_plane_centroid + 10*sagittal_plane_normal
+    sagittalPlane_pointA_proj = self.projectPointToPlane(sagittalPlane_pointA, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+    sagittalPlane_pointB_proj = self.projectPointToPlane(sagittalPlane_pointB, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    sagittalPlane_orientation_vector = sagittalPlane_pointB_proj - sagittalPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, sagittalPlane_orientation_vector)
     
     # Reformat angle
     if angle > 90.0:
