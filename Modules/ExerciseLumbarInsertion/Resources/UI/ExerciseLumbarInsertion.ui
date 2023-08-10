@@ -187,14 +187,29 @@
    </item>
    <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>Workflow</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="ctkCollapsibleGroupBox" name="step1GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="title">
-         <string>Step 1</string>
+         <string>Step 1: Localize L5</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
@@ -214,7 +229,10 @@
          <item row="0" column="0" colspan="2">
           <widget class="QLabel" name="checkStep1InfoLabel">
            <property name="text">
-            <string>Localize the spinous process of L1 vertebra using the ultrasound probe. Click the button below to evaluate the ultrasound probe position.</string>
+            <string>Localize the spinous process of L5 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -226,21 +244,42 @@
       </item>
       <item>
        <widget class="ctkCollapsibleGroupBox" name="step2GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="title">
-         <string>Step 2</string>
+         <string>Step 2: Localize L4</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep2OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QPushButton" name="checkStep2Button">
            <property name="text">
             <string>Check</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="checkStep2OutputLabel">
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label">
            <property name="text">
-            <string/>
+            <string>Localize the spinous process of L4 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -249,21 +288,42 @@
       </item>
       <item>
        <widget class="ctkCollapsibleGroupBox" name="step3GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="title">
-         <string>Step 3</string>
+         <string>Step 3: Localize L3</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
+         <item row="1" column="0">
           <widget class="QPushButton" name="checkStep3Button">
            <property name="text">
             <string>Check</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="1" column="1">
           <widget class="QLabel" name="checkStep3OutputLabel">
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Localize the spinous process of L3 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -272,21 +332,42 @@
       </item>
       <item>
        <widget class="ctkCollapsibleGroupBox" name="step4GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="title">
-         <string>Step 4</string>
+         <string>Step 4: Localize L2</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep4OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QPushButton" name="checkStep4Button">
            <property name="text">
             <string>Check</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="checkStep4OutputLabel">
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string/>
+            <string>Localize the spinous process of L2 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -295,21 +376,78 @@
       </item>
       <item>
        <widget class="ctkCollapsibleGroupBox" name="step5GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="title">
-         <string>Step 5</string>
+         <string>Step 5: Localize L1</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep5OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QPushButton" name="checkStep5Button">
            <property name="text">
             <string>Check</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="checkStep5OutputLabel">
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_4">
            <property name="text">
-            <string/>
+            <string>Localize the spinous process of L1 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="previousStepButton">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Previous</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="nextStepButton">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Next</string>
            </property>
           </widget>
          </item>
