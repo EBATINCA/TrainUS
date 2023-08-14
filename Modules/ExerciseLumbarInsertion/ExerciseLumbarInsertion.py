@@ -514,7 +514,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.instructionsVideoVisible = False
 
     # Viewpoint
-    self.currentViewpointMode = 'Free' # default is front view
+    self.currentViewpointMode = 'Front' # default is front view
 
     # Observer
     self.observerID = None
@@ -583,10 +583,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.PatientToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRas')
 
     # Load camera transforms
-    self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')
-    self.FrontCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToProbeModel')
-    self.RightCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToProbeModel')
-    self.BottomCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToProbeModel')
+    self.LeftCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToRas')
+    self.FrontCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToRas')
+    self.RightCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToRas')
+    self.BottomCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToRas')
 
     # Get ultrasound image
     try:
@@ -620,12 +620,6 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRas.GetID())
-
-    # US probe camera transforms
-    self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
 
     # Volume reslice driver (SlicerIGT extension)
     try:
@@ -835,10 +829,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     # Select camera transform
     try:
-      if self.currentViewpointMode == 'Left': cameraTransform = self.LeftCameraToProbeModel
-      elif self.currentViewpointMode == 'Front': cameraTransform = self.FrontCameraToProbeModel
-      elif self.currentViewpointMode == 'Right': cameraTransform = self.RightCameraToProbeModel
-      elif self.currentViewpointMode == 'Bottom': cameraTransform = self.BottomCameraToProbeModel
+      if self.currentViewpointMode == 'Left': cameraTransform = self.LeftCameraToRas
+      elif self.currentViewpointMode == 'Front': cameraTransform = self.FrontCameraToRas
+      elif self.currentViewpointMode == 'Right': cameraTransform = self.RightCameraToRas
+      elif self.currentViewpointMode == 'Bottom': cameraTransform = self.BottomCameraToRas
       else: cameraTransform = None
     except:
       return
