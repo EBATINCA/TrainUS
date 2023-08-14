@@ -569,15 +569,15 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.optimalTrajectoryL3L4_fiducials = self.loadMarkupsFiducialListFromFile(self.dataFolderPath + '/Landmarks/', 'OptimalTrajectory_L3-L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
     
     # Load tracker transforms (ONLY FOR DEVELOPMENT)
-    _ = self.loadTransformFromFile(self.dataFolderPath, 'StylusToTracker') # ONLY FOR DEVELOPMENT
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
     _ = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
     _ = self.loadTransformFromFile(self.dataFolderPath, 'TrackerToPatient') # ONLY FOR DEVELOPMENT
     
     # Load transforms
-    self.NeedleToTracker = self.getOrCreateTransform('StylusToTracker')
+    self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
+    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
     self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
     self.PatientToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRas')
