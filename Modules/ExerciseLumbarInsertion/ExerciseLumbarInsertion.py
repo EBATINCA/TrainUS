@@ -673,8 +673,9 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Update model slice visibility
     try:
       # Display needle model projected in US image
-      self.needle_model.GetModelDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
       self.needle_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
+      # Display spine model projected in US image
+      self.spine_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
     except:
       pass
 
