@@ -553,7 +553,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.l5_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L5', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
 
     # Load additional models
-    self.targetL3L4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousSpace_L3-L4_Target', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
+    self.targetL3L4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousSpace_L3-L4_Target1', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
 
     # Load reference planes
     self.usProbe_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_US_Image', [0.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
