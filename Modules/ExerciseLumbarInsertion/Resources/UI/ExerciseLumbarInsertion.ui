@@ -38,13 +38,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="loadDataButton">
-     <property name="text">
-      <string>Load Data</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="instructionsGroupBox">
      <property name="title">
       <string>Instructions</string>

@@ -73,6 +73,9 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     """
     Runs whenever the module is reopened
     """
+    # Load exercise data
+    self.logic.loadExerciseData()
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -96,9 +99,9 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
 
     # Disable slice annotations immediately
-    sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
-    sliceAnnotations.sliceViewAnnotationsEnabled = False
-    sliceAnnotations.updateSliceViewFromGUI()
+    #sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
+    #sliceAnnotations.sliceViewAnnotationsEnabled = False
+    #sliceAnnotations.updateSliceViewFromGUI()
 
     # Define steps group boxes
     self.currentWorkflowStep = 0
@@ -130,8 +133,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
-    # Load data
-    self.ui.loadDataButton.clicked.connect(self.onLoadDataButtonClicked)
     # Instructions
     self.ui.showInstructionsButton.clicked.connect(self.onShowInstructionsButtonClicked)
     self.ui.previousInstructionButton.clicked.connect(self.onPreviousInstructionButtonClicked)
@@ -162,8 +163,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    # Load data
-    self.ui.loadDataButton.clicked.disconnect()    
     # Instructions
     self.ui.showInstructionsButton.clicked.disconnect()
     self.ui.previousInstructionButton.clicked.disconnect()
@@ -199,9 +198,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """    
-    # Load data button
-    self.ui.loadDataButton.enabled = self.ui.easyRadioButton.isChecked() or self.ui.mediumRadioButton.isChecked() or self.ui.hardRadioButton.isChecked()
-
     # Show/Hide instruction images
     if self.logic.instructionsImagesVisible:
       self.ui.showInstructionsButton.setText('Hide')
@@ -242,14 +238,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     if self.logic.currentViewpointMode == 'Right': self.ui.rightViewButton.checked = True
     if self.logic.currentViewpointMode == 'Bottom': self.ui.bottomViewButton.checked = True
     if self.logic.currentViewpointMode == 'Free': self.ui.freeViewButton.checked = True
-
-  #------------------------------------------------------------------------------
-  def onLoadDataButtonClicked(self):
-    # Start exercise
-    self.logic.setupScene()
-
-    # Update GUI
-    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onDifficultyRadioButtonToggled(self):
@@ -469,10 +457,12 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
         self.workflowStepGroupBoxesDict[stepId].visible = False
 
   #------------------------------------------------------------------------------
-  def onBackToMenuButtonClicked(self):    
+  def onBackToMenuButtonClicked(self):
+    # Delete exercise data
+    self.logic.deleteExerciseData()
+    
     # Go back to Home module
-    #slicer.util.selectModule('Home') 
-    print('Back to home!')
+    slicer.util.selectModule('Home')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -520,9 +510,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.observerID = None
 
   #------------------------------------------------------------------------------
-  def loadData(self):
-    logging.debug('Loading data')
-
+  def loadExerciseData(self):
     # Load instructions images
     try:
         self.instructionsImageVolume = slicer.util.getNode('Slide1')
@@ -600,12 +588,6 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
         slicer.mrmlScene.AddNode(self.usImageVolumeNode)
         logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
 
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-
-    # Load exercise data
-    self.loadData()
-
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.needle_trajectory_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
@@ -647,6 +629,51 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Set difficulty parameters
     self.updateDifficulty()
 
+  #------------------------------------------------------------------------------
+  def deleteExerciseData(self):
+    # Delete instructions    
+    slicer.mrmlScene.RemoveNode(self.instructionsImageVolume)
+    try:
+      slicer.mrmlScene.RemoveNode(self.instructionsSequenceBrowser)
+      slicer.mrmlScene.RemoveNode(self.instructionsVideoVolume)
+    except:
+      pass
+
+    # Delete models
+    slicer.mrmlScene.RemoveNode(self.usProbe_model)
+    slicer.mrmlScene.RemoveNode(self.usProbe_plane_model)
+    slicer.mrmlScene.RemoveNode(self.needle_model)
+    slicer.mrmlScene.RemoveNode(self.needle_trajectory_model)
+    slicer.mrmlScene.RemoveNode(self.softTissue_model)
+    slicer.mrmlScene.RemoveNode(self.spine_model)
+    slicer.mrmlScene.RemoveNode(self.l1_model)
+    slicer.mrmlScene.RemoveNode(self.l2_model)
+    slicer.mrmlScene.RemoveNode(self.l3_model)
+    slicer.mrmlScene.RemoveNode(self.l4_model)
+    slicer.mrmlScene.RemoveNode(self.l5_model)
+    slicer.mrmlScene.RemoveNode(self.targetL3L4_model)
+
+    # Delete markups
+    slicer.mrmlScene.RemoveNode(self.usProbe_plane)    
+    slicer.mrmlScene.RemoveNode(self.sagittal_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l1_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l2_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l3_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l4_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l5_plane)
+    slicer.mrmlScene.RemoveNode(self.needleTrajectory_fiducials)
+    slicer.mrmlScene.RemoveNode(self.optimalTrajectoryL3L4_fiducials)
+
+    # Delete transforms
+    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
+    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
+    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
+    slicer.mrmlScene.RemoveNode(self.PatientToRas)
+    slicer.mrmlScene.RemoveNode(self.LeftCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.FrontCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.RightCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.BottomCameraToRas)
+  
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
     # Set parameters according to difficulty
