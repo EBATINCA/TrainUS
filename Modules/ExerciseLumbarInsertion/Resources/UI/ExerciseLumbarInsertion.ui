@@ -38,45 +38,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="loadDataButton">
-     <property name="text">
-      <string>Load Data</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="modeSelectionGroupBox">
-     <property name="title">
-      <string>Mode</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QComboBox" name="modeSelectionComboBox">
-        <property name="currentText">
-         <string>Evaluation</string>
-        </property>
-        <property name="currentIndex">
-         <number>1</number>
-        </property>
-        <property name="maxVisibleItems">
-         <number>10</number>
-        </property>
-        <item>
-         <property name="text">
-          <string>Recording</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Evaluation</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="instructionsGroupBox">
      <property name="title">
       <string>Instructions</string>
@@ -159,160 +120,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="targetGeneratorGroupBox">
-     <property name="title">
-      <string>Target Generator</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QPushButton" name="generateTargetButton">
-        <property name="text">
-         <string>Generate new target</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="recordingGroupBox">
-     <property name="title">
-      <string>Recording</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="2" column="0">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="recordingTimerWidget"/>
-      </item>
-      <item row="2" column="2">
-       <widget class="QLabel" name="recordingLengthLabel">
-        <property name="text">
-         <string>0.0 s</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="saveRecordingButton">
-        <property name="text">
-         <string>Save</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Recording length:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="clearRecordingButton">
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="startStopRecordingButton">
-        <property name="text">
-         <string>Start</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="importRecordingGroupBox">
-     <property name="title">
-      <string>Import recording</string>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <item>
-       <widget class="QPushButton" name="loadRecordingFileButton">
-        <property name="text">
-         <string>Load recording file</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="playbackGroupBox">
-     <property name="title">
-      <string>Playback</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0" colspan="2">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="SequenceBrowserSeekWidget">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="qMRMLSequenceBrowserPlayWidget" name="SequenceBrowserPlayWidget">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="ctkCollapsibleGroupBox" name="trimSequenceGroupBox">
-        <property name="title">
-         <string>Trim sequence</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="collapsedHeight">
-         <number>0</number>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="2">
-          <widget class="QLabel" name="maxValueTrimSequenceLabel">
-           <property name="text">
-            <string>TextLabel</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="minValueTrimSequenceLabel">
-           <property name="text">
-            <string>TextLabel</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider">
-           <property name="singleStep">
-            <double>0.100000000000000</double>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="QPushButton" name="trimSequenceButton">
-           <property name="text">
-            <string>Trim Sequence</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="viewControllerGroupBox">
      <property name="title">
       <string>View Controller</string>
@@ -372,91 +179,343 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="metricsGroupBox">
-     <property name="title">
-      <string>Performance Metrics</string>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0">
-       <widget class="ctkCollapsibleGroupBox" name="PlotGroupBox">
-        <property name="title">
-         <string>Real-time</string>
+     <property name="text">
+      <string>Workflow</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step1GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
-        <layout class="QGridLayout" name="gridLayout_5">
+        <property name="title">
+         <string>Step 1: Localize L5</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep1Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep1OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QPushButton" name="computeRealTimeMetricsButton">
+          <widget class="QLabel" name="checkStep1InfoLabel">
            <property name="text">
-            <string>Compute Real-Time Metrics</string>
+            <string>Localize the spinous process of L5 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="2" colspan="2">
-          <widget class="QPushButton" name="displayPlotButton">
-           <property name="text">
-            <string>Show results</string>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
            </property>
-           <property name="checkable">
-            <bool>false</bool>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="4">
-          <widget class="QFrame" name="metricSelectionFrame">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Selected metric:</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="metricSelectionComboBox"/>
-            </item>
-           </layout>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="ctkCollapsibleGroupBox" name="TableGroupBox">
-        <property name="title">
-         <string>Overall</string>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step2GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
         </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="computeOverallMetricsButton">
+        <property name="title">
+         <string>Step 2: Localize L4</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep2OutputLabel">
            <property name="text">
-            <string>Compute Overall Metrics</string>
+            <string/>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QPushButton" name="displayTableButton">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep2Button">
            <property name="text">
-            <string>Show results</string>
+            <string>Check</string>
            </property>
-           <property name="checkable">
-            <bool>false</bool>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep2InfoLabel">
+           <property name="text">
+            <string>Localize the spinous process of L4 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step3GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Step 3: Localize L3</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep3Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep3OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep3InfoLabel">
+           <property name="text">
+            <string>Localize the spinous process of L3 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step4GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Step 4: Localize L2</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep4OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep4Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep4InfoLabel">
+           <property name="text">
+            <string>Localize the spinous process of L2 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step5GroupBox">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Step 5: Localize L1</string>
+        </property>
+        <property name="collapsed">
+         <bool>true</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep5OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep5Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep5InfoLabel">
+           <property name="text">
+            <string>Localize the spinous process of L1 vertebra placing the ultrasound probe in a transverse plane. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step6GroupBox">
+        <property name="title">
+         <string>Step 6: Localize the L3-L4 interspinous space</string>
+        </property>
+        <property name="collapsed">
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep6Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep6OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep6InfoLabel">
+           <property name="text">
+            <string>Localize the L3-L4 interspinous space aligning the ultrasound probe beam longitudinally over the midline. Click the button below to evaluate the  probe position.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="ctkCollapsibleGroupBox" name="step7GroupBox">
+        <property name="title">
+         <string>Step 7: Define needle insertion point</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="checkStep7Button">
+           <property name="text">
+            <string>Check</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="checkStep7OutputLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="checkStep7InfoLabel">
+           <property name="text">
+            <string>Hold the needle in the initial position before insertion and check if the selected trajectory is appropriate. Do not insert the needle yet.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="previousStepButton">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Previous</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="nextStepButton">
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Next</string>
            </property>
           </widget>
          </item>
@@ -497,31 +556,22 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
    <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkDoubleRangeSlider</class>
-   <extends>QWidget</extends>
-   <header>ctkDoubleRangeSlider.h</header>
-  </customwidget>
-  <customwidget>
    <class>qMRMLWidget</class>
    <extends>QWidget</extends>
    <header>qMRMLWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSequenceBrowserPlayWidget</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLSequenceBrowserPlayWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSequenceBrowserSeekWidget</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLSequenceBrowserSeekWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -236,6 +236,92 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.redSliceLogic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
 
   #------------------------------------------------------------------------------
+  def loadExerciseData(self):
+    # Load instructions
+    try:
+        self.instructions = slicer.util.getNode('Instructions1')
+    except:
+      try:
+        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Instructions1.PNG')
+      except:
+        print('ERROR: Instructions files could not be loaded...')
+
+    # Load models
+    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
+    self.stylus_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
+    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
+    self.phantom_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'PhantomVascularTissue', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 0.3)
+    self.vessels_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'VesselsModel', [0.76,0.18,0.18], visibility_bool = True, opacityValue = 0.5)
+
+    # Load transforms
+    self.StylusToTracker = self.getOrCreateTransform('StylusToTracker')
+    self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
+    self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
+    self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
+    self.StylusTipToStylus = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
+    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
+    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
+    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
+    self.PatientToRAS = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRAS')
+
+    # Get ultrasound image
+    try:
+      self.usImageVolumeNode = slicer.util.getNode('Image_Reference')
+    except:
+      logging.error('ERROR: Image_Reference volume node was not found...')
+      return
+
+    # Display US image using volume reslice driver module
+    self.redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.usImageVolumeNode.GetID())
+    self.volumeResliceDriverLogic.SetDriverForSlice(self.usImageVolumeNode.GetID(), self.redSliceLogic.GetSliceNode())
+    self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
+
+    # Build transform tree
+    self.stylus_model.SetAndObserveTransformNodeID(self.StylusTipToStylus.GetID())
+    self.StylusTipToStylus.SetAndObserveTransformNodeID(self.StylusToTracker.GetID())
+    self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
+    self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
+    self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
+    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
+    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
+    self.StylusToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
+    self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
+    self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
+    self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())  
+
+    # Fit US image to view and display in 3D view     
+    self.redSliceLogic.FitSliceToAll()
+    self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
+
+    # Set difficulty parameters
+    self.updateDifficulty()
+
+    # Improve visibility removing: 3D cube and 3D axis label.
+    view1 = slicer.util.getNode('View1')
+    view1.SetBoxVisible(False)
+    view1.SetAxisLabelsVisible(False)
+
+  #------------------------------------------------------------------------------
+  def deleteExerciseData(self):
+    # Delete instructions    
+    slicer.mrmlScene.RemoveNode(self.instructions)
+
+    # Delete models
+    slicer.mrmlScene.RemoveNode(self.usProbe_model)
+    slicer.mrmlScene.RemoveNode(self.stylus_model)
+    slicer.mrmlScene.RemoveNode(self.needle_model)
+    slicer.mrmlScene.RemoveNode(self.phantom_model)
+    slicer.mrmlScene.RemoveNode(self.vessels_model)
+
+    # Delete transforms
+    slicer.mrmlScene.RemoveNode(self.StylusTipToStylus)
+    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
+    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
+    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
+    slicer.mrmlScene.RemoveNode(self.PatientToRAS)
+    
+  #------------------------------------------------------------------------------
   def updateDifficulty(self):
     # Set parameters according to difficulty
     if self.exerciseDifficulty == 'Easy':
@@ -335,92 +421,6 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
       sliceIndex = self.redSliceLogic.GetSliceIndexFromOffset(sliceOffset + 1)
       if sliceIndex > 0:
         self.redSliceLogic.SetSliceOffset(sliceOffset + 1)
-
-  #------------------------------------------------------------------------------
-  def loadExerciseData(self):
-    # Load instructions
-    try:
-        self.instructions = slicer.util.getNode('Instructions1')
-    except:
-      try:
-        self.instructions = slicer.util.loadVolume(self.dataFolderPath + '/Instructions/Instructions1.PNG')
-      except:
-        print('ERROR: Instructions files could not be loaded...')
-
-    # Load models
-    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
-    self.stylus_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
-    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
-    self.phantom_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'PhantomVascularTissue', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 0.3)
-    self.vessels_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'VesselsModel', [0.76,0.18,0.18], visibility_bool = True, opacityValue = 0.5)
-
-    # Load transforms
-    self.StylusToTracker = self.getOrCreateTransform('StylusToTracker')
-    self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
-    self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
-    self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.StylusTipToStylus = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
-    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
-    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
-    self.PatientToRAS = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRAS')
-
-    # Get ultrasound image
-    try:
-      self.usImageVolumeNode = slicer.util.getNode('Image_Reference')
-    except:
-      logging.error('ERROR: Image_Reference volume node was not found...')
-      return
-
-    # Display US image using volume reslice driver module
-    self.redSliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.usImageVolumeNode.GetID())
-    self.volumeResliceDriverLogic.SetDriverForSlice(self.usImageVolumeNode.GetID(), self.redSliceLogic.GetSliceNode())
-    self.volumeResliceDriverLogic.SetModeForSlice(self.volumeResliceDriverLogic.MODE_TRANSVERSE, self.redSliceLogic.GetSliceNode())
-
-    # Build transform tree
-    self.stylus_model.SetAndObserveTransformNodeID(self.StylusTipToStylus.GetID())
-    self.StylusTipToStylus.SetAndObserveTransformNodeID(self.StylusToTracker.GetID())
-    self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
-    self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
-    self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
-    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.StylusToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-    self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-    self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-    self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())  
-
-    # Fit US image to view and display in 3D view     
-    self.redSliceLogic.FitSliceToAll()
-    self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
-
-    # Set difficulty parameters
-    self.updateDifficulty()
-
-    # Improve visibility removing: 3D cube and 3D axis label.
-    view1 = slicer.util.getNode('View1')
-    view1.SetBoxVisible(False)
-    view1.SetAxisLabelsVisible(False)
-
-  #------------------------------------------------------------------------------
-  def deleteExerciseData(self):
-    # Delete instructions    
-    slicer.mrmlScene.RemoveNode(self.instructions)
-
-    # Delete models
-    slicer.mrmlScene.RemoveNode(self.usProbe_model)
-    slicer.mrmlScene.RemoveNode(self.stylus_model)
-    slicer.mrmlScene.RemoveNode(self.needle_model)
-    slicer.mrmlScene.RemoveNode(self.phantom_model)
-    slicer.mrmlScene.RemoveNode(self.vessels_model)
-
-    # Delete transforms
-    slicer.mrmlScene.RemoveNode(self.StylusTipToStylus)
-    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
-    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
-    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
-    slicer.mrmlScene.RemoveNode(self.PatientToRAS)
 
   #------------------------------------------------------------------------------
   def getOrCreateTransform(self, transformName):

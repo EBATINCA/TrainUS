@@ -22,7 +22,7 @@ class ExerciseLumbarInsertion(ScriptedLoadableModule):
     self.parent.title = "Exercise Lumbar Insertion"
     self.parent.categories = ["TrainUS"]
     self.parent.dependencies = []
-    self.parent.contributors = ["Monica Garcia Sevilla (ULPGC), David Garcia Mato (Ebatinca)"]
+    self.parent.contributors = ["David Garcia Mato (Ebatinca)"]
     self.parent.helpText = """ Module to train US-guided lumbar needle insertion. """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """This project has been funded by NEOTEC grant from the Centre for the Development of Technology and Innovation (CDTI) of the Ministry for Science and Innovation of the Government of Spain."""
@@ -73,6 +73,9 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     """
     Runs whenever the module is reopened
     """
+    # Load exercise data
+    self.logic.loadExerciseData()
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -92,23 +95,44 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     # Customize widgets
     self.ui.showInstructionsButton.setText('Show')
-    self.ui.trimSequenceGroupBox.collapsed = True
-    self.ui.recordingTimerWidget.slider().visible = False
-    self.ui.metricSelectionFrame.visible = False
     self.ui.videoInstructionsButton.setIcon(qt.QIcon(self.resourcePath('Icons/videoIcon_small.png')))    
     self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
 
     # Disable slice annotations immediately
-    sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
-    sliceAnnotations.sliceViewAnnotationsEnabled = False
-    sliceAnnotations.updateSliceViewFromGUI()
+    #sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
+    #sliceAnnotations.sliceViewAnnotationsEnabled = False
+    #sliceAnnotations.updateSliceViewFromGUI()
+
+    # Define steps group boxes
+    self.currentWorkflowStep = 0
+    self.workflowStepGroupBoxesDict = {'Step 1': self.ui.step1GroupBox,
+                                      'Step 2': self.ui.step2GroupBox,
+                                      'Step 3': self.ui.step3GroupBox,
+                                      'Step 4': self.ui.step4GroupBox,
+                                      'Step 5': self.ui.step5GroupBox,
+                                      'Step 6': self.ui.step6GroupBox,
+                                      'Step 7': self.ui.step7GroupBox}
+    
+    # Set up default visibility for workflow step group boxes
+    self.ui.step1GroupBox.visible = True
+    self.ui.step2GroupBox.visible = False
+    self.ui.step3GroupBox.visible = False
+    self.ui.step4GroupBox.visible = False
+    self.ui.step5GroupBox.visible = False
+    self.ui.step6GroupBox.visible = False
+    self.ui.step7GroupBox.visible = False
+
+    # Uncollapse all workflow step group boxes
+    self.ui.step1GroupBox.collapsed = False
+    self.ui.step2GroupBox.collapsed = False
+    self.ui.step3GroupBox.collapsed = False
+    self.ui.step4GroupBox.collapsed = False
+    self.ui.step5GroupBox.collapsed = False
+    self.ui.step6GroupBox.collapsed = False
+    self.ui.step7GroupBox.collapsed = False
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
-    # Load data
-    self.ui.loadDataButton.clicked.connect(self.onLoadDataButtonClicked)
-    # Mode
-    self.ui.modeSelectionComboBox.currentTextChanged.connect(self.onModeSelectionComboBoxTextChanged)
     # Instructions
     self.ui.showInstructionsButton.clicked.connect(self.onShowInstructionsButtonClicked)
     self.ui.previousInstructionButton.clicked.connect(self.onPreviousInstructionButtonClicked)
@@ -118,41 +142,27 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.easyRadioButton.toggled.connect(self.onDifficultyRadioButtonToggled)
     self.ui.mediumRadioButton.toggled.connect(self.onDifficultyRadioButtonToggled)
     self.ui.hardRadioButton.toggled.connect(self.onDifficultyRadioButtonToggled)
-    # Target generator
-    self.ui.generateTargetButton.clicked.connect(self.onGenerateTargetButtonClicked)
-    # Recording
-    self.ui.startStopRecordingButton.clicked.connect(self.onStartStopRecordingButtonClicked)
-    self.ui.clearRecordingButton.clicked.connect(self.onClearRecordingButtonClicked)
-    self.ui.saveRecordingButton.clicked.connect(self.onSaveRecordingButtonClicked)
-    # Load recording
-    self.ui.loadRecordingFileButton.clicked.connect(self.onLoadRecordingFileButtonClicked)
-    # Trim sequence
-    self.ui.trimSequenceGroupBox.toggled.connect(self.onTrimSequenceGroupBoxCollapsed)
-    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.connect(self.onTrimSequenceDoubleRangeSliderModified)
-    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.connect(self.onTrimSequenceMinPosDoubleRangeSliderModified)
-    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.connect(self.onTrimSequenceMaxPosDoubleRangeSliderModified)
-    self.ui.trimSequenceButton.clicked.connect(self.onTrimSequenceButtonClicked)
     # View control
     self.ui.leftViewButton.clicked.connect(self.onLeftViewButtonClicked)
     self.ui.frontViewButton.clicked.connect(self.onFrontViewButtonClicked)
     self.ui.rightViewButton.clicked.connect(self.onRightViewButtonClicked)
     self.ui.bottomViewButton.clicked.connect(self.onBottomViewButtonClicked)
     self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
-    # Compute metrics
-    self.ui.computeRealTimeMetricsButton.clicked.connect(self.onComputeRealTimeMetricsButtonClicked)
-    self.ui.displayPlotButton.clicked.connect(self.onDisplayPlotButtonClicked)
-    self.ui.metricSelectionComboBox.currentTextChanged.connect(self.onMetricSelectionComboBoxTextChanged)
-    self.ui.computeOverallMetricsButton.clicked.connect(self.onComputeOverallMetricsButtonClicked)
-    self.ui.displayTableButton.clicked.connect(self.onDisplayTableButtonClicked)
+    # Workflow
+    self.ui.checkStep1Button.clicked.connect(self.onCheckStep1ButtonClicked)
+    self.ui.checkStep2Button.clicked.connect(self.onCheckStep2ButtonClicked)
+    self.ui.checkStep3Button.clicked.connect(self.onCheckStep3ButtonClicked)
+    self.ui.checkStep4Button.clicked.connect(self.onCheckStep4ButtonClicked)
+    self.ui.checkStep5Button.clicked.connect(self.onCheckStep5ButtonClicked)
+    self.ui.checkStep6Button.clicked.connect(self.onCheckStep6ButtonClicked)
+    self.ui.checkStep7Button.clicked.connect(self.onCheckStep7ButtonClicked)
+    self.ui.previousStepButton.clicked.connect(self.onPreviousStepButtonClicked)
+    self.ui.nextStepButton.clicked.connect(self.onNextStepButtonClicked)
     # Back to menu
     self.ui.backToMenuButton.clicked.connect(self.onBackToMenuButtonClicked)
 
   #------------------------------------------------------------------------------
   def disconnect(self):
-    # Load data
-    self.ui.loadDataButton.clicked.disconnect()    
-    # Mode
-    self.ui.modeSelectionComboBox.currentTextChanged.disconnect()
     # Instructions
     self.ui.showInstructionsButton.clicked.disconnect()
     self.ui.previousInstructionButton.clicked.disconnect()
@@ -162,32 +172,22 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.easyRadioButton.clicked.disconnect()
     self.ui.mediumRadioButton.clicked.disconnect()
     self.ui.hardRadioButton.clicked.disconnect()
-    # Target generator
-    self.ui.generateTargetButton.clicked.disconnect()
-    # Recording
-    self.ui.startStopRecordingButton.clicked.disconnect()
-    self.ui.clearRecordingButton.clicked.disconnect()
-    self.ui.saveRecordingButton.clicked.disconnect()
-    # Load recording
-    self.ui.loadRecordingFileButton.clicked.disconnect()
-    # Trim sequence
-    self.ui.trimSequenceGroupBox.toggled.disconnect()
-    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.disconnect()
-    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.disconnect()
-    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.disconnect()
-    self.ui.trimSequenceButton.clicked.disconnect()
     # View control
     self.ui.leftViewButton.clicked.disconnect()
     self.ui.frontViewButton.clicked.disconnect()
     self.ui.rightViewButton.clicked.disconnect()
     self.ui.bottomViewButton.clicked.disconnect()
     self.ui.freeViewButton.clicked.disconnect()
-    # Compute metrics
-    self.ui.computeRealTimeMetricsButton.clicked.disconnect()
-    self.ui.displayPlotButton.clicked.disconnect()
-    self.ui.metricSelectionComboBox.currentTextChanged.disconnect()
-    self.ui.computeOverallMetricsButton.clicked.disconnect()
-    self.ui.displayTableButton.clicked.disconnect()
+    # Workflow
+    self.ui.checkStep1Button.clicked.disconnect()
+    self.ui.checkStep2Button.clicked.disconnect()
+    self.ui.checkStep3Button.clicked.disconnect()
+    self.ui.checkStep4Button.clicked.disconnect()
+    self.ui.checkStep5Button.clicked.disconnect()
+    self.ui.checkStep6Button.clicked.disconnect()
+    self.ui.checkStep7Button.clicked.disconnect()
+    self.ui.previousStepButton.clicked.disconnect()
+    self.ui.nextStepButton.clicked.disconnect()
     # Back to menu
     self.ui.backToMenuButton.clicked.disconnect()
 
@@ -198,31 +198,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """    
-    # Load data button
-    self.ui.loadDataButton.enabled = self.ui.easyRadioButton.isChecked() or self.ui.mediumRadioButton.isChecked() or self.ui.hardRadioButton.isChecked()
-
-    # Mode
-    if self.logic.exerciseMode == 'Recording':
-      self.ui.instructionsGroupBox.visible = True
-      self.ui.difficultyGroupBox.visible = True
-      self.ui.targetGeneratorGroupBox.visible = True
-      self.ui.recordingGroupBox.visible = True
-      self.ui.importRecordingGroupBox.visible = False
-      self.ui.playbackGroupBox.visible = False
-      self.ui.viewControllerGroupBox.visible = False
-      self.ui.metricsGroupBox.visible = False
-    elif self.logic.exerciseMode == 'Evaluation':
-      self.ui.instructionsGroupBox.visible = True
-      self.ui.difficultyGroupBox.visible = True
-      self.ui.targetGeneratorGroupBox.visible = False
-      self.ui.recordingGroupBox.visible = False
-      self.ui.importRecordingGroupBox.visible = True
-      self.ui.playbackGroupBox.visible = True
-      self.ui.viewControllerGroupBox.visible = True
-      self.ui.metricsGroupBox.visible = True
-    else:
-      logging.error('Invalid exercise mode...')
-
     # Show/Hide instruction images
     if self.logic.instructionsImagesVisible:
       self.ui.showInstructionsButton.setText('Hide')
@@ -251,61 +226,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     elif self.logic.exerciseDifficulty == 'Hard':
       self.ui.hardRadioButton.checked = True
 
-    # Start/Stop recording
-    if self.logic.sequenceBrowserUtils.getRecordingInProgress():
-      self.ui.startStopRecordingButton.setText('Stop')
-      self.ui.clearRecordingButton.enabled = False
-      self.ui.saveRecordingButton.enabled = False
-    else:
-      self.ui.startStopRecordingButton.setText('Start')
-      self.ui.clearRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
-      self.ui.saveRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
-
-    # Recording info
-    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.sequenceBrowserUtils.getRecordingLength()))
-    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
-      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
-
-    # Playback
-    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
-      self.ui.SequenceBrowserPlayWidget.enabled = True
-      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
-      self.ui.SequenceBrowserSeekWidget.enabled = True
-      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
-    else:
-      self.ui.SequenceBrowserPlayWidget.enabled = False
-      self.ui.SequenceBrowserSeekWidget.enabled = False
-
-    # Trim sequence
-    rangeSequence = self.logic.sequenceBrowserUtils.getTimeRangeInSequenceBrowser()
-    if rangeSequence:
-      self.ui.trimSequenceDoubleRangeSlider.minimum = rangeSequence[0]
-      self.ui.trimSequenceDoubleRangeSlider.maximum = rangeSequence[1]
-      self.ui.trimSequenceDoubleRangeSlider.minimumValue = rangeSequence[0]
-      self.ui.trimSequenceDoubleRangeSlider.maximumValue = rangeSequence[1]
-    if self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty():
-      self.ui.maxValueTrimSequenceLabel.text = '-'
-      self.ui.minValueTrimSequenceLabel.text = '-'
-
-    # Metric computation
-    self.ui.computeRealTimeMetricsButton.enabled = not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()
-    self.ui.computeOverallMetricsButton.enabled = not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()
-    
-    # Display plot
-    plotVisible = self.logic.layoutUtils.isPlotVisibleInCurrentLayout()
-    if plotVisible:
-      self.ui.displayPlotButton.setText('Hide results')
-    else:
-      self.ui.displayPlotButton.setText('Show results')
-    self.ui.metricSelectionComboBox.enabled = (not self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty()) and plotVisible
-
-    # Display table    
-    tableVisible = self.logic.layoutUtils.isTableVisibleInCurrentLayout()
-    if tableVisible:
-      self.ui.displayTableButton.setText('Hide results')
-    else:
-      self.ui.displayTableButton.setText('Show results')
-
     # Update viewpoint
     self.logic.updateViewpoint()
     self.ui.leftViewButton.checked = False
@@ -318,22 +238,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     if self.logic.currentViewpointMode == 'Right': self.ui.rightViewButton.checked = True
     if self.logic.currentViewpointMode == 'Bottom': self.ui.bottomViewButton.checked = True
     if self.logic.currentViewpointMode == 'Free': self.ui.freeViewButton.checked = True
-
-  #------------------------------------------------------------------------------
-  def onLoadDataButtonClicked(self):
-    # Start exercise
-    self.logic.setupScene()
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onModeSelectionComboBoxTextChanged(self, text):
-    # Update mode
-    self.logic.exerciseMode = text
-
-    # Update GUI
-    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onDifficultyRadioButtonToggled(self):
@@ -384,155 +288,6 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onGenerateTargetButtonClicked(self):    
-    # Generate random target ID
-    targetID = self.logic.getRandomTargetID()
-
-    # Load selected target
-    self.logic.loadTarget(targetID)
-
-  #------------------------------------------------------------------------------
-  def onStartStopRecordingButtonClicked(self):    
-    # Check recording status
-    recordingInProgress = self.logic.sequenceBrowserUtils.getRecordingInProgress()
-
-    # Update sequence browser recording status
-    if recordingInProgress:
-      # Stop recording
-      self.logic.sequenceBrowserUtils.stopSequenceBrowserRecording()
-    else:
-      # Start recording
-      synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
-      self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
-      self.logic.sequenceBrowserUtils.startSequenceBrowserRecording()
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onClearRecordingButtonClicked(self):
-    # Remove observer
-    self.logic.removeObserverToMasterSequenceNode()
-
-    # Delete previous recording
-    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
-
-    # Create new recording
-    synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.usImageVolumeNode]
-    self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
-    self.logic.sequenceBrowserUtils.createNewSequenceBrowser()
-
-    # Add observer
-    self.logic.addObserverToMasterSequenceNode()
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onSaveRecordingButtonClicked(self):
-    # Generate recording file path
-    filename = 'Recording-' + time.strftime("%Y%m%d-%H%M%S") + os.extsep + "sqbr"
-    directory = self.logic.dataFolderPath
-    filePath = os.path.join(directory, filename)
-
-    # Save sequence browser node
-    self.logic.sequenceBrowserUtils.saveSequenceBrowser(filePath)
-
-    # Recording info to save in JSON file
-    print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
-    print('Date:', time.strftime("%Y%m%d"))
-    print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.logic.sequenceBrowserUtils.getRecordingLength())
-    print('Target:', self.logic.targetFileName)
-    print('User:', 'XXXXXXXXXXX')
-    print('Hardware setup:', 'XXXXXXXXXXX')
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onLoadRecordingFileButtonClicked(self):    
-    # Show dialog to select file path
-    defaultPath = self.logic.dataFolderPath
-    fileDialog = ctk.ctkFileDialog()
-    fileDialog.setDirectory(defaultPath)
-    fileDialog.setFilter(qt.QDir.Files)
-    filters = ['*.sqbr']
-    fileDialog.setNameFilters(filters)
-    fileDialog.setFileMode(qt.QFileDialog().ExistingFile) # just one file can be selected
-    fileDialog.exec_()
-    selectedFiles = fileDialog.selectedFiles()
-    if not selectedFiles:
-      return
-    filePath = selectedFiles[0]
-    if not filePath:
-      return
-
-    # Remove observer
-    self.logic.removeObserverToMasterSequenceNode()
-
-    # Delete previous recording
-    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
-
-    # Load sequence browser node
-    self.logic.sequenceBrowserUtils.loadSequenceBrowser(filePath)
-
-    # Add observer
-    self.logic.addObserverToMasterSequenceNode()
-
-    # Reset focal point in 3D view
-    self.logic.layoutUtils.resetFocalPointInThreeDView()
-
-    # Load recording info file
-    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
-    recordingInfo = self.logic.readRecordingInfoFile(recordingInfoFilePath)
-
-    # Update target corresponding to recording
-    targetID = recordingInfo['options']['target']
-    self.logic.loadTarget(targetID)
-
-    # Update difficulty corresponding to recording
-    self.logic.exerciseDifficulty = recordingInfo['options']['difficulty']
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onTrimSequenceGroupBoxCollapsed(self, toggled):
-    pass
-
-  #------------------------------------------------------------------------------
-  def onTrimSequenceDoubleRangeSliderModified(self, minValue, maxValue):
-    # Update UI labels to indicate current min and max values in slider range
-    self.ui.minValueTrimSequenceLabel.text = str("{0:05.2f}".format(minValue)) + ' s'
-    self.ui.maxValueTrimSequenceLabel.text = str("{0:05.2f}".format(maxValue)) + ' s'
-
-  #------------------------------------------------------------------------------
-  def onTrimSequenceMinPosDoubleRangeSliderModified(self, minValue):
-    # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(minValue)
-
-  #------------------------------------------------------------------------------
-  def onTrimSequenceMaxPosDoubleRangeSliderModified(self, maxValue):
-    # Update current sample in sequence browser by modifying seek widget slider
-    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(maxValue)
-
-  #------------------------------------------------------------------------------
-  def onTrimSequenceButtonClicked(self):
-    # Get slider values
-    minValue = self.ui.trimSequenceDoubleRangeSlider.minimumValue
-    maxValue = self.ui.trimSequenceDoubleRangeSlider.maximumValue
-
-    # Collapse trim sequence group box
-    self.ui.trimSequenceGroupBox.collapsed = True
-
-    # Trim sequence
-    self.logic.sequenceBrowserUtils.trimSequenceBrowserRecording(minValue, maxValue)
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
   def onLeftViewButtonClicked(self):
     # Update viewpoint
     self.logic.currentViewpointMode = 'Left'
@@ -573,77 +328,141 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onComputeRealTimeMetricsButtonClicked(self):    
-    
-    # Set wait cursor
-    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+  def onCheckStep1ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 1)
 
-    # Compute real-time metrics
-    self.logic.computeRealTimeMetricsFromRecording()
-
-    # Remove current items in combo box
-    numItems = self.ui.metricSelectionComboBox.count
-    for itemID in range(numItems):
-      self.ui.metricSelectionComboBox.removeItem(0)
-
-    # Add items to metric selection combo box
-    listOfMetrics = self.logic.plotChartUtils.getListOfMetrics()
-    for metricName in listOfMetrics:
-      self.ui.metricSelectionComboBox.addItem(metricName)
-
-    # Restore cursor
-    qt.QApplication.restoreOverrideCursor()
-    
-    # Update GUI
-    self.updateGUIFromMRML()
+    # Show result
+    if success:
+      self.ui.checkStep1OutputLabel.setText('CORRECT')
+      self.ui.checkStep1OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep1OutputLabel.setText('INCORRECT')
+      self.ui.checkStep1OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
 
   #------------------------------------------------------------------------------
-  def onComputeOverallMetricsButtonClicked(self):    
+  def onCheckStep2ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 2)
+
+    # Show result
+    if success:
+      self.ui.checkStep2OutputLabel.setText('CORRECT')
+      self.ui.checkStep2OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep2OutputLabel.setText('INCORRECT')
+      self.ui.checkStep2OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep3ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 3)
+
+    # Show result
+    if success:
+      self.ui.checkStep3OutputLabel.setText('CORRECT')
+      self.ui.checkStep3OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep3OutputLabel.setText('INCORRECT')
+      self.ui.checkStep3OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep4ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 4)
+
+    # Show result
+    if success:
+      self.ui.checkStep4OutputLabel.setText('CORRECT')
+      self.ui.checkStep4OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep4OutputLabel.setText('INCORRECT')
+      self.ui.checkStep4OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep5ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 5)
+
+    # Show result
+    if success:
+      self.ui.checkStep5OutputLabel.setText('CORRECT')
+      self.ui.checkStep5OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep5OutputLabel.setText('INCORRECT')
+      self.ui.checkStep5OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep6ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 6)
+
+    # Show result
+    if success:
+      self.ui.checkStep6OutputLabel.setText('CORRECT')
+      self.ui.checkStep6OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep6OutputLabel.setText('INCORRECT')
+      self.ui.checkStep6OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onCheckStep7ButtonClicked(self):
+    # Check workflow step
+    success = self.logic.checkWorkflowStep(stepId = 7)
+
+    # Show result
+    if success:
+      self.ui.checkStep7OutputLabel.setText('CORRECT')
+      self.ui.checkStep7OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : green; }")
+    else:
+      self.ui.checkStep7OutputLabel.setText('INCORRECT')
+      self.ui.checkStep7OutputLabel.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color : red; }")
+
+  #------------------------------------------------------------------------------
+  def onPreviousStepButtonClicked(self):
+    # Update current workflow step
+    if self.currentWorkflowStep == 0:
+      pass
+    else:      
+      self.currentWorkflowStep = self.currentWorkflowStep - 1
+
+    # Get new workflow step ID
+    stepIdList = list(self.workflowStepGroupBoxesDict.keys())
+    currentStepId = stepIdList[self.currentWorkflowStep]
+
+    # Update group box visibility
+    for stepId in stepIdList:
+      if stepId == currentStepId:
+        self.workflowStepGroupBoxesDict[stepId].visible = True
+      else:
+        self.workflowStepGroupBoxesDict[stepId].visible = False
+
+  #------------------------------------------------------------------------------
+  def onNextStepButtonClicked(self):
+    # Update current workflow step
+    if self.currentWorkflowStep == (len(list(self.workflowStepGroupBoxesDict.keys()))-1):
+      pass
+    else:      
+      self.currentWorkflowStep = self.currentWorkflowStep + 1
+
+    # Get new workflow step ID
+    stepIdList = list(self.workflowStepGroupBoxesDict.keys())
+    currentStepId = stepIdList[self.currentWorkflowStep]
+
+    # Update group box visibility
+    for stepId in stepIdList:
+      if stepId == currentStepId:
+        self.workflowStepGroupBoxesDict[stepId].visible = True
+      else:
+        self.workflowStepGroupBoxesDict[stepId].visible = False
+
+  #------------------------------------------------------------------------------
+  def onBackToMenuButtonClicked(self):
+    # Delete exercise data
+    self.logic.deleteExerciseData()
     
-    # Set wait cursor
-    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
-
-    # Compute overall metrics using PerkTutor
-    self.logic.computeOverallMetricsFromRecording()
-
-    # Restore cursor
-    qt.QApplication.restoreOverrideCursor()
-    
-    # Update GUI
-    self.updateGUIFromMRML()    
-
-  #------------------------------------------------------------------------------
-  def onDisplayPlotButtonClicked(self):    
-    # Display metrics
-    self.logic.displayMetricPlot()
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onDisplayTableButtonClicked(self):    
-    # Display metrics
-    self.logic.displayMetricTable()
-
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onMetricSelectionComboBoxTextChanged(self, text):
-    # Selected metric
-    self.logic.selectedMetric = text
-
-    # Update plot chart
-    self.logic.updatePlotChart()
-    
-    # Update GUI
-    self.updateGUIFromMRML()
-
-  #------------------------------------------------------------------------------
-  def onBackToMenuButtonClicked(self):    
     # Go back to Home module
-    #slicer.util.selectModule('Home') 
-    print('Back to home!')
+    slicer.util.selectModule('Home')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -674,7 +493,6 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
 
     # Data path
     self.dataFolderPath = self.moduleWidget.resourcePath('ExerciseLumbarInsertionData/')
-    self.metricsDirectory = self.moduleWidget.resourcePath('ExerciseLumbarInsertionData/Metrics/')
 
     # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
@@ -691,27 +509,8 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Observer
     self.observerID = None
 
-    # Target nodes
-    self.targetFileName = ''
-    self.targetLineNode = None
-    self.targetPointNode = None
-
-    # Metric data
-    self.sampleID = []
-    self.timestamp = []
-    self.needleTipToUsPlaneDistanceMm = []
-    self.needleTipToTargetDistanceMm = []
-    self.needleToUsPlaneAngleDeg = []
-    self.needleToTargetLineInPlaneAngleDeg = []
-
-    # PerkTutor node
-    self.perkEvaluatorNode = None
-    self.perkTutorMetricTableNode = None
-
   #------------------------------------------------------------------------------
-  def loadData(self):
-    logging.debug('Loading data')
-
+  def loadExerciseData(self):
     # Load instructions images
     try:
         self.instructionsImageVolume = slicer.util.getNode('Slide1')
@@ -730,15 +529,41 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
 
     # Load models
     self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
-    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 1.0)
-    self.bone_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'BoneModel', [1.0,0.98,0.86], visibility_bool = True, opacityValue = 1.0)
-    self.softTissue_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'SoftTissueModel', [0.87,0.67,0.45], visibility_bool = True, opacityValue = 0.5)
+    self.usProbe_plane_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12_US_Plane_width40mm_depth50mm', [0.0,0.0,0.0], visibility_bool = True, opacityValue = 0.5)    
+    self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusModel', [0.0,1.0,0.0], visibility_bool = True, opacityValue = 1.0)
+    self.needle_trajectory_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusTrajectoryModel', [1.0,0.0,0.0], visibility_bool = True, opacityValue = 1.0)
+    self.softTissue_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SoftTissueModel', [0.87,0.67,0.45], visibility_bool = True, opacityValue = 0.5)
+    self.spine_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpineModel', [1.0,0.98,0.86], visibility_bool = True, opacityValue = 1.0)
+    self.l1_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L1', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
+    self.l2_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L2', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
+    self.l3_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L3', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
+    self.l4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L4', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
+    self.l5_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousProcess_L5', [1.0,0.98,0.86], visibility_bool = False, opacityValue = 1.0)
 
+    # Load additional models
+    self.targetL3L4_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'LumbarPhantom_SpinousSpace_L3-L4_Target1', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
+
+    # Load reference planes
+    self.usProbe_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_US_Image', [0.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.sagittal_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Sagittal', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l1_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L1', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l2_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L2', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l3_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L3', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l4_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+    self.axial_l5_plane = self.loadMarkupsPlaneFromFile(self.dataFolderPath + '/Planes/', 'Plane_Axial_L5', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 0.7)
+
+    # Load reference landmarks
+    self.needleTrajectory_fiducials = self.loadMarkupsFiducialListFromFile(self.dataFolderPath + '/Landmarks/', 'NeedleTrajectory_TipHandle', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)    
+    self.optimalTrajectoryL3L4_fiducials = self.loadMarkupsFiducialListFromFile(self.dataFolderPath + '/Landmarks/', 'OptimalTrajectory_L3-L4', [1.0,0.0,0.0], visibility_bool = False, opacityValue = 1.0)
+    
+    # Load tracker transforms (ONLY FOR DEVELOPMENT)
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
+    _ = self.loadTransformFromFile(self.dataFolderPath, 'TrackerToPatient') # ONLY FOR DEVELOPMENT
+    
     # Load transforms
     self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
-    #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
-    #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
     self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
@@ -746,10 +571,10 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.PatientToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRas')
 
     # Load camera transforms
-    self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')
-    self.FrontCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToProbeModel')
-    self.RightCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToProbeModel')
-    self.BottomCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToProbeModel')
+    self.LeftCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToRas')
+    self.FrontCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'FrontCameraToRas')
+    self.RightCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'RightCameraToRas')
+    self.BottomCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'BottomCameraToRas')
 
     # Get ultrasound image
     try:
@@ -763,16 +588,14 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
         slicer.mrmlScene.AddNode(self.usImageVolumeNode)
         logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
 
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-
-    # Load exercise data
-    self.loadData()
-
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
+    self.needle_trajectory_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
+    self.needleTrajectory_fiducials.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.usProbe_plane_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+    self.usProbe_plane.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
     self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
     self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
@@ -780,14 +603,19 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRas.GetID())
 
-    # US probe camera transforms
-    self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
+    # Volume reslice driver (SlicerIGT extension)
+    try:
+      volumeResliceDriverLogic = slicer.modules.volumereslicedriver.logic()
+    except:
+      logging.error('ERROR: "Volume Reslice Driver" module was not found.')
 
     # Display US image in red slice view
-    self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
+    sliceLogic = slicer.app.layoutManager().sliceWidget('Red').sliceLogic()
+    sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(self.usImageVolumeNode.GetID())
+    volumeResliceDriverLogic.SetDriverForSlice(self.usImageVolumeNode.GetID(), sliceLogic.GetSliceNode())
+    volumeResliceDriverLogic.SetModeForSlice(volumeResliceDriverLogic.MODE_TRANSVERSE, sliceLogic.GetSliceNode())
+    sliceLogic.FitSliceToAll()
+    sliceLogic.GetSliceNode().SetSliceVisible(False)
 
     # Remove 3D cube and 3D axis label from 3D view
     self.layoutUtils.hideCubeAndLabelsInThreeDView()
@@ -801,6 +629,51 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Set difficulty parameters
     self.updateDifficulty()
 
+  #------------------------------------------------------------------------------
+  def deleteExerciseData(self):
+    # Delete instructions    
+    slicer.mrmlScene.RemoveNode(self.instructionsImageVolume)
+    try:
+      slicer.mrmlScene.RemoveNode(self.instructionsSequenceBrowser)
+      slicer.mrmlScene.RemoveNode(self.instructionsVideoVolume)
+    except:
+      pass
+
+    # Delete models
+    slicer.mrmlScene.RemoveNode(self.usProbe_model)
+    slicer.mrmlScene.RemoveNode(self.usProbe_plane_model)
+    slicer.mrmlScene.RemoveNode(self.needle_model)
+    slicer.mrmlScene.RemoveNode(self.needle_trajectory_model)
+    slicer.mrmlScene.RemoveNode(self.softTissue_model)
+    slicer.mrmlScene.RemoveNode(self.spine_model)
+    slicer.mrmlScene.RemoveNode(self.l1_model)
+    slicer.mrmlScene.RemoveNode(self.l2_model)
+    slicer.mrmlScene.RemoveNode(self.l3_model)
+    slicer.mrmlScene.RemoveNode(self.l4_model)
+    slicer.mrmlScene.RemoveNode(self.l5_model)
+    slicer.mrmlScene.RemoveNode(self.targetL3L4_model)
+
+    # Delete markups
+    slicer.mrmlScene.RemoveNode(self.usProbe_plane)    
+    slicer.mrmlScene.RemoveNode(self.sagittal_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l1_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l2_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l3_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l4_plane)
+    slicer.mrmlScene.RemoveNode(self.axial_l5_plane)
+    slicer.mrmlScene.RemoveNode(self.needleTrajectory_fiducials)
+    slicer.mrmlScene.RemoveNode(self.optimalTrajectoryL3L4_fiducials)
+
+    # Delete transforms
+    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
+    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
+    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
+    slicer.mrmlScene.RemoveNode(self.PatientToRas)
+    slicer.mrmlScene.RemoveNode(self.LeftCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.FrontCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.RightCameraToRas)
+    slicer.mrmlScene.RemoveNode(self.BottomCameraToRas)
+  
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
     # Set parameters according to difficulty
@@ -827,8 +700,9 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Update model slice visibility
     try:
       # Display needle model projected in US image
-      self.needle_model.GetModelDisplayNode().SetSliceDisplayModeToDistanceEncodedProjection()
       self.needle_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
+      # Display spine model projected in US image
+      self.spine_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
     except:
       pass
 
@@ -897,76 +771,6 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
       self.layoutUtils.nextInstructionInSliceView('Yellow')
 
   #------------------------------------------------------------------------------
-  def getRandomTargetID(self):
-    # Get targets in folder
-    targetDataFolder = self.dataFolderPath + '/Targets/'
-    targetFileList = os.listdir(targetDataFolder)
-    numTargets = len(targetFileList)
-
-    # Generate random target ID
-    targetID = np.random.randint(0, numTargets) + 1
-    return targetID
-    
-  #------------------------------------------------------------------------------
-  def loadTarget(self, targetID):
-
-    # Get target file location
-    targetFileName = 'Target_' + str(targetID) + '.mrk.json'
-    targetDataFolder = self.dataFolderPath + '/Targets/'
-
-    # Remove previous target from scene
-    if self.targetLineNode:
-      slicer.mrmlScene.RemoveNode(self.targetLineNode)
-      self.targetLineNode = None
-    if self.targetPointNode:
-      slicer.mrmlScene.RemoveNode(self.targetPointNode)
-      self.targetPointNode = None    
-
-    # Load selected target    
-    targetFilePath = targetDataFolder + targetFileName
-    try:
-      self.targetLineNode = slicer.util.loadMarkups(targetFilePath)
-      self.targetLineNode.SetName('Target Line')
-    except:
-      logging.error('ERROR: Target markups file could not be loaded')
-
-    # Store target file name
-    self.targetFileName = targetFileName
-
-    # Generate target point
-    self.targetPointNode = slicer.vtkMRMLMarkupsFiducialNode()
-    slicer.mrmlScene.AddNode(self.targetPointNode)
-    self.targetPointNode.SetName('Target Point')
-
-    # Position target in line end
-    lineEndPosition = [0,0,0]
-    self.targetLineNode.GetNthControlPointPositionWorld(0, lineEndPosition)
-    self.targetPointNode.AddControlPoint(vtk.vtkVector3d(lineEndPosition))
-
-    # Transform targets to US image coordinate space
-    self.targetPointNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
-    self.targetLineNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
-
-    # Set point node parameters
-    self.targetPointNode.SetLocked(True)
-    self.targetPointNode.GetDisplayNode().SetPropertiesLabelVisibility(False)
-    self.targetPointNode.GetDisplayNode().SetPointLabelsVisibility(False)
-    self.targetPointNode.GetDisplayNode().SetUseGlyphScale(False) # Activates absolute size mode
-    self.targetPointNode.GetDisplayNode().SetGlyphSize(5) # 5 mm
-    self.targetPointNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green point
-    self.targetPointNode.GetDisplayNode().SetOpacity(0.2)
-
-    # Set line node parameters
-    self.targetLineNode.SetLocked(True)
-    self.targetLineNode.GetDisplayNode().SetPropertiesLabelVisibility(False)
-    self.targetLineNode.GetDisplayNode().SetUseGlyphScale(False) # Activates absolute size mode
-    self.targetLineNode.GetDisplayNode().SetGlyphSize(0.5)
-    self.targetLineNode.GetDisplayNode().SetCurveLineSizeMode(True)
-    self.targetLineNode.GetDisplayNode().SetLineDiameter(0.5)
-    self.targetLineNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green line
-    self.targetLineNode.GetDisplayNode().SetOpacity(0.2)    
-
-  #------------------------------------------------------------------------------
   def getOrCreateTransform(self, transformName):
     try:
         node = slicer.util.getNode(transformName)
@@ -980,7 +784,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
   #------------------------------------------------------------------------------
   def loadTransformFromFile(self, transformFilePath, transformFileName):
     try:
-        node = slicer.util.getNode(transformName)
+        node = slicer.util.getNode(transformFileName)
     except:
         try:
           node = slicer.util.loadTransform(transformFilePath +  '/' + transformFileName + '.h5')
@@ -1007,51 +811,44 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
           node = None
           logging.error('ERROR: ' + modelFileName + ' model not found in path')
     return node
-
+  
   #------------------------------------------------------------------------------
-  def addObserverToMasterSequenceNode(self):
-    """
-    Add observer to master sequence node.
-    """
+  def loadMarkupsFiducialListFromFile(self, markupsFiducialListFilePath, markupsFiducialListFileName, colorRGB_array, visibility_bool, opacityValue):
     try:
-      self.observerID = self.NeedleToTracker.AddObserver(slicer.vtkMRMLTransformableNode.TransformModifiedEvent, self.callbackCursorPosition)
+        node = slicer.util.getNode(markupsFiducialListFileName)
     except:
-      logging.error('Error adding observer to master sequence node...')    
-
+        try:
+          node = slicer.util.loadMarkups(markupsFiducialListFilePath + '/' + markupsFiducialListFileName + '.mrk.json')
+          node.SetLocked(True)
+          node.GetDisplayNode().SetSelectedColor(colorRGB_array)
+          node.GetDisplayNode().SetPropertiesLabelVisibility(False) # hide text
+          node.GetDisplayNode().SetVisibility(visibility_bool)
+          print(markupsFiducialListFileName + ' markups fiducial list loaded')
+        except:
+          node = None
+          logging.error('ERROR: ' + markupsFiducialListFileName + ' markups fiducial list not found in path')
+    return node
+    
   #------------------------------------------------------------------------------
-  def removeObserverToMasterSequenceNode(self):
-    """
-    Remove observer from master sequence node.
-    """
-    if self.observerID:
-      try:
-        self.NeedleToTracker.RemoveObserver(self.observerID)
-      except:
-        logging.error('Error removing observer from master sequence node...')   
-
-  #------------------------------------------------------------------------------
-  def callbackCursorPosition(self, unused1=None, unused2=None):
-    """
-    Update cursor position in plot chart.
-    """
-    self.plotChartUtils.updateCursorPosition(self.sequenceBrowserUtils.getSelectedTimestampInSequenceBrowser())    
-
-  #------------------------------------------------------------------------------
-  def readRecordingInfoFile(self, filePath):
-    """
-    Reads recording's information from .json file.
-
-    :param filePath: path to JSON file (string)
-
-    :return recording info (dict)
-    """
+  def loadMarkupsPlaneFromFile(self, markupsPlaneFilePath, markupsPlaneFileName, colorRGB_array, visibility_bool, opacityValue):
     try:
-      with open(filePath, 'r') as inputFile:
-        recordingInfo =  json.loads(inputFile.read())
+        node = slicer.util.getNode(markupsPlaneFileName)
     except:
-      logging.error('Cannot read recording information from JSON file at ' + filePath)
-      recordingInfo = None
-    return recordingInfo
+        try:
+          node = slicer.util.loadMarkups(markupsPlaneFilePath + '/' + markupsPlaneFileName + '.mrk.json')
+          node.SetLocked(True)
+          node.GetDisplayNode().SetGlyphScale(0.0)
+          node.GetDisplayNode().SetOpacity(opacityValue)
+          node.GetDisplayNode().SetSelectedColor(colorRGB_array)
+          node.GetDisplayNode().SetPropertiesLabelVisibility(False) # hide text
+          node.GetDisplayNode().SetHandlesInteractive(False)
+          node.GetDisplayNode().SetVisibility2D(False)
+          node.GetDisplayNode().SetVisibility(visibility_bool)
+          print(markupsPlaneFileName + ' markups plane loaded')
+        except:
+          node = None
+          logging.error('ERROR: ' + markupsPlaneFileName + ' markups plane not found in path')
+    return node
 
   #------------------------------------------------------------------------------
   def updateViewpoint(self):
@@ -1060,249 +857,16 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     """
     # Select camera transform
     try:
-      if self.currentViewpointMode == 'Left': cameraTransform = self.LeftCameraToProbeModel
-      elif self.currentViewpointMode == 'Front': cameraTransform = self.FrontCameraToProbeModel
-      elif self.currentViewpointMode == 'Right': cameraTransform = self.RightCameraToProbeModel
-      elif self.currentViewpointMode == 'Bottom': cameraTransform = self.BottomCameraToProbeModel
+      if self.currentViewpointMode == 'Left': cameraTransform = self.LeftCameraToRas
+      elif self.currentViewpointMode == 'Front': cameraTransform = self.FrontCameraToRas
+      elif self.currentViewpointMode == 'Right': cameraTransform = self.RightCameraToRas
+      elif self.currentViewpointMode == 'Bottom': cameraTransform = self.BottomCameraToRas
       else: cameraTransform = None
     except:
       return
 
     # Update viewpoint in 3D view
     self.layoutUtils.activateViewpoint(cameraTransform)
-
-  #------------------------------------------------------------------------------
-  def computeRealTimeMetricsFromRecording(self):
-
-    # Create message window to indicate to user what is happening
-    progressDialog = self.showProgressDialog('Computing performance metrics. Please, wait...') 
-
-    # Get number of items
-    numItems = self.sequenceBrowserUtils.getNumberOfItemsInSequenceBrowser()
-
-    # Metrics
-    self.sampleID = []
-    self.timestamp = []
-    self.needleTipToUsPlaneDistanceMm = []
-    self.needleTipToTargetDistanceMm = []
-    self.needleToUsPlaneAngleDeg = []
-    self.needleToTargetLineInPlaneAngleDeg = []
-
-    # Check if targets are defined in the scene
-    try:
-      self.targetPointNode.GetName()
-    except:
-      logging.error('No target point is defined...')
-      return
-    try:
-      self.targetLineNode.GetName()
-    except:
-      logging.error('No target line is defined...')
-      return
-
-    # Iterate along items
-    self.sequenceBrowserUtils.selectFirstItemInSequenceBrowser() # reset
-    for currentItem in range(numItems):
-
-      # Update progress dialog if any
-      if progressDialog:
-        progress = (currentItem / numItems) * (progressDialog.maximum - progressDialog.minimum)
-        progressDialog.setValue(progress)
-
-      # Get timestamp
-      timestamp = self.sequenceBrowserUtils.getTimestampFromItemID(currentItem)
-
-      # Get target point position
-      targetPoint = [0,0,0]
-      self.targetPointNode.GetNthControlPointPositionWorld(0, targetPoint)
-
-      # Get target line position
-      targetLineStart = [0,0,0]
-      targetLineEnd = [0,0,0]
-      self.targetLineNode.GetNthControlPointPositionWorld(0, targetLineEnd)
-      self.targetLineNode.GetNthControlPointPositionWorld(1, targetLineStart)
-
-      #
-      # Real-time metrics
-      #
-      # Get current tool positions
-      self.metricCalculationUtils.getCurrentToolPositions(self.NeedleTipToNeedle, self.ProbeModelToProbe, self.ImageToProbe)
-
-      # Distance from needle tip to US plane
-      distance_NeedleTipToUSPlane = self.metricCalculationUtils.computeNeedleTipToUsPlaneDistanceMm()
-
-      # Distance from needle tip to target point
-      distance_NeedleTipToTargetPoint = self.metricCalculationUtils.computeNeedleTipToTargetDistanceMm(targetPoint)
-
-      # Angle between needle and US plane
-      angle_NeedleToUsPlane = self.metricCalculationUtils.computeNeedleToUsPlaneAngleDeg()
-
-      # Angle between needle and target trajectory
-      angle_NeedleToTargetLineInPlane = self.metricCalculationUtils.computeNeedleToTargetLineInPlaneAngleDeg(targetLineStart, targetLineEnd)
-
-      # Store metrics
-      self.sampleID.append(currentItem)
-      self.timestamp.append(timestamp)
-      self.needleTipToUsPlaneDistanceMm.append(distance_NeedleTipToUSPlane)
-      self.needleTipToTargetDistanceMm.append(distance_NeedleTipToTargetPoint)
-      self.needleToUsPlaneAngleDeg.append(angle_NeedleToUsPlane)
-      self.needleToTargetLineInPlaneAngleDeg.append(angle_NeedleToTargetLineInPlane)
-
-      # Next sample
-      self.sequenceBrowserUtils.selectNextItemInSequenceBrowser()
-
-    # Store real-time metric values
-    self.plotChartUtils.addNewMetric('needleTipToUsPlaneDistanceMm', self.needleTipToUsPlaneDistanceMm)
-    self.plotChartUtils.addNewMetric('needleTipToTargetDistanceMm', self.needleTipToTargetDistanceMm)
-    self.plotChartUtils.addNewMetric('needleToUsPlaneAngleDeg', self.needleToUsPlaneAngleDeg)
-    self.plotChartUtils.addNewMetric('needleToTargetLineInPlaneAngleDeg', self.needleToTargetLineInPlaneAngleDeg)
-
-    # Store real-time metric timestamps
-    self.plotChartUtils.addMetricTimestamps(self.timestamp)
-
-    # Create real-time plot chart
-    self.plotChartUtils.createPlotChart(cursor = True)
-
-    # Hide progress dialog
-    progressDialog.hide()
-    progressDialog.deleteLater()
-
-    # Display metrics
-    self.displayMetricPlot()
-    plotVisible = self.layoutUtils.isPlotVisibleInCurrentLayout()
-    if not plotVisible:
-      self.displayMetricPlot()
-
-  #------------------------------------------------------------------------------
-  def computeOverallMetricsFromRecording(self):    
-    # Get Perk Evaluator logic
-    peLogic = slicer.modules.perkevaluator.logic()
-    if (peLogic is None):
-      logging.error( "Could not find Perk Evaluator logic." )
-      return
-
-    # Delete existing metric script nodes
-    oldMetricScriptNodes = vtk.vtkCollection()
-    for oldMetricScriptNode in oldMetricScriptNodes:
-      slicer.mrmlScene.RemoveNode(oldMetricScriptNode)
-
-    # Delete existing metric instance nodes
-    oldMetricInstanceNodes = vtk.vtkCollection()
-    for oldMetricInstanceNode in oldMetricInstanceNodes:
-      slicer.mrmlScene.RemoveNode(oldMetricInstanceNode)
-
-    # Delete existing perk evaluator node if any
-    if self.perkEvaluatorNode:
-      slicer.mrmlScene.RemoveNode(self.perkEvaluatorNode)
-      self.perkEvaluatorNode = None 
-
-    # Create Perk Evaluator node
-    self.perkEvaluatorNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLPerkEvaluatorNode')
-
-    # Delete existing table node if any
-    if self.perkTutorMetricTableNode:
-      slicer.mrmlScene.RemoveNode(self.perkTutorMetricTableNode)
-      self.perkTutorMetricTableNode = None 
-    
-    # Create table node to store PerkTutor metrics
-    self.perkTutorMetricTableNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLTableNode')
-    self.perkTutorMetricTableNode.SetName('MetricsTable')
-    self.perkTutorMetricTableNode.SetLocked(True) # lock table to avoid modifications
-    self.perkTutorMetricTableNode.RemoveAllColumns() # reset
-
-    # Assign table to PerkTutor node
-    self.perkEvaluatorNode.SetMetricsTableID(self.perkTutorMetricTableNode.GetID())
-
-    # Assign sequence browser to PerkTutor node
-    sequenceBrowserNode = self.sequenceBrowserUtils.getSequenceBrowser()
-    self.perkEvaluatorNode.SetTrackedSequenceBrowserNodeID(sequenceBrowserNode.GetID())
-
-    # Remove all pervasive metric instances and just recreate the ones for the relevant transforms
-    metricInstanceNodes = slicer.mrmlScene.GetNodesByClass( "vtkMRMLMetricInstanceNode" )
-    for i in range( metricInstanceNodes.GetNumberOfItems() ):
-      node = metricInstanceNodes.GetItemAsObject( i )
-      pervasive = peLogic.GetMetricPervasive( node.GetAssociatedMetricScriptID() )
-      needleTipRole = node.GetRoleID( "Any", slicer.vtkMRMLMetricInstanceNode.TransformRole ) == self.NeedleTipToNeedle.GetID()
-      ultrasoundRole = node.GetRoleID( "Any", slicer.vtkMRMLMetricInstanceNode.TransformRole ) == self.ImageToProbe.GetID()
-      if ( pervasive and not needleTipRole and not ultrasoundRole ):
-        self.perkEvaluatorNode.RemoveMetricInstanceID( node.GetID() )
-
-    # Load Python metric scripts
-    metricScriptNodes = []
-    dirfiles = os.listdir(self.metricsDirectory)
-    for fileName in dirfiles:
-      scriptNode = slicer.util.loadNodeFromFile( os.path.join( self.metricsDirectory, fileName ), "Python Metric Script", {} )
-      if scriptNode:
-        metricScriptNodes.append(scriptNode)
-
-    # Add metric instances from script nodes
-    for scriptNode in metricScriptNodes:
-      metricInstanceNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLMetricInstanceNode')
-      metricInstanceNode.SetAssociatedMetricScriptID(scriptNode.GetID())
-      self.perkEvaluatorNode.AddMetricInstanceID(metricInstanceNode.GetID())      
-
-    # Assign roles to PerkTutor node
-    peLogic.SetMetricInstancesRolesToID(self.perkEvaluatorNode, self.NeedleTipToNeedle.GetID(), "Any", slicer.vtkMRMLMetricInstanceNode().TransformRole)
-    peLogic.SetMetricInstancesRolesToID(self.perkEvaluatorNode, self.NeedleTipToNeedle.GetID(), "Needle", slicer.vtkMRMLMetricInstanceNode().TransformRole)
-    # peLogic.SetMetricInstancesRolesToID(peNode, tissueNode.GetID(), "Tissue", slicer.vtkMRMLMetricInstanceNode().AnatomyRole)
-    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.ImageToProbe.GetID(), "Ultrasound", slicer.vtkMRMLMetricInstanceNode().TransformRole )
-    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.perkTutorMetricTableNode.GetID(), "Parameter", slicer.vtkMRMLMetricInstanceNode.AnatomyRole )
-    peLogic.SetMetricInstancesRolesToID( self.perkEvaluatorNode, self.targetPointNode.GetID(), "Targets", slicer.vtkMRMLMetricInstanceNode.AnatomyRole )
-
-    # Create progress dialog
-    analysisDialogWidget = slicer.qSlicerPerkEvaluatorAnalysisDialogWidget()
-    analysisDialogWidget.setPerkEvaluatorNode( self.perkEvaluatorNode )
-    analysisDialogWidget.show()
-
-    # Compute metrics
-    peLogic.ComputeMetrics(self.perkEvaluatorNode)
-
-    # Hide progress dialog
-    analysisDialogWidget.hide()
-
-    # Display metrics
-    self.displayMetricTable()
-
-  #------------------------------------------------------------------------------
-  def updatePlotChart(self):
-
-    # Get selected metric name
-    metricName = self.selectedMetric
-
-    # Update visible plot series in plot chart
-    self.plotChartUtils.updatePlotChart(metricName)  
-
-  #------------------------------------------------------------------------------
-  def displayMetricPlot(self):
-    plotVisible = self.layoutUtils.isPlotVisibleInCurrentLayout()
-    if plotVisible:
-      # Restore last layout if any
-      self.layoutUtils.restoreDefaultLayout()
-    else:
-      # Switch to layout with plot
-      self.layoutUtils.setCustomLayout('2D + 3D + Plot')
-
-      # Show plot chart in plot view
-      self.layoutUtils.setActivePlotChart(self.plotChartUtils.getPlotChart())
-
-      # Add combo box to plot controller
-      metricSelectionFrame = self.moduleWidget.ui.metricSelectionFrame
-      metricSelectionFrame.visible = True
-      slicer.app.layoutManager().plotWidget(0).plotController().barWidget().layout().insertWidget(4,metricSelectionFrame)
-      slicer.app.layoutManager().plotWidget(0).plotController().barWidget().layout().setStretch(4,1)
-
-  #------------------------------------------------------------------------------
-  def displayMetricTable(self):
-    tableVisible = self.layoutUtils.isTableVisibleInCurrentLayout()
-    if tableVisible:
-      # Restore last layout if any
-      self.layoutUtils.restoreDefaultLayout()
-    else:
-      # Switch to table only layout
-      self.layoutUtils.setCustomLayout('2D + 3D + Table')    
-
-      # Show table in table view
-      self.layoutUtils.setActiveTable(self.perkTutorMetricTableNode)
 
   #------------------------------------------------------------------------------
   def showProgressDialog(self, messageText):
@@ -1318,6 +882,403 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     progressDialog.show()
     slicer.app.processEvents()
     return progressDialog
+
+  #------------------------------------------------------------------------------
+  def checkWorkflowStep(self, stepId):
+    """
+    Check performance on each workflow step.
+    """
+    # Define thresholds for angle deviation
+    angle_RL_threshold = 15.0 # degrees
+    angle_AP_threshold = 15.0 # degrees
+    angle_SI_threshold = 15.0 # degrees
+    needle_linear_deviation_threshold = 10.0 # mm
+    needle_angle_deviation_threshold = 15.0 # degrees
+
+    # Evaluate US probe position
+    #
+    # Step 1: Check if L5 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 1:
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l5_model)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l5_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l5_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 1:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 2: Check if L4 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 2:
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l4_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l4_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 2:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 3: Check if L3 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 3:
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l3_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l3_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 3:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 4: Check if L2 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 4:
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l2_model)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l2_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l2_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 4:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 5: Check if L1 spinous process is aligned with ultrasound beam
+    #
+    if stepId == 5:
+      spinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l1_model)
+      angle_AP = self.computeTransversePlaneAngleDeviationAP(self.axial_l1_plane)
+      angle_RL = self.computeTransversePlaneAngleDeviationRL(self.axial_l1_plane)
+      success = spinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_RL < angle_RL_threshold)
+      print('\nStep 5:')
+      print('  - spinousProcessIntersected = ', spinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle RL = ', angle_RL)
+      print('  - success = ', success)
+    #
+    # Step 6: Check if L3-L4 interspinous space is aligned with ultrasound beam
+    #
+    if stepId == 6: 
+      l3SpinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l3_model)
+      l4SpinousProcessIntersected = self.getCollisionWithUltrasoundPlane(self.l4_model)
+      angle_AP = self.computeLongitudinalPlaneAngleDeviationAP(self.axial_l4_plane) # using L4 axial plane for angle computation
+      angle_SI = self.computeLongitudinalPlaneAngleDeviationSI(self.axial_l4_plane) # using L4 axial plane for angle computation
+      success = l3SpinousProcessIntersected and l4SpinousProcessIntersected and (angle_AP < angle_AP_threshold) and (angle_SI < angle_SI_threshold)
+      print('\nStep 6:')
+      print('  - spinousProcessIntersected (L3) = ', l3SpinousProcessIntersected)
+      print('  - spinousProcessIntersected (L4) = ', l4SpinousProcessIntersected)
+      print('  - Angle AP = ', angle_AP)
+      print('  - Angle SI = ', angle_SI)
+      print('  - success = ', success)
+
+    #
+    # Step 7: Check needle trajectory before insertion in L3-L$ interspinous process
+    #
+    if stepId == 7:
+      targetIntersected = self.getCollisionWithNeedleTrajectory(self.targetL3L4_model)
+      spineIntersected = self.getCollisionWithNeedleTrajectory(self.spine_model)
+      needle_linear_deviation, needle_angle_deviation = self.computeNeedleDeviationFromOptimalTrajectory(self.optimalTrajectoryL3L4_fiducials)
+      print('\nStep 7:')
+      print('  - Target intersected = ', targetIntersected)
+      print('  - Spine intersected = ', spineIntersected)
+      print('  - Needle tip linear deviation = ', needle_linear_deviation)
+      print('  - Needle angle deviation = ', needle_angle_deviation)
+      success = targetIntersected and (not spineIntersected) and (needle_linear_deviation < needle_linear_deviation_threshold) and (needle_angle_deviation < needle_angle_deviation_threshold)
+      print('  - success = ', success)
+
+    return success
+
+  #------------------------------------------------------------------------------
+  def computeNeedleDeviationFromOptimalTrajectory(self, optimalTrajectoryFiducials):
+    # Get optimal trajectory vector
+    optimalTrajectory_pointA = np.array(optimalTrajectoryFiducials.GetNthControlPointPositionWorld(1))
+    optimalTrajectory_pointB = np.array(optimalTrajectoryFiducials.GetNthControlPointPositionWorld(0))
+    optimalTrajectory_vector = optimalTrajectory_pointB - optimalTrajectory_pointA
+
+    # Get needle trajectory vector
+    needleTrajectory_pointA = np.array(self.needleTrajectory_fiducials.GetNthControlPointPositionWorld(1))
+    needleTrajectory_pointB = np.array(self.needleTrajectory_fiducials.GetNthControlPointPositionWorld(0))
+    needleTrajectory_vector = needleTrajectory_pointB - needleTrajectory_pointA
+
+    # Compute needle tip deviation
+    needle_linear_deviation = self.computeDistanceFromPointToLine(needleTrajectory_pointB, optimalTrajectory_pointA, optimalTrajectory_pointB)
+
+    # Compute angle between needle trajectory and optimal trajectory
+    needle_angle_deviation = self.computeAngularDeviation(needleTrajectory_vector, optimalTrajectory_vector)
+
+    return needle_linear_deviation, needle_angle_deviation
+
+  #------------------------------------------------------------------------------
+  def getCollisionWithUltrasoundPlane(self, inputModelNode):
+    """
+    Check collision between ultrasound plane model and input model.
+    """
+    # Get models
+    modelA = self.usProbe_plane_model
+    modelB = inputModelNode
+
+    # Model world transforms
+    modelAToWorldMatrix = vtk.vtkMatrix4x4()
+    modelA.GetParentTransformNode().GetMatrixTransformToWorld(modelAToWorldMatrix)
+    modelBToWorldMatrix = vtk.vtkMatrix4x4()
+    if modelB.GetParentTransformNode():
+      modelB.GetParentTransformNode().GetMatrixTransformToWorld(modelBToWorldMatrix)
+
+    # Model collision
+    collide = vtk.vtkCollisionDetectionFilter()
+    collide.SetInputData(0, modelA.GetPolyData())
+    collide.SetInputData(1, modelB.GetPolyData())
+    collide.SetCollisionModeToFirstContact()
+    collide.SetMatrix(0, modelAToWorldMatrix)
+    collide.SetMatrix(1, modelBToWorldMatrix)
+    collide.Update()
+    numContacts = collide.GetNumberOfContacts()
+
+    # Output
+    if numContacts > 0:
+      collision = True
+    else:
+      collision = False
+    
+    return collision
+
+  #------------------------------------------------------------------------------
+  def getCollisionWithNeedleTrajectory(self, inputModelNode):
+    """
+    Check collision between needle trajectory model and input model.
+    """
+    # Get models
+    modelA = self.needle_trajectory_model
+    modelB = inputModelNode
+
+    # Model world transforms
+    modelAToWorldMatrix = vtk.vtkMatrix4x4()
+    modelA.GetParentTransformNode().GetMatrixTransformToWorld(modelAToWorldMatrix)
+    modelBToWorldMatrix = vtk.vtkMatrix4x4()
+    if modelB.GetParentTransformNode():
+      modelB.GetParentTransformNode().GetMatrixTransformToWorld(modelBToWorldMatrix)
+
+    # Model collision
+    collide = vtk.vtkCollisionDetectionFilter()
+    collide.SetInputData(0, modelA.GetPolyData())
+    collide.SetInputData(1, modelB.GetPolyData())
+    collide.SetCollisionModeToFirstContact()
+    collide.SetMatrix(0, modelAToWorldMatrix)
+    collide.SetMatrix(1, modelBToWorldMatrix)
+    collide.Update()
+    numContacts = collide.GetNumberOfContacts()
+
+    # Output
+    if numContacts > 0:
+      collision = True
+    else:
+      collision = False
+    
+    return collision
+  
+  #------------------------------------------------------------------------------
+  def computeTransversePlaneAngleDeviationRL(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Project US plane normal to coronal plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10.0*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+
+    # Project vertebra axial plane to coronal plane
+    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
+    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10.0*vertebraAxial_plane_normal
+    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, sagittal_plane_centroid, sagittal_plane_normal)
+    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, sagittal_plane_centroid, sagittal_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeTransversePlaneAngleDeviationAP(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Get coronal plane
+    IS_axis = vertebraAxial_plane_normal
+    LR_axis = sagittal_plane_normal
+    PA_axis = np.cross(IS_axis, LR_axis)/np.linalg.norm(np.cross(IS_axis, LR_axis))
+    coronal_plane_centroid = vertebraAxial_plane_centroid
+    coronal_plane_normal = np.array(PA_axis)    
+
+    # Project US plane normal to coronal plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+
+    # Project vertebra axial plane to coronal plane
+    vertebraAxialPlane_pointA = vertebraAxial_plane_centroid
+    vertebraAxialPlane_pointB = vertebraAxial_plane_centroid + 10*vertebraAxial_plane_normal
+    vertebraAxialPlane_pointA_proj = self.projectPointToPlane(vertebraAxialPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    vertebraAxialPlane_pointB_proj = self.projectPointToPlane(vertebraAxialPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    vertebraAxialPlane_orientation_vector = vertebraAxialPlane_pointB_proj - vertebraAxialPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, vertebraAxialPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeLongitudinalPlaneAngleDeviationAP(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Get coronal plane
+    IS_axis = vertebraAxial_plane_normal
+    LR_axis = sagittal_plane_normal
+    PA_axis = np.cross(IS_axis, LR_axis)/np.linalg.norm(np.cross(IS_axis, LR_axis))
+    coronal_plane_centroid = vertebraAxial_plane_centroid
+    coronal_plane_normal = np.array(PA_axis)    
+
+    # Project US plane normal to reference axial plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+
+    # Project sagittal plane to reference axial plane
+    sagittalPlane_pointA = sagittal_plane_centroid
+    sagittalPlane_pointB = sagittal_plane_centroid + 10*sagittal_plane_normal
+    sagittalPlane_pointA_proj = self.projectPointToPlane(sagittalPlane_pointA, coronal_plane_centroid, coronal_plane_normal)
+    sagittalPlane_pointB_proj = self.projectPointToPlane(sagittalPlane_pointB, coronal_plane_centroid, coronal_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    sagittalPlane_orientation_vector = sagittalPlane_pointB_proj - sagittalPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, sagittalPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def computeLongitudinalPlaneAngleDeviationSI(self, vertebraAxialPlane):
+    # Get US image plane
+    usImage_plane_centroid = np.array(self.usProbe_plane.GetCenterWorld())
+    usImage_plane_normal = np.array(self.usProbe_plane.GetNormalWorld())
+
+    # Get vertebra axial plane
+    vertebraAxial_plane_centroid = np.array(vertebraAxialPlane.GetCenterWorld())
+    vertebraAxial_plane_normal = np.array(vertebraAxialPlane.GetNormalWorld())
+
+    # Get sagittal plane
+    sagittal_plane_centroid = np.array(self.sagittal_plane.GetCenterWorld())
+    sagittal_plane_normal = np.array(self.sagittal_plane.GetNormalWorld())
+
+    # Project US plane normal to reference axial plane
+    usPlane_pointA = usImage_plane_centroid
+    usPlane_pointB = usImage_plane_centroid + 10*usImage_plane_normal
+    usPlane_pointA_proj = self.projectPointToPlane(usPlane_pointA, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+    usPlane_pointB_proj = self.projectPointToPlane(usPlane_pointB, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+
+    # Project sagittal plane to reference axial plane
+    sagittalPlane_pointA = sagittal_plane_centroid
+    sagittalPlane_pointB = sagittal_plane_centroid + 10*sagittal_plane_normal
+    sagittalPlane_pointA_proj = self.projectPointToPlane(sagittalPlane_pointA, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+    sagittalPlane_pointB_proj = self.projectPointToPlane(sagittalPlane_pointB, vertebraAxial_plane_centroid, vertebraAxial_plane_normal)
+
+    # Compute angular deviation within coronal plane
+    usPlane_orientation_vector = usPlane_pointB_proj - usPlane_pointA_proj
+    sagittalPlane_orientation_vector = sagittalPlane_pointB_proj - sagittalPlane_pointA_proj
+    angle = self.computeAngularDeviation(usPlane_orientation_vector, sagittalPlane_orientation_vector)
+    
+    # Reformat angle
+    if angle > 90.0:
+      angle = 180.0 - angle
+
+    return angle
+  
+  #------------------------------------------------------------------------------
+  def projectPointToPlane(self, point, planeCentroid, planeNormal):
+
+    # Project point to plane
+    projectedPoint = np.subtract(np.array(point), np.dot(np.subtract(np.array(point), np.array(planeCentroid)), np.array(planeNormal)) * np.array(planeNormal))
+    
+    return projectedPoint
+
+  #------------------------------------------------------------------------------
+  def computeDistanceFromPointToLine(self, point, linePointA, linePointB):
+    return np.linalg.norm(np.cross(linePointB-linePointA, point-linePointA) / np.linalg.norm(linePointB-linePointA))
+
+  # ------------------------------------------------------------------------------
+  def computeAngularDeviation(self, vec1, vec2):
+    """
+    Compute angle between two vectors.
+
+    :param vec1: Vector 1 numpy array
+    :param vec2: Vector 2 numpy array
+
+    :return float: Angle between vector 1 and vector 2 in degrees.
+    """
+    try:
+      # Cosine value
+      cos_value = np.dot(vec1,vec2)/(np.linalg.norm(vec1)*np.linalg.norm(vec2))
+      # Cosine value can only be between [-1, 1].
+      if cos_value > 1.0:
+        cos_value = 1.0
+      elif cos_value < -1.0:
+        cos_value = -1.0
+      # Compute angle in degrees
+      angle = np.rad2deg (np.arccos(cos_value))
+    except:
+      angle = -1.0
+    return angle
 
 #------------------------------------------------------------------------------
 #

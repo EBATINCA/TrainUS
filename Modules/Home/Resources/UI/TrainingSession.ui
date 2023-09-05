@@ -38,7 +38,6 @@
         <property name="font">
          <font>
           <pointsize>11</pointsize>
-          <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
@@ -57,7 +56,6 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -71,7 +69,6 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -106,7 +103,6 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -142,7 +138,6 @@
         <property name="font">
          <font>
           <pointsize>11</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -153,7 +148,7 @@
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="basicTrainingTab">
          <attribute name="title">
@@ -165,7 +160,6 @@
             <property name="font">
              <font>
               <pointsize>11</pointsize>
-              <weight>50</weight>
               <bold>false</bold>
              </font>
             </property>
@@ -185,14 +179,14 @@
                 <item row="0" column="0">
                  <widget class="QPushButton" name="basicExercise1Button">
                   <property name="text">
-                   <string>Vascular cannulation</string>
+                   <string>Exercise 1</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
                  <widget class="QPushButton" name="basicExercise2Button">
                   <property name="text">
-                   <string>Breast tumor biopsy (WIP)</string>
+                   <string>Exercise 2</string>
                   </property>
                  </widget>
                 </item>
@@ -208,14 +202,14 @@
                 <item row="0" column="1">
                  <widget class="QPushButton" name="basicExercise4Button">
                   <property name="text">
-                   <string>Exercise 4 (WIP)</string>
+                   <string>Exercise 4</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="0">
                  <widget class="QPushButton" name="basicExercise3Button">
                   <property name="text">
-                   <string>Exercise 3 (WIP)</string>
+                   <string>Exercise 3</string>
                   </property>
                  </widget>
                 </item>
@@ -250,7 +244,6 @@
             <property name="font">
              <font>
               <pointsize>11</pointsize>
-              <weight>50</weight>
               <bold>false</bold>
              </font>
             </property>
@@ -270,21 +263,21 @@
                 <item row="0" column="0">
                  <widget class="QPushButton" name="advancedExercise1Button">
                   <property name="text">
-                   <string>Exercise 1 (WIP)</string>
+                   <string>Exercise 1</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="2">
-                 <widget class="QPushButton" name="advancedExercise2Button">
+                 <widget class="QPushButton" name="advancedExercise3Button">
                   <property name="text">
-                   <string>Exercise 3 (WIP)</string>
+                   <string>Exercise 3</string>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QPushButton" name="advancedExercise3Button">
+                 <widget class="QPushButton" name="advancedExercise2Button">
                   <property name="text">
-                   <string>Exercise 2 (WIP)</string>
+                   <string>Exercise 2</string>
                   </property>
                  </widget>
                 </item>
@@ -315,7 +308,6 @@
        <widget class="QFrame" name="finishTrainingFrame">
         <property name="font">
          <font>
-          <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
@@ -331,7 +323,6 @@
            <property name="font">
             <font>
              <pointsize>13</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -351,7 +342,6 @@
           <spacer name="horizontalSpacer_2">
            <property name="font">
             <font>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>

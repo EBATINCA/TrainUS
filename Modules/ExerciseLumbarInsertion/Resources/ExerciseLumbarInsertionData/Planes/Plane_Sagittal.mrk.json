@@ -1,0 +1,172 @@
+{
+    "@schema": "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.3.json#",
+    "markups": [
+        {
+            "type": "Plane",
+            "coordinateSystem": "LPS",
+            "coordinateUnits": "mm",
+            "locked": false,
+            "fixedNumberOfControlPoints": false,
+            "labelFormat": "%N-%d",
+            "lastUsedControlPointNumber": 9,
+            "planeType": "planeFit",
+            "sizeMode": "auto",
+            "autoScalingFactor": 1.0,
+            "center": [-8.409862160682679, 16.66102979497777, -1330.0654161241319],
+            "normal": [-0.9972600199962317, 0.037214137875949359, 0.06393403208985099],
+            "objectToBase": [-1.0, -0.0, -0.0, -0.0, -0.0, -1.0, -0.0, -0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            "baseToNode": [0.0016040704473636037, -0.07395863354008262, -0.9972600199962317, -8.409862160682679, 0.8749284115762632, -0.4828202383483857, 0.037214137875949359, 16.66102979497777, -0.4842496273355732, -0.8725908193226055, 0.06393403208985099, -1330.0654161241319, 0.0, 0.0, 0.0, 1.0],
+            "orientation": [0.0016040704473636037, -0.07395863354008262, -0.9972600199962317, 0.8749284115762632, -0.4828202383483857, 0.037214137875949359, -0.4842496273355732, -0.8725908193226055, 0.06393403208985099],
+            "size": [94.66873202114562, 154.47466193715719, 0.0],
+            "planeBounds": [-47.33436601057281, 47.33436601057281, -77.23733096857859, 77.23733096857859],
+            "controlPoints": [
+                {
+                    "id": "1",
+                    "label": "P-1",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-1.4031063318252564, 42.71512985229492, -1256.560546875],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "2",
+                    "label": "P-2",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-6.59232234954834, 44.46004867553711, -1305.714111328125],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "3",
+                    "label": "P-3",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-8.462909698486329, 38.18803787231445, -1348.1837158203126],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "4",
+                    "label": "P-4",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-12.911593437194825, 24.99339485168457, -1388.623779296875],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "5",
+                    "label": "P-5",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-13.425959587097168, 10.482338905334473, -1407.6207275390626],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "6",
+                    "label": "P-6",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-11.346478462219239, -8.949360847473145, -1371.7301025390626],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "7",
+                    "label": "P-7",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-8.871618270874024, -2.888136625289917, -1333.71142578125],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "8",
+                    "label": "P-8",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-6.7410359382629398, -0.1155741885304451, -1297.95361328125],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                },
+                {
+                    "id": "9",
+                    "label": "P-9",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-5.933735370635986, 1.0633896589279175, -1260.49072265625],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                }
+            ],
+            "measurements": [
+                {
+                    "name": "area",
+                    "enabled": false,
+                    "units": "cm2",
+                    "printFormat": "%-#4.4g%s"
+                }
+            ],
+            "display": {
+                "visibility": false,
+                "opacity": 1.0,
+                "color": [0.4, 1.0, 0.0],
+                "selectedColor": [1.0, 0.5000076295109484, 0.5000076295109484],
+                "activeColor": [0.4, 1.0, 0.0],
+                "propertiesLabelVisibility": true,
+                "pointLabelsVisibility": false,
+                "textScale": 3.0,
+                "glyphType": "Sphere3D",
+                "glyphScale": 1.0,
+                "glyphSize": 5.0,
+                "useGlyphScale": true,
+                "sliceProjection": false,
+                "sliceProjectionUseFiducialColor": true,
+                "sliceProjectionOutlinedBehindSlicePlane": false,
+                "sliceProjectionColor": [1.0, 1.0, 1.0],
+                "sliceProjectionOpacity": 0.6,
+                "lineThickness": 0.2,
+                "lineColorFadingStart": 1.0,
+                "lineColorFadingEnd": 10.0,
+                "lineColorFadingSaturation": 1.0,
+                "lineColorFadingHueOffset": 0.0,
+                "handlesInteractive": true,
+                "translationHandleVisibility": false,
+                "rotationHandleVisibility": false,
+                "scaleHandleVisibility": true,
+                "interactionHandleScale": 3.0,
+                "snapMode": "toVisibleSurface"
+            }
+        }
+    ]
+}
