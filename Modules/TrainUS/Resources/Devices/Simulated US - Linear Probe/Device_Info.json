@@ -1,8 +1,0 @@
-{
-    "label": "Simulated US - Linear Probe",
-    "name": "RecordingLinear",
-    "type": "TrackedVideoDevice",
-    "config": "Config/Replay_US_Linear_config.xml",
-    "plus server": "C:/PLUS TOOLKIT/PlusApp-2.9.0.20211103-Telemed-Win32/bin/PlusServer.exe",    
-    "plus launcher": "C:/PLUS TOOLKIT/PlusApp-2.9.0.20211103-Telemed-Win32/bin/PlusServerLauncher.exe"
-}
