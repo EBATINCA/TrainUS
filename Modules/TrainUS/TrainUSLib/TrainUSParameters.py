@@ -67,6 +67,16 @@ class TrainUSParameters(VTKObservationMixin):
   #
   APP_USE_CASE_RECORDING = 'Recording'
   APP_USE_CASE_EVALUATION = 'Evaluation'
+  EXERCISE_BASIC_INPLANE_INSERTION = 'In-plane needle insertion'
+  EXERCISE_BASIC_OUTPLANE_INSERTION = 'Out-of-plane needle insertion'
+  EXERCISE_ADVANCED_LUMBAR = 'Lumbar insertion'
+  EXERCISE_ADVANCED_VASCULAR = 'Vascular cannulation'
+  EXERCISE_TO_MODULENAME_DICTIONARY = {
+    EXERCISE_BASIC_INPLANE_INSERTION: 'ExerciseInPlaneNeedleInsertion',
+    EXERCISE_BASIC_OUTPLANE_INSERTION: '',
+    EXERCISE_ADVANCED_LUMBAR: 'ExerciseLumbarInsertion',
+    EXERCISE_ADVANCED_VASCULAR: 'ExerciseVascular'
+  }
 
   def __init__(self, trainUsWidgetInstance):
     """
