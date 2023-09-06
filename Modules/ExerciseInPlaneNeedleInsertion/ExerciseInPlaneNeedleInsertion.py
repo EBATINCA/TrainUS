@@ -75,11 +75,34 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     """
     Runs whenever the module is reopened
     """
+    # Get app use case
+    appUseCase = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+
     # Set use case: recording or evaluation
-    self.logic.exerciseMode = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+    self.logic.exerciseMode = appUseCase
 
     # Load exercise data
     self.logic.loadExerciseData()
+
+    # Evaluation use case
+    if appUseCase == Parameters.APP_USE_CASE_EVALUATION:
+      # Get selected participant and recording
+      selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+      selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+      # Get recording folder
+      recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+      recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+      # Search for SQBR file in folder
+      recordingFile = None
+      for fileName in os.listdir(recordingFolderPath):
+        if fileName.endswith(".sqbr"):
+          recordingFile = fileName        
+      # Load recording file
+      if recordingFile:
+        print('Loading recording file from path: ', os.path.join(recordingFolderPath, recordingFile))
+        self.logic.loadRecordingFile(os.path.join(recordingFolderPath, recordingFile))
+      else:
+        logging.error('Recording file was not found in database. Skipping...')
     
     # Update GUI
     self.updateGUIFromMRML()
@@ -396,10 +419,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onGenerateTargetButtonClicked(self):    
     # Generate random target ID
-    targetID = self.logic.getRandomTargetID()
+    self.logic.targetID = self.logic.getRandomTargetID()
 
     # Load selected target
-    self.logic.loadTarget(targetID)
+    self.logic.loadTarget()
 
   #------------------------------------------------------------------------------
   def onStartStopRecordingButtonClicked(self):    
@@ -440,19 +463,40 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onSaveRecordingButtonClicked(self):
+
+    # Get recording duration
+    recordingDuration = self.logic.sequenceBrowserUtils.getRecordingLength()
+    
+    # Create new recording
+    slicer.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_BASIC_INPLANE_INSERTION, recordingDuration)
+
+    # Get recording folder path
+    selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+    selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+    recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+    recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+
     # Generate recording file path
     filename = 'Recording-' + time.strftime("%Y%m%d-%H%M%S") + os.extsep + "sqbr"
-    directory = self.logic.dataFolderPath
-    filePath = os.path.join(directory, filename)
+    filePath = os.path.join(recordingFolderPath, filename)
 
     # Save sequence browser node
     self.logic.sequenceBrowserUtils.saveSequenceBrowser(filePath)
+
+    # Save exercise options to JSON file
+    recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    recordingInfo['options'] = {}
+    recordingInfo['options']['target'] = self.logic.targetID
+    recordingInfo['options']['difficulty'] = self.logic.exerciseDifficulty
+
+    # Rewrite info JSON file
+    slicer.trainUsWidget.logic.recordingManager.writeRecordingInfoFile(recordingInfoFilePath, recordingInfo)
 
     # Recording info to save in JSON file
     print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
     print('Date:', time.strftime("%Y%m%d"))
     print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.logic.sequenceBrowserUtils.getRecordingLength())
+    print('Recording length:', recordingDuration)
     print('Target:', self.logic.targetFileName)
     print('User:', 'XXXXXXXXXXX')
     print('Hardware setup:', 'XXXXXXXXXXX')
@@ -478,31 +522,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     if not filePath:
       return
 
-    # Remove observer
-    self.logic.removeObserverToMasterSequenceNode()
-
-    # Delete previous recording
-    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
-
-    # Load sequence browser node
-    self.logic.sequenceBrowserUtils.loadSequenceBrowser(filePath)
-
-    # Add observer
-    self.logic.addObserverToMasterSequenceNode()
-
-    # Reset focal point in 3D view
-    self.logic.layoutUtils.resetFocalPointInThreeDView()
-
-    # Load recording info file
-    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
-    recordingInfo = self.logic.readRecordingInfoFile(recordingInfoFilePath)
-
-    # Update target corresponding to recording
-    targetID = recordingInfo['options']['target']
-    self.logic.loadTarget(targetID)
-
-    # Update difficulty corresponding to recording
-    self.logic.exerciseDifficulty = recordingInfo['options']['difficulty']
+    # Load recording from file
+    self.logic.loadRecordingFile(filePath)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -937,10 +958,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return targetID
     
   #------------------------------------------------------------------------------
-  def loadTarget(self, targetID):
-
+  def loadTarget(self):
     # Get target file location
-    targetFileName = 'Target_' + str(targetID) + '.mrk.json'
+    targetFileName = 'Target_' + str(self.targetID) + '.mrk.json'
     targetDataFolder = self.dataFolderPath + '/Targets/'
 
     # Remove previous target from scene
@@ -1347,6 +1367,44 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     progressDialog.show()
     slicer.app.processEvents()
     return progressDialog
+
+      
+  #------------------------------------------------------------------------------
+  def loadRecordingFile(self, filePath):
+    """
+    Load recording from .sqbr file.
+    """
+    # Remove observer
+    self.removeObserverToMasterSequenceNode()
+
+    # Delete previous recording
+    self.sequenceBrowserUtils.clearSequenceBrowser()
+
+    # Load sequence browser node
+    self.sequenceBrowserUtils.loadSequenceBrowser(filePath)
+
+    # Add observer
+    self.addObserverToMasterSequenceNode()
+
+    # Reset focal point in 3D view
+    self.layoutUtils.resetFocalPointInThreeDView()
+
+    # Load recording info file
+    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
+    if os.path.isfile(recordingInfoFilePath):
+      recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    else:
+      logging.error('Recording info file was not found in folder.')
+      return 
+
+    # Apply saved exercise options
+    if 'options' in recordingInfo.keys():
+      # Update target corresponding to recording
+      self.targetID = recordingInfo['options']['target']
+      self.logic.loadTarget()
+      # Update difficulty corresponding to recording
+      self.exerciseDifficulty = recordingInfo['options']['difficulty']
+      self.logic.updateDifficulty()
 
 #------------------------------------------------------------------------------
 #
