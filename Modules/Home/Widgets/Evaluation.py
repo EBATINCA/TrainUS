@@ -2,6 +2,9 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import os
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # Evaluation
@@ -110,6 +113,7 @@ class Evaluation(qt.QWidget):
     # Recordings tab
     self.ui.recordingsTable.itemSelectionChanged.connect(self.onRecordingsTableItemSelected)
     self.ui.recordingDetailsButton.clicked.connect(self.onRecordingDetailsButtonClicked)
+    self.ui.evaluateRecordingButton.clicked.connect(self.onEvaluateRecordingButtonClicked)
     self.ui.deleteRecordingButton.clicked.connect(self.onDeleteRecordingButtonClicked)
     # Navigation bar    
     self.ui.previousPageButton.clicked.connect(self.onPreviousPageButtonClicked)
@@ -133,6 +137,7 @@ class Evaluation(qt.QWidget):
     # Recordings tab
     self.ui.recordingsTable.itemSelectionChanged.disconnect()
     self.ui.recordingDetailsButton.clicked.disconnect()
+    self.ui.evaluateRecordingButton.clicked.disconnect()
     self.ui.deleteRecordingButton.clicked.disconnect()
     # Navigation bar    
     self.ui.previousPageButton.clicked.disconnect()
@@ -393,7 +398,26 @@ class Evaluation(qt.QWidget):
   #------------------------------------------------------------------------------
   def onRecordingDetailsButtonClicked(self):
     # Update GUI
-    self.updateGUIFromMRML() 
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onEvaluateRecordingButtonClicked(self):
+    # Get selected participant info
+    participantInfo = self.trainUsWidget.logic.recordingManager.getParticipantInfoFromSelection()
+
+    # Get selected recording info
+    recordingInfo = self.trainUsWidget.logic.recordingManager.getRecordingInfoFromSelection()
+
+    # Get exercise name
+    exerciseName = recordingInfo['exercise']
+
+    # Open corresponding module for recording evaluation
+    if exerciseName == Parameters.EXERCISE_BASIC_INPLANE_INSERTION:
+      # Shows slicer interface
+      self.homeWidget.hideHome()
+
+      # Change to ExerciseLumbarInsertion module
+      slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_BASIC_INPLANE_INSERTION])
 
   #------------------------------------------------------------------------------
   def onDeleteRecordingButtonClicked(self):    
