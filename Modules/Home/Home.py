@@ -309,6 +309,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update review selection panel
     self.updateReviewSelectionPanel()
 
+    # Update hardware selection panel
+    self.updateHardwareSelectionPanel()
+
+    # Update plug and play panel
+    self.updatePlugAndPlayPanel()
+
     # Update training session panel
     self.updateTrainingSessionPanel()
 
@@ -657,6 +663,37 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Update GUI config panel
     self.ui.ConfigurationPanel.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def updateHardwareSelectionPanel(self):
+    """
+    Update hardware selection panel to indicate selected configuration.
+    """
+    # Get PLUS connection status
+    plusServerRunning = Parameters.instance.getParameterBool(Parameters.PLUS_SERVER_RUNNING)
+    
+    # Update combo box selection from parameter node
+    self.ui.HardwareSelectionPanel.ui.ultrasoundDeviceComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_ULTRASOUND)
+    self.ui.HardwareSelectionPanel.ui.trackingSystemComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER)
+    self.ui.HardwareSelectionPanel.ui.simulationPhantomComboBox.currentText = Parameters.instance.getParameterString(Parameters.SELECTED_PHANTOM)
+
+    # Update combo box enabled state according to connection status
+    self.ui.HardwareSelectionPanel.ui.ultrasoundDeviceComboBox.enabled = not plusServerRunning
+    self.ui.HardwareSelectionPanel.ui.trackingSystemComboBox.enabled = not plusServerRunning
+    self.ui.HardwareSelectionPanel.ui.simulationPhantomComboBox.enabled = not plusServerRunning
+
+  #------------------------------------------------------------------------------
+  def updatePlugAndPlayPanel(self):
+    """
+    Update plug and play selection panel to indicate current connection status.
+    """
+    # Get PLUS connection status
+    plusConnectionStatus = Parameters.instance.getParameterString(Parameters.PLUS_CONNECTION_STATUS)
+    plusServerRunning = Parameters.instance.getParameterBool(Parameters.PLUS_SERVER_RUNNING)
+
+    # Update GUI in training session info box
+    self.ui.PlugAndPlayPanel.ui.connectionStatusText.text = plusConnectionStatus
+    self.ui.PlugAndPlayPanel.ui.connectHardwareButton.enabled = not plusServerRunning    
 
   #------------------------------------------------------------------------------
   def exitApplicationMessageBox(self):
