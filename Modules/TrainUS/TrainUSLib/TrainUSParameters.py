@@ -42,6 +42,7 @@ class TrainUSParameters(VTKObservationMixin):
   # Parameters
   #
   APP_MODE = 'AppMode'
+  APP_USE_CASE = 'AppUseCase'
   SELECTED_PARTICIPANT_ID = 'SelectedParticipantID'
   SELECTED_RECORDING_ID = 'SelectedRecordingID'
   SELECTED_ULTRASOUND = 'SelectedUltrasoundDevice'
@@ -61,6 +62,12 @@ class TrainUSParameters(VTKObservationMixin):
   IGTL_CONNECTION_STATUS = 'IGTLConnectionStatus'
   IGTL_CONNECTOR_NODE_ID = 'IGTLConnectorNodeID'
 
+  #
+  # Constants
+  #
+  APP_USE_CASE_RECORDING = 'Recording'
+  APP_USE_CASE_EVALUATION = 'Evaluation'
+
   def __init__(self, trainUsWidgetInstance):
     """
     Constructor of class. Intializes variables with default values.
@@ -75,6 +82,7 @@ class TrainUSParameters(VTKObservationMixin):
     # Default parameters map
     self.defaultParameters = {}
     self.defaultParameters[self.APP_MODE] = '0'
+    self.defaultParameters[self.APP_USE_CASE] = self.APP_USE_CASE_RECORDING
     self.defaultParameters[self.SELECTED_PARTICIPANT_ID] = ''
     self.defaultParameters[self.SELECTED_RECORDING_ID] = ''
     self.defaultParameters[self.SELECTED_ULTRASOUND] = 'Simulated US - Linear Probe'

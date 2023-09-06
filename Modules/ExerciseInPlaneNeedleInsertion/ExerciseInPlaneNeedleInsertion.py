@@ -10,6 +10,9 @@ import logging
 
 import json
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # ExerciseInPlaneNeedleInsertion
@@ -72,6 +75,12 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     """
     Runs whenever the module is reopened
     """
+    # Set use case: recording or evaluation
+    self.logic.exerciseMode = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+
+    # Load exercise data
+    self.logic.loadExerciseData()
+    
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -90,6 +99,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
+    self.ui.loadDataButton.visible = False
+    self.ui.modeSelectionGroupBox.visible = False
     self.ui.showInstructionsButton.setText('Show')
     self.ui.trimSequenceGroupBox.collapsed = True
     self.ui.recordingTimerWidget.slider().visible = False
@@ -98,9 +109,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
 
     # Disable slice annotations immediately
-    sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
-    sliceAnnotations.sliceViewAnnotationsEnabled = False
-    sliceAnnotations.updateSliceViewFromGUI()
+    #sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
+    #sliceAnnotations.sliceViewAnnotationsEnabled = False
+    #sliceAnnotations.updateSliceViewFromGUI()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
@@ -201,7 +212,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.loadDataButton.enabled = self.ui.easyRadioButton.isChecked() or self.ui.mediumRadioButton.isChecked() or self.ui.hardRadioButton.isChecked()
 
     # Mode
-    if self.logic.exerciseMode == 'Recording':
+    if self.logic.exerciseMode == Parameters.APP_USE_CASE_RECORDING:
       self.ui.instructionsGroupBox.visible = True
       self.ui.difficultyGroupBox.visible = True
       self.ui.targetGeneratorGroupBox.visible = True
@@ -210,7 +221,7 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.playbackGroupBox.visible = False
       self.ui.viewControllerGroupBox.visible = False
       self.ui.metricsGroupBox.visible = False
-    elif self.logic.exerciseMode == 'Evaluation':
+    elif self.logic.exerciseMode == Parameters.APP_USE_CASE_EVALUATION:
       self.ui.instructionsGroupBox.visible = True
       self.ui.difficultyGroupBox.visible = True
       self.ui.targetGeneratorGroupBox.visible = False
@@ -320,8 +331,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
-    # Start exercise
-    self.logic.setupScene()
+    # Load data for exercise
+    self.logic.loadExerciseData()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -640,9 +651,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
+    # Delete exercise data
+    self.logic.deleteExerciseData()
+    
     # Go back to Home module
-    #slicer.util.selectModule('Home') 
-    print('Back to home!')
+    slicer.util.selectModule('Home')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -678,7 +691,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
-    self.exerciseMode = 'Evaluation'
+    self.exerciseMode = 'Recording'
 
     # Instructions
     self.instructionsImagesVisible = False
@@ -708,7 +721,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.perkTutorMetricTableNode = None
 
   #------------------------------------------------------------------------------
-  def loadData(self):
+  def loadExerciseData(self):
     logging.debug('Loading data')
 
     # Load instructions images
@@ -759,12 +772,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         slicer.mrmlScene.AddNode(self.usImageVolumeNode)
         logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
 
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-
-    # Load exercise data
-    self.loadData()
-
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
@@ -779,7 +786,11 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
+    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+
+    # Avoid display of yellow view slices in 3D view
+    sliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
+    sliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
 
     # Display US image in red slice view
     self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
@@ -795,6 +806,29 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Set difficulty parameters
     self.updateDifficulty()
+
+  #------------------------------------------------------------------------------
+  def deleteExerciseData(self):
+    # Delete instructions    
+    slicer.mrmlScene.RemoveNode(self.instructionsImageVolume)
+    try:
+      slicer.mrmlScene.RemoveNode(self.instructionsSequenceBrowser)
+      slicer.mrmlScene.RemoveNode(self.instructionsVideoVolume)
+    except:
+      pass
+
+    # Delete models
+    slicer.mrmlScene.RemoveNode(self.usProbe_model)
+    slicer.mrmlScene.RemoveNode(self.needle_model)
+
+    # Delete transforms
+    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
+    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
+    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
+    slicer.mrmlScene.RemoveNode(self.LeftCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.FrontCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.RightCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.BottomCameraToProbeModel)
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
