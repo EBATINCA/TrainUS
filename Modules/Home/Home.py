@@ -255,6 +255,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update mode
     self.logic.setMode(modeID = 1) # switch to training mode
 
+    # Update use case to: recording
+    Parameters.instance.setParameter(Parameters.APP_USE_CASE, Parameters.APP_USE_CASE_RECORDING)
+
     # Update UI tables
     self.updateParticipantsTable()
     self.updateRecordingsTable()
@@ -264,6 +267,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Update mode
     self.logic.setMode(modeID = 6) # switch to evaluation mode
+
+    # Update use case to: evaluation
+    Parameters.instance.setParameter(Parameters.APP_USE_CASE, Parameters.APP_USE_CASE_EVALUATION)
 
     # Update UI tables
     self.updateParticipantsTable()
