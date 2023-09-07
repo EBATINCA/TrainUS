@@ -258,6 +258,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update use case to: recording
     Parameters.instance.setParameter(Parameters.APP_USE_CASE, Parameters.APP_USE_CASE_RECORDING)
 
+    # Unpause OpenIGTLink connection
+    try:
+      slicer.modules.PlusServerConnectionWidget.logic.unpauseIGTLConnection()
+    except:
+      pass
+
     # Update UI tables
     self.updateParticipantsTable()
     self.updateRecordingsTable()
@@ -271,6 +277,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Update use case to: evaluation
     Parameters.instance.setParameter(Parameters.APP_USE_CASE, Parameters.APP_USE_CASE_EVALUATION)
 
+    # Pause OpenIGTLink connection
+    slicer.modules.PlusServerConnectionWidget.logic.pauseIGTLConnection()
+
     # Update UI tables
     self.updateParticipantsTable()
     self.updateRecordingsTable()
@@ -279,6 +288,12 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def onConfigurationButtonClicked(self):
     # Update mode
     self.logic.setMode(modeID = 7) # switch to configuration
+
+    # Unpause OpenIGTLink connection
+    try:
+      slicer.modules.PlusServerConnectionWidget.logic.unpauseIGTLConnection()
+    except:
+      pass
 
   #------------------------------------------------------------------------------
   def loadStyleSheet(self):

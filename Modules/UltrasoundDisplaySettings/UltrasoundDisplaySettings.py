@@ -217,7 +217,7 @@ class UltrasoundDisplaySettingsWidget(ScriptedLoadableModuleWidget, VTKObservati
   #------------------------------------------------------------------------------
   def setupPlusRemote(self):
     # Get IGTL connector node
-    igtlConnectorNodeID = Parameters.instance.getParameterString(Parameters.IGTL_CONNECTOR_NODE_ID) 
+    igtlConnectorNodeID = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID) 
     self.igtlConnectorNode = slicer.mrmlScene.GetNodeByID(igtlConnectorNodeID)
     if self.igtlConnectorNode is None:
       logging.error('setupPlusRemote: IGTL connector node was not found')
@@ -522,7 +522,7 @@ class UltrasoundDisplaySettingsLogic(ScriptedLoadableModuleLogic, VTKObservation
   #------------------------------------------------------------------------------
   def freezeUltrasoundImage(self):
     # Get IGTL connector node ID from parameter node
-    connectorNodeID = Parameters.instance.getParameterString(Parameters.IGTL_CONNECTOR_NODE_ID)
+    connectorNodeID = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID)
 
     # Get IGTL connector node ID
     try:

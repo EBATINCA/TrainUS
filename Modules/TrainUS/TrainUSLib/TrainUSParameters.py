@@ -52,15 +52,16 @@ class TrainUSParameters(VTKObservationMixin):
   ULTRASOUND_PLUS_SERVER_PORT = 'UltrasoundPlusServerPort'
   ULTRASOUND_PLUS_CONFIG_PATH = 'UltrasoundPlusConfigPath'
   ULTRASOUND_PLUS_CONFIG_TEXTNODEID = 'UltrasoundPlusConfigTextNodeID'
+  ULTRASOUND_IGTL_CONNECTOR_NODE_ID = 'UltrasoundIGTLConnectorNodeID'
   TRACKER_PLUS_SERVER_PORT = 'TrackerPlusServerPort'
   TRACKER_PLUS_CONFIG_PATH = 'TrackerPlusConfigPath'
   TRACKER_PLUS_CONFIG_TEXTNODEID = 'TrackerPlusConfigTextNodeID'
+  TRACKER_IGTL_CONNECTOR_NODE_ID = 'TrackerIGTLConnectorNodeID'
   PLUS_SERVER_RUNNING = 'PlusServerRunning'
   PLUS_SERVER_PATH = 'PlusServerPath'
   PLUS_SERVER_LAUNCHER_PATH = 'PlusServerLauncherPath'
   PLUS_CONNECTION_STATUS = 'PlusConnectionStatus'
   IGTL_CONNECTION_STATUS = 'IGTLConnectionStatus'
-  IGTL_CONNECTOR_NODE_ID = 'IGTLConnectorNodeID'
 
   #
   # Constants
@@ -102,15 +103,16 @@ class TrainUSParameters(VTKObservationMixin):
     self.defaultParameters[self.ULTRASOUND_PLUS_SERVER_PORT] = '18944'
     self.defaultParameters[self.ULTRASOUND_PLUS_CONFIG_PATH] = ''
     self.defaultParameters[self.ULTRASOUND_PLUS_CONFIG_TEXTNODEID] = ''
+    self.defaultParameters[self.ULTRASOUND_IGTL_CONNECTOR_NODE_ID] = ''
     self.defaultParameters[self.TRACKER_PLUS_SERVER_PORT] = '18945'
     self.defaultParameters[self.TRACKER_PLUS_CONFIG_PATH] = ''
     self.defaultParameters[self.TRACKER_PLUS_CONFIG_TEXTNODEID] = ''
+    self.defaultParameters[self.TRACKER_IGTL_CONNECTOR_NODE_ID] = ''
     self.defaultParameters[self.PLUS_SERVER_RUNNING] = 'False'
     self.defaultParameters[self.PLUS_SERVER_PATH] = ''
     self.defaultParameters[self.PLUS_SERVER_LAUNCHER_PATH] = ''
     self.defaultParameters[self.PLUS_CONNECTION_STATUS] = 'OFF'
     self.defaultParameters[self.IGTL_CONNECTION_STATUS] = 'OFF'
-    self.defaultParameters[self.IGTL_CONNECTOR_NODE_ID] = ''
 
   def getParameterNode(self):
     """

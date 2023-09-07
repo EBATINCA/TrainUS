@@ -311,6 +311,14 @@ class LayoutUtils:
     # Get slice logic
     sliceLogic = slicer.app.layoutManager().sliceWidget(sliceViewName).sliceLogic()
 
+    """
+    # Make all slice nodes invisible in 3D views except for ultrasound image
+    volumeNodesInScene = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
+    for volumeNode in volumeNodesInScene:
+      sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      sliceLogic.GetSliceNode().SetSliceVisible(False)
+    """
+      
     # Select background volume in slice view
     sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(ultrasoundVolumeNode.GetID())
 
@@ -320,6 +328,9 @@ class LayoutUtils:
 
     # Fit US image to view    
     sliceLogic.FitSliceToAll()
+
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
 
     # Display image in 3D view
     sliceLogic.GetSliceNode().SetSliceVisible(True)
@@ -343,6 +354,12 @@ class LayoutUtils:
     sliceLogic.FitSliceToAll()
     sliceLogic.SetSliceOffset(0)
 
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
+
+    # Do not display in 3D view
+    sliceLogic.GetSliceNode().SetSliceVisible(False)
+
     # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
     #sliceWidget.enabled = False
 
@@ -364,6 +381,12 @@ class LayoutUtils:
     sliceLogic.GetSliceNode().SetOrientationToAxial()
     sliceLogic.FitSliceToAll()
     sliceLogic.SetSliceOffset(0)
+
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
+
+    # Do not display in 3D view
+    sliceLogic.GetSliceNode().SetSliceVisible(False)
 
     # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
     #sliceWidget.enabled = False

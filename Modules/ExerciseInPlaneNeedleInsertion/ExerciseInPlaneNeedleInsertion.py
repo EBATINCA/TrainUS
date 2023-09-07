@@ -242,14 +242,14 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
       self.ui.recordingGroupBox.visible = True
       self.ui.importRecordingGroupBox.visible = False
       self.ui.playbackGroupBox.visible = False
-      self.ui.viewControllerGroupBox.visible = False
+      self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = False
     elif self.logic.exerciseMode == Parameters.APP_USE_CASE_EVALUATION:
       self.ui.instructionsGroupBox.visible = True
       self.ui.difficultyGroupBox.visible = True
       self.ui.targetGeneratorGroupBox.visible = False
       self.ui.recordingGroupBox.visible = False
-      self.ui.importRecordingGroupBox.visible = True
+      self.ui.importRecordingGroupBox.visible = False
       self.ui.playbackGroupBox.visible = True
       self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = True
@@ -809,9 +809,17 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
 
-    # Avoid display of yellow view slices in 3D view
-    sliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
-    sliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
+    # Make all slice nodes invisible in 3D views
+    # This is needed to avoid other volume nodes, different from the ultrasound image node,
+    # to be displayed in the 3D view.
+    redSliceWidget = slicer.app.layoutManager().sliceWidget('Red')
+    yellowSliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
+    volumeNodesInScene = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
+    for volumeNode in volumeNodesInScene:
+      redSliceWidget.sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      redSliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
+      yellowSliceWidget.sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      yellowSliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
 
     # Display US image in red slice view
     self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
@@ -969,7 +977,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.targetLineNode = None
     if self.targetPointNode:
       slicer.mrmlScene.RemoveNode(self.targetPointNode)
-      self.targetPointNode = None    
+      self.targetPointNode = None
 
     # Load selected target    
     targetFilePath = targetDataFolder + targetFileName
@@ -1401,10 +1409,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     if 'options' in recordingInfo.keys():
       # Update target corresponding to recording
       self.targetID = recordingInfo['options']['target']
-      self.logic.loadTarget()
+      self.loadTarget()
       # Update difficulty corresponding to recording
       self.exerciseDifficulty = recordingInfo['options']['difficulty']
-      self.logic.updateDifficulty()
+      self.updateDifficulty()
 
 #------------------------------------------------------------------------------
 #
