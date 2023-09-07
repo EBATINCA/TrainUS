@@ -1,18 +1,21 @@
 {
-    "@schema": "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.0.json#",
+    "@schema": "https://raw.githubusercontent.com/slicer/slicer/main/modules/loadable/markups/resources/schema/markups-schema-v1.0.3.json#",
     "markups": [
         {
             "type": "Line",
             "coordinateSystem": "LPS",
+            "coordinateUnits": "mm",
             "locked": false,
+            "fixedNumberOfControlPoints": false,
             "labelFormat": "%N-%d",
+            "lastUsedControlPointNumber": 0,
             "controlPoints": [
                 {
                     "id": "1",
                     "label": "End",
                     "description": "",
                     "associatedNodeID": "vtkMRMLScalarVolumeNode1",
-                    "position": [-252.56687528603639, -157.92787613613178, -0.0001975789523385174],
+                    "position": [-252.5668752860364, -157.92787613613178, -0.0001975789523385174],
                     "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
                     "selected": true,
                     "locked": false,
@@ -24,7 +27,7 @@
                     "label": "Start",
                     "description": "",
                     "associatedNodeID": "vtkMRMLScalarVolumeNode1",
-                    "position": [-423.21078130642038, -494.31192928485577, -0.00016537202282052021],
+                    "position": [-422.9707381811551, -410.89822505398277, -0.00017320591783231976],
                     "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
                     "selected": true,
                     "locked": false,
@@ -36,7 +39,8 @@
                 {
                     "name": "length",
                     "enabled": true,
-                    "value": 43.8175907811947,
+                    "value": 305.01061280092906,
+                    "units": "mm",
                     "printFormat": "%-#4.4gmm"
                 }
             ],
@@ -64,6 +68,10 @@
                 "lineColorFadingSaturation": 1.0,
                 "lineColorFadingHueOffset": 0.0,
                 "handlesInteractive": false,
+                "translationHandleVisibility": true,
+                "rotationHandleVisibility": true,
+                "scaleHandleVisibility": true,
+                "interactionHandleScale": 3.0,
                 "snapMode": "toVisibleSurface"
             }
         }
