@@ -1,7 +1,7 @@
 <PlusConfiguration version="2.1">
   <DataCollection StartupDelaySec="1.0" >
     <DeviceSet
-      Name="PlusServer: Telemed ultrasound device"
+      Name="PlusServer: Telemed ultrasound device (Linear Probe)"
       Description="Broadcasting acquired video through OpenIGTLink"
     />
     <Device
