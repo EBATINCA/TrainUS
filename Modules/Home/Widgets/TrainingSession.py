@@ -134,7 +134,7 @@ class TrainingSession(qt.QWidget):
     print('Advanced training - Exercise 1')
 
     # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_LUMBAR)    
+    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_LUMBAR, 0.0)    
 
     # Shows slicer interface
     self.homeWidget.hideHome()
@@ -147,7 +147,7 @@ class TrainingSession(qt.QWidget):
     print('Advanced training - Exercise 2')    
 
     # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_VASCULAR)
+    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_VASCULAR, 0.0)
 
     # Shows slicer interface
     self.homeWidget.hideHome()
