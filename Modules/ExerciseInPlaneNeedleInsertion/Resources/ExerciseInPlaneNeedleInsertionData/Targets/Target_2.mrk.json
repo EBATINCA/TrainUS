@@ -1,11 +1,14 @@
 {
-    "@schema": "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.0.json#",
+    "@schema": "https://raw.githubusercontent.com/slicer/slicer/main/modules/loadable/markups/resources/schema/markups-schema-v1.0.3.json#",
     "markups": [
         {
             "type": "Line",
             "coordinateSystem": "LPS",
+            "coordinateUnits": "mm",
             "locked": false,
+            "fixedNumberOfControlPoints": false,
             "labelFormat": "%N-%d",
+            "lastUsedControlPointNumber": 0,
             "controlPoints": [
                 {
                     "id": "1",
@@ -24,7 +27,7 @@
                     "label": "Start",
                     "description": "",
                     "associatedNodeID": "vtkMRMLScalarVolumeNode1",
-                    "position": [-423.2107813788275, -495.2926412456884, -0.00016527992841020023],
+                    "position": [-421.7909545658677, -438.03329531707916, -0.0001706620564050354],
                     "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
                     "selected": true,
                     "locked": false,
@@ -36,7 +39,8 @@
                 {
                     "name": "length",
                     "enabled": true,
-                    "value": 34.7388507716887,
+                    "value": 253.47624777373464,
+                    "units": "mm",
                     "printFormat": "%-#4.4gmm"
                 }
             ],
@@ -64,6 +68,10 @@
                 "lineColorFadingSaturation": 1.0,
                 "lineColorFadingHueOffset": 0.0,
                 "handlesInteractive": false,
+                "translationHandleVisibility": true,
+                "rotationHandleVisibility": true,
+                "scaleHandleVisibility": true,
+                "interactionHandleScale": 3.0,
                 "snapMode": "toVisibleSurface"
             }
         }

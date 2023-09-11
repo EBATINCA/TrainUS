@@ -27,6 +27,7 @@ class LayoutUtils:
     self.customLayout_Dual2D3D_withTable_ID = 1003
     self.customLayout_TableOnly_ID = 1004
     self.customLayout_Dual3DTable_ID = 1005
+    self.customLayout_Triple2D3D_ID = 1006
 
     # Volume reslice driver (SlicerIGT extension)
     try:
@@ -129,6 +130,8 @@ class LayoutUtils:
       layoutID = self.customLayout_TableOnly_ID
     elif layoutName == '3D + Table':
       layoutID = self.customLayout_Dual3DTable_ID
+    elif layoutName == '2D + 3D + 3D':
+      layoutID = self.customLayout_Triple2D3D_ID
     else:
       layoutID = slicer.vtkMRMLLayoutNode.SlicerLayoutDefaultView
 
@@ -175,6 +178,31 @@ class LayoutUtils:
     "  <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
     "  <property name=\"viewlabel\" action=\"default\">T</property>"
     "  </view>"
+    " </item>"
+    "</layout>")
+
+    # Layout 2D (left) + 3D (top right) + 3D (bottom right)
+    customLayout_Triple2D3D = ("<layout type=\"horizontal\" split=\"true\">"
+    " <item splitSize=\"400\" >\n"
+    "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+    "     <property name=\"orientation\" action=\"default\">Axial</property>"
+    "     <property name=\"viewlabel\" action=\"default\">R</property>"
+    "     <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+    "  </view>"
+    " </item>"
+    " <item splitSize=\"600\" >\n"    
+    "  <layout type=\"vertical\">"
+    "   <item>"
+    "    <view class=\"vtkMRMLViewNode\" singletontag=\"1\">"
+    "     <property name=\"viewlabel\" action=\"default\">T</property>"
+    "    </view>"
+    "   </item>"
+    "   <item>"
+    "    <view class=\"vtkMRMLViewNode\" singletontag=\"2\">"
+    "     <property name=\"viewlabel\" action=\"default\">2</property>"
+    "    </view>"
+    "   </item>"
+    "  </layout>"
     " </item>"
     "</layout>")
     
@@ -299,6 +327,7 @@ class LayoutUtils:
 
     # Register custom layouts
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_ID, customLayout_Dual2D3D)
+    layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Triple2D3D_ID, customLayout_Triple2D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual3D3D_ID, customLayout_Dual3D3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_FourUp3D_ID, customLayout_FourUp3D)
     layoutLogic.GetLayoutNode().AddLayoutDescription(self.customLayout_Dual2D3D_withPlot_ID, customLayout_Dual2D3D_withPlot)
@@ -311,6 +340,14 @@ class LayoutUtils:
     # Get slice logic
     sliceLogic = slicer.app.layoutManager().sliceWidget(sliceViewName).sliceLogic()
 
+    """
+    # Make all slice nodes invisible in 3D views except for ultrasound image
+    volumeNodesInScene = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
+    for volumeNode in volumeNodesInScene:
+      sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      sliceLogic.GetSliceNode().SetSliceVisible(False)
+    """
+      
     # Select background volume in slice view
     sliceLogic.GetSliceCompositeNode().SetBackgroundVolumeID(ultrasoundVolumeNode.GetID())
 
@@ -320,6 +357,9 @@ class LayoutUtils:
 
     # Fit US image to view    
     sliceLogic.FitSliceToAll()
+
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
 
     # Display image in 3D view
     sliceLogic.GetSliceNode().SetSliceVisible(True)
@@ -343,6 +383,12 @@ class LayoutUtils:
     sliceLogic.FitSliceToAll()
     sliceLogic.SetSliceOffset(0)
 
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
+
+    # Do not display in 3D view
+    sliceLogic.GetSliceNode().SetSliceVisible(False)
+
     # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
     #sliceWidget.enabled = False
 
@@ -364,6 +410,12 @@ class LayoutUtils:
     sliceLogic.GetSliceNode().SetOrientationToAxial()
     sliceLogic.FitSliceToAll()
     sliceLogic.SetSliceOffset(0)
+
+    # Do not link slice view control
+    sliceLogic.GetSliceCompositeNode().SetLinkedControl(False)
+
+    # Do not display in 3D view
+    sliceLogic.GetSliceNode().SetSliceVisible(False)
 
     # Disable slice widget to avoid mouse interactions (drag, zoom, ...)
     #sliceWidget.enabled = False

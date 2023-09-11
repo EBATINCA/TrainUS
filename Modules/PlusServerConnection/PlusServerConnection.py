@@ -571,14 +571,11 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
         self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.ActivatedEvent, self.getIGTLConnectionStatus)
         self.addObserver(self.trackerConnector, slicer.vtkMRMLIGTLConnectorNode.DeactivatedEvent, self.getIGTLConnectionStatus)    
 
-    # Save connector node ID into parameter node 
-    # TODO: Reference both connectors to parameter node
-    if self.ultrasoundConnector:
-      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, self.ultrasoundConnector.GetID())
-    elif self.trackerConnector:
-      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, self.trackerConnector.GetID())
-    else:
-      Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, '')
+    # Save connector node ID into parameter node
+    if ultrasoundConnectorFound:
+      Parameters.instance.setParameter(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID, self.ultrasoundConnector.GetID())
+    if trackerConnectorFound:
+      Parameters.instance.setParameter(Parameters.TRACKER_IGTL_CONNECTOR_NODE_ID, self.trackerConnector.GetID())
 
     # Wait
     if progressDialog:
@@ -653,7 +650,8 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       self.trackerConnector = None
       
     # Reset connector node ID into parameter node
-    Parameters.instance.setParameter(Parameters.IGTL_CONNECTOR_NODE_ID, '')
+    Parameters.instance.setParameter(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID, '')
+    Parameters.instance.setParameter(Parameters.TRACKER_IGTL_CONNECTOR_NODE_ID, '')
 
     # Remove Plus server nodes
     if self.ultrasoundPlusServerNode:
@@ -666,6 +664,44 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
     # Get IGTL connection status
     slicer.app.processEvents()
     self.getIGTLConnectionStatus()
+
+  #------------------------------------------------------------------------------
+  def pauseIGTLConnection(self):
+    """
+    Pause OpenIGTLink connection.
+    """    
+    # Get IGTL connector node IDs
+    ultrasoundConnectorID = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID)   
+    trackerConnectorID = Parameters.instance.getParameterString(Parameters.TRACKER_IGTL_CONNECTOR_NODE_ID)
+
+    # Get IGTL connector nodes
+    ultrasoundIGTLConnectorNode = slicer.mrmlScene.GetNodeByID(ultrasoundConnectorID)
+    trackerIGTLConnectorNode = slicer.mrmlScene.GetNodeByID(trackerConnectorID)
+
+    # Stop connection
+    if ultrasoundIGTLConnectorNode:
+      ultrasoundIGTLConnectorNode.Stop()
+    if trackerIGTLConnectorNode:
+      trackerIGTLConnectorNode.Stop()
+
+  #------------------------------------------------------------------------------
+  def unpauseIGTLConnection(self):
+    """
+    Unpause OpenIGTLink connection.
+    """    
+    # Get IGTL connector node IDs
+    ultrasoundConnectorID = Parameters.instance.getParameterString(Parameters.ULTRASOUND_IGTL_CONNECTOR_NODE_ID)   
+    trackerConnectorID = Parameters.instance.getParameterString(Parameters.TRACKER_IGTL_CONNECTOR_NODE_ID)
+
+    # Get IGTL connector nodes
+    ultrasoundIGTLConnectorNode = slicer.mrmlScene.GetNodeByID(ultrasoundConnectorID)
+    trackerIGTLConnectorNode = slicer.mrmlScene.GetNodeByID(trackerConnectorID)
+
+    # Start connection
+    if ultrasoundIGTLConnectorNode:
+      ultrasoundIGTLConnectorNode.Start()
+    if trackerIGTLConnectorNode:
+      trackerIGTLConnectorNode.Start()
 
   #------------------------------------------------------------------------------
   def getPlusServerConnectionStatus(self):

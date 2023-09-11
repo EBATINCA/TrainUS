@@ -89,7 +89,6 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Runs when exiting the module.
     """
-
     # Delete exercise data
     self.logic.deleteExerciseData()
 
@@ -214,7 +213,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.customLayout_FourUp3D_ID = 1000
 
     # Exercise settings
-    self.exerciseDifficulty = None  
+    self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
 
     # Instructions

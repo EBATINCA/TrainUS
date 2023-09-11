@@ -2,6 +2,9 @@ from __main__ import vtk, qt, ctk, slicer
 import logging
 import os
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # TrainingSession
@@ -37,6 +40,7 @@ class TrainingSession(qt.QWidget):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
+    self.ui.basicExercise1Button.setText('In-plane Needle Insertion')
     self.ui.advancedExercise1Button.setText('Lumbar Insertion')
     self.ui.advancedExercise2Button.setText('Vascular Cannulation')
     
@@ -98,8 +102,11 @@ class TrainingSession(qt.QWidget):
   def onBasicExercise1ButtonClicked(self):
     print('Basic training - Exercise 1')
 
-    # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 1')
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ExerciseInPlaneNeedleInsertion module
+    slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_BASIC_INPLANE_INSERTION])
   
   #------------------------------------------------------------------------------
   def onBasicExercise2ButtonClicked(self):
@@ -127,26 +134,26 @@ class TrainingSession(qt.QWidget):
     print('Advanced training - Exercise 1')
 
     # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 1')    
+    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_LUMBAR, 0.0)    
 
     # Shows slicer interface
     self.homeWidget.hideHome()
 
-    # Change to ExerciseVascular module
-    slicer.util.selectModule('ExerciseLumbarInsertion')
+    # Change to ExerciseLumbarInsertion module
+    slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_ADVANCED_LUMBAR])
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise2ButtonClicked(self):
     print('Advanced training - Exercise 2')    
 
     # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 2')
+    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_VASCULAR, 0.0)
 
     # Shows slicer interface
     self.homeWidget.hideHome()
 
     # Change to ExerciseVascular module
-    slicer.util.selectModule('ExerciseVascular')
+    slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_ADVANCED_VASCULAR])
   
   #------------------------------------------------------------------------------
   def onAdvancedExercise3ButtonClicked(self):

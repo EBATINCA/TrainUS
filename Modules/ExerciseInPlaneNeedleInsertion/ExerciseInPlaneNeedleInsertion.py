@@ -10,6 +10,9 @@ import logging
 
 import json
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # ExerciseInPlaneNeedleInsertion
@@ -72,6 +75,35 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     """
     Runs whenever the module is reopened
     """
+    # Get app use case
+    appUseCase = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+
+    # Set use case: recording or evaluation
+    self.logic.exerciseMode = appUseCase
+
+    # Load exercise data
+    self.logic.loadExerciseData()
+
+    # Evaluation use case
+    if appUseCase == Parameters.APP_USE_CASE_EVALUATION:
+      # Get selected participant and recording
+      selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+      selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+      # Get recording folder
+      recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+      recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+      # Search for SQBR file in folder
+      recordingFile = None
+      for fileName in os.listdir(recordingFolderPath):
+        if fileName.endswith(".sqbr"):
+          recordingFile = fileName        
+      # Load recording file
+      if recordingFile:
+        print('Loading recording file from path: ', os.path.join(recordingFolderPath, recordingFile))
+        self.logic.loadRecordingFile(os.path.join(recordingFolderPath, recordingFile))
+      else:
+        logging.error('Recording file was not found in database. Skipping...')
+    
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -90,6 +122,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
+    self.ui.loadDataButton.visible = False
+    self.ui.modeSelectionGroupBox.visible = False
     self.ui.showInstructionsButton.setText('Show')
     self.ui.trimSequenceGroupBox.collapsed = True
     self.ui.recordingTimerWidget.slider().visible = False
@@ -98,9 +132,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
 
     # Disable slice annotations immediately
-    sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
-    sliceAnnotations.sliceViewAnnotationsEnabled = False
-    sliceAnnotations.updateSliceViewFromGUI()
+    #sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
+    #sliceAnnotations.sliceViewAnnotationsEnabled = False
+    #sliceAnnotations.updateSliceViewFromGUI()
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
@@ -201,21 +235,21 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.ui.loadDataButton.enabled = self.ui.easyRadioButton.isChecked() or self.ui.mediumRadioButton.isChecked() or self.ui.hardRadioButton.isChecked()
 
     # Mode
-    if self.logic.exerciseMode == 'Recording':
+    if self.logic.exerciseMode == Parameters.APP_USE_CASE_RECORDING:
       self.ui.instructionsGroupBox.visible = True
       self.ui.difficultyGroupBox.visible = True
       self.ui.targetGeneratorGroupBox.visible = True
       self.ui.recordingGroupBox.visible = True
       self.ui.importRecordingGroupBox.visible = False
       self.ui.playbackGroupBox.visible = False
-      self.ui.viewControllerGroupBox.visible = False
+      self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = False
-    elif self.logic.exerciseMode == 'Evaluation':
+    elif self.logic.exerciseMode == Parameters.APP_USE_CASE_EVALUATION:
       self.ui.instructionsGroupBox.visible = True
       self.ui.difficultyGroupBox.visible = True
       self.ui.targetGeneratorGroupBox.visible = False
       self.ui.recordingGroupBox.visible = False
-      self.ui.importRecordingGroupBox.visible = True
+      self.ui.importRecordingGroupBox.visible = False
       self.ui.playbackGroupBox.visible = True
       self.ui.viewControllerGroupBox.visible = True
       self.ui.metricsGroupBox.visible = True
@@ -320,8 +354,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onLoadDataButtonClicked(self):
-    # Start exercise
-    self.logic.setupScene()
+    # Load data for exercise
+    self.logic.loadExerciseData()
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -385,10 +419,10 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
   #------------------------------------------------------------------------------
   def onGenerateTargetButtonClicked(self):    
     # Generate random target ID
-    targetID = self.logic.getRandomTargetID()
+    self.logic.targetID = self.logic.getRandomTargetID()
 
     # Load selected target
-    self.logic.loadTarget(targetID)
+    self.logic.loadTarget()
 
   #------------------------------------------------------------------------------
   def onStartStopRecordingButtonClicked(self):    
@@ -429,19 +463,40 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onSaveRecordingButtonClicked(self):
+
+    # Get recording duration
+    recordingDuration = self.logic.sequenceBrowserUtils.getRecordingLength()
+    
+    # Create new recording
+    slicer.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_BASIC_INPLANE_INSERTION, recordingDuration)
+
+    # Get recording folder path
+    selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+    selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+    recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+    recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+
     # Generate recording file path
     filename = 'Recording-' + time.strftime("%Y%m%d-%H%M%S") + os.extsep + "sqbr"
-    directory = self.logic.dataFolderPath
-    filePath = os.path.join(directory, filename)
+    filePath = os.path.join(recordingFolderPath, filename)
 
     # Save sequence browser node
     self.logic.sequenceBrowserUtils.saveSequenceBrowser(filePath)
+
+    # Save exercise options to JSON file
+    recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    recordingInfo['options'] = {}
+    recordingInfo['options']['target'] = self.logic.targetID
+    recordingInfo['options']['difficulty'] = self.logic.exerciseDifficulty
+
+    # Rewrite info JSON file
+    slicer.trainUsWidget.logic.recordingManager.writeRecordingInfoFile(recordingInfoFilePath, recordingInfo)
 
     # Recording info to save in JSON file
     print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
     print('Date:', time.strftime("%Y%m%d"))
     print('Time:', time.strftime("%H%M%S"))
-    print('Recording length:', self.logic.sequenceBrowserUtils.getRecordingLength())
+    print('Recording length:', recordingDuration)
     print('Target:', self.logic.targetFileName)
     print('User:', 'XXXXXXXXXXX')
     print('Hardware setup:', 'XXXXXXXXXXX')
@@ -467,31 +522,8 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     if not filePath:
       return
 
-    # Remove observer
-    self.logic.removeObserverToMasterSequenceNode()
-
-    # Delete previous recording
-    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
-
-    # Load sequence browser node
-    self.logic.sequenceBrowserUtils.loadSequenceBrowser(filePath)
-
-    # Add observer
-    self.logic.addObserverToMasterSequenceNode()
-
-    # Reset focal point in 3D view
-    self.logic.layoutUtils.resetFocalPointInThreeDView()
-
-    # Load recording info file
-    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
-    recordingInfo = self.logic.readRecordingInfoFile(recordingInfoFilePath)
-
-    # Update target corresponding to recording
-    targetID = recordingInfo['options']['target']
-    self.logic.loadTarget(targetID)
-
-    # Update difficulty corresponding to recording
-    self.logic.exerciseDifficulty = recordingInfo['options']['difficulty']
+    # Load recording from file
+    self.logic.loadRecordingFile(filePath)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -640,9 +672,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):    
+    # Delete exercise data
+    self.logic.deleteExerciseData()
+    
     # Go back to Home module
-    #slicer.util.selectModule('Home') 
-    print('Back to home!')
+    slicer.util.selectModule('Home')
 
 #---------------------------------------------------------------------------------------------#
 #                                                                                             #
@@ -678,7 +712,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
-    self.exerciseMode = 'Evaluation'
+    self.exerciseMode = 'Recording'
 
     # Instructions
     self.instructionsImagesVisible = False
@@ -708,7 +742,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.perkTutorMetricTableNode = None
 
   #------------------------------------------------------------------------------
-  def loadData(self):
+  def loadExerciseData(self):
     logging.debug('Loading data')
 
     # Load instructions images
@@ -759,12 +793,6 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
         slicer.mrmlScene.AddNode(self.usImageVolumeNode)
         logging.error('ERROR: ' + 'Image_Reference' + ' volume not found in scene. Creating empty volume...')
 
-  #------------------------------------------------------------------------------
-  def setupScene(self):
-
-    # Load exercise data
-    self.loadData()
-
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
@@ -779,7 +807,19 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.LeftCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.FrontCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.RightCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())    
+    self.BottomCameraToProbeModel.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
+
+    # Make all slice nodes invisible in 3D views
+    # This is needed to avoid other volume nodes, different from the ultrasound image node,
+    # to be displayed in the 3D view.
+    redSliceWidget = slicer.app.layoutManager().sliceWidget('Red')
+    yellowSliceWidget = slicer.app.layoutManager().sliceWidget('Yellow')
+    volumeNodesInScene = slicer.mrmlScene.GetNodesByClass('vtkMRMLScalarVolumeNode')
+    for volumeNode in volumeNodesInScene:
+      redSliceWidget.sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      redSliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
+      yellowSliceWidget.sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(volumeNode.GetID())
+      yellowSliceWidget.sliceLogic().GetSliceNode().SetSliceVisible(False)
 
     # Display US image in red slice view
     self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
@@ -795,6 +835,29 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
 
     # Set difficulty parameters
     self.updateDifficulty()
+
+  #------------------------------------------------------------------------------
+  def deleteExerciseData(self):
+    # Delete instructions    
+    slicer.mrmlScene.RemoveNode(self.instructionsImageVolume)
+    try:
+      slicer.mrmlScene.RemoveNode(self.instructionsSequenceBrowser)
+      slicer.mrmlScene.RemoveNode(self.instructionsVideoVolume)
+    except:
+      pass
+
+    # Delete models
+    slicer.mrmlScene.RemoveNode(self.usProbe_model)
+    slicer.mrmlScene.RemoveNode(self.needle_model)
+
+    # Delete transforms
+    slicer.mrmlScene.RemoveNode(self.NeedleTipToNeedle)
+    slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
+    slicer.mrmlScene.RemoveNode(self.ImageToProbe)
+    slicer.mrmlScene.RemoveNode(self.LeftCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.FrontCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.RightCameraToProbeModel)
+    slicer.mrmlScene.RemoveNode(self.BottomCameraToProbeModel)
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -903,10 +966,9 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     return targetID
     
   #------------------------------------------------------------------------------
-  def loadTarget(self, targetID):
-
+  def loadTarget(self):
     # Get target file location
-    targetFileName = 'Target_' + str(targetID) + '.mrk.json'
+    targetFileName = 'Target_' + str(self.targetID) + '.mrk.json'
     targetDataFolder = self.dataFolderPath + '/Targets/'
 
     # Remove previous target from scene
@@ -915,7 +977,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
       self.targetLineNode = None
     if self.targetPointNode:
       slicer.mrmlScene.RemoveNode(self.targetPointNode)
-      self.targetPointNode = None    
+      self.targetPointNode = None
 
     # Load selected target    
     targetFilePath = targetDataFolder + targetFileName
@@ -1313,6 +1375,44 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     progressDialog.show()
     slicer.app.processEvents()
     return progressDialog
+
+      
+  #------------------------------------------------------------------------------
+  def loadRecordingFile(self, filePath):
+    """
+    Load recording from .sqbr file.
+    """
+    # Remove observer
+    self.removeObserverToMasterSequenceNode()
+
+    # Delete previous recording
+    self.sequenceBrowserUtils.clearSequenceBrowser()
+
+    # Load sequence browser node
+    self.sequenceBrowserUtils.loadSequenceBrowser(filePath)
+
+    # Add observer
+    self.addObserverToMasterSequenceNode()
+
+    # Reset focal point in 3D view
+    self.layoutUtils.resetFocalPointInThreeDView()
+
+    # Load recording info file
+    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
+    if os.path.isfile(recordingInfoFilePath):
+      recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    else:
+      logging.error('Recording info file was not found in folder.')
+      return 
+
+    # Apply saved exercise options
+    if 'options' in recordingInfo.keys():
+      # Update target corresponding to recording
+      self.targetID = recordingInfo['options']['target']
+      self.loadTarget()
+      # Update difficulty corresponding to recording
+      self.exerciseDifficulty = recordingInfo['options']['difficulty']
+      self.updateDifficulty()
 
 #------------------------------------------------------------------------------
 #

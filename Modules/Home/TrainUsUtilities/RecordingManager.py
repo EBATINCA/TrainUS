@@ -606,12 +606,13 @@ class RecordingManager():
     return participantInfo
 
   #------------------------------------------------------------------------------
-  def createNewRecording(self, exerciseName):
+  def createNewRecording(self, exerciseName, recordingDuration):
     """
     Adds new recording to database by generating a unique ID, creating a new folder, 
     and creating a new .json file containing the recording information.
 
     :param exerciseName: exercise name for recording (string)
+    :param recordingDuration: duration of recording in seconds (float)
 
     :return new recording info (dict)
     """
@@ -657,7 +658,7 @@ class RecordingManager():
     recordingInfo['date'] = dateLabel
     recordingInfo['time'] = timeLabel
     recordingInfo['exercise'] = exerciseName
-    recordingInfo['duration'] = '0 min 0 s'
+    recordingInfo['duration'] = f'{recordingDuration:.2f}'
 
     # Create recording info file
     recordingInfoFilePath = self.getRecordingInfoFilePath(selectedParticipantID, newRecordingID)
