@@ -77,7 +77,7 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     Runs whenever the module is reopened
     """
     # Get app use case
-    appUseCase = Parameters.APP_USE_CASE_RECORDING #Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+    appUseCase = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
 
     # Set use case: recording or evaluation
     self.logic.exerciseMode = appUseCase

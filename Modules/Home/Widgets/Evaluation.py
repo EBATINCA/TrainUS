@@ -412,12 +412,11 @@ class Evaluation(qt.QWidget):
     exerciseName = recordingInfo['exercise']
 
     # Open corresponding module for recording evaluation
-    if exerciseName == Parameters.EXERCISE_BASIC_INPLANE_INSERTION:
+    if exerciseName in Parameters.EXERCISE_TO_MODULENAME_DICTIONARY.keys():
       # Shows slicer interface
       self.homeWidget.hideHome()
-
-      # Change to ExerciseLumbarInsertion module
-      slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_BASIC_INPLANE_INSERTION])
+      # Open corresponding module
+      slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[exerciseName])
 
   #------------------------------------------------------------------------------
   def onDeleteRecordingButtonClicked(self):    
