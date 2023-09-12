@@ -260,7 +260,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Unpause OpenIGTLink connection
     try:
-      slicer.modules.PlusServerConnectionWidget.logic.unpauseIGTLConnection()
+      slicer.modules.plusserverconnection.widgetRepresentation().self().logic.unpauseIGTLConnection()
     except:
       pass
 
@@ -278,7 +278,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Parameters.instance.setParameter(Parameters.APP_USE_CASE, Parameters.APP_USE_CASE_EVALUATION)
 
     # Pause OpenIGTLink connection
-    slicer.modules.PlusServerConnectionWidget.logic.pauseIGTLConnection()
+    slicer.modules.plusserverconnection.widgetRepresentation().self().logic.pauseIGTLConnection()
 
     # Update UI tables
     self.updateParticipantsTable()
@@ -291,7 +291,7 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Unpause OpenIGTLink connection
     try:
-      slicer.modules.PlusServerConnectionWidget.logic.unpauseIGTLConnection()
+      slicer.modules.plusserverconnection.widgetRepresentation().self().logic.unpauseIGTLConnection()
     except:
       pass
 
