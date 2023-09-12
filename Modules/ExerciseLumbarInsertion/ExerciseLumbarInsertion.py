@@ -10,6 +10,9 @@ import logging
 
 import json
 
+# TrainUS parameters
+import TrainUSLib.TrainUSParameters as Parameters
+
 #------------------------------------------------------------------------------
 #
 # ExerciseLumbarInsertion
@@ -73,8 +76,33 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     """
     Runs whenever the module is reopened
     """
+    # Get app use case
+    appUseCase = Parameters.instance.getParameterString(Parameters.APP_USE_CASE)
+
+    # Set use case: recording or evaluation
+    self.logic.exerciseMode = appUseCase
+    
     # Load exercise data
     self.logic.loadExerciseData()
+
+    # Evaluation use case
+    if appUseCase == Parameters.APP_USE_CASE_EVALUATION:
+      # Get selected participant and recording
+      selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+      selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+      # Get recording folder
+      recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+      recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+      # Search for SQBR file in folder
+      recordingFile = None
+      for fileName in os.listdir(recordingFolderPath):
+        if fileName.endswith(".sqbr"):
+          recordingFile = fileName        
+      # Load recording file
+      if recordingFile:
+        self.logic.loadRecordingFile(os.path.join(recordingFolderPath, recordingFile))
+      else:
+        logging.error('Recording file was not found in database. Skipping...')
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -94,9 +122,12 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
+    self.ui.modeSelectionGroupBox.visible = False
     self.ui.showInstructionsButton.setText('Show')
     self.ui.videoInstructionsButton.setIcon(qt.QIcon(self.resourcePath('Icons/videoIcon_small.png')))    
     self.ui.videoInstructionsButton.minimumWidth = self.ui.videoInstructionsButton.sizeHint.height()
+    self.ui.recordingTimerWidget.slider().visible = False    
+    self.ui.trimSequenceGroupBox.collapsed = True
 
     # Disable slice annotations immediately
     #sliceAnnotations = slicer.modules.DataProbeInstance.infoWidget.sliceAnnotations
@@ -133,6 +164,8 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
   #------------------------------------------------------------------------------
   def setupConnections(self):    
+    # Mode
+    self.ui.modeSelectionComboBox.currentTextChanged.connect(self.onModeSelectionComboBoxTextChanged)
     # Instructions
     self.ui.showInstructionsButton.clicked.connect(self.onShowInstructionsButtonClicked)
     self.ui.previousInstructionButton.clicked.connect(self.onPreviousInstructionButtonClicked)
@@ -148,6 +181,16 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.rightViewButton.clicked.connect(self.onRightViewButtonClicked)
     self.ui.bottomViewButton.clicked.connect(self.onBottomViewButtonClicked)
     self.ui.freeViewButton.clicked.connect(self.onFreeViewButtonClicked)
+    # Recording
+    self.ui.startStopRecordingButton.clicked.connect(self.onStartStopRecordingButtonClicked)
+    self.ui.clearRecordingButton.clicked.connect(self.onClearRecordingButtonClicked)
+    self.ui.saveRecordingButton.clicked.connect(self.onSaveRecordingButtonClicked)
+    # Trim sequence
+    self.ui.trimSequenceGroupBox.toggled.connect(self.onTrimSequenceGroupBoxCollapsed)
+    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.connect(self.onTrimSequenceDoubleRangeSliderModified)
+    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.connect(self.onTrimSequenceMinPosDoubleRangeSliderModified)
+    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.connect(self.onTrimSequenceMaxPosDoubleRangeSliderModified)
+    self.ui.trimSequenceButton.clicked.connect(self.onTrimSequenceButtonClicked)
     # Workflow
     self.ui.checkStep1Button.clicked.connect(self.onCheckStep1ButtonClicked)
     self.ui.checkStep2Button.clicked.connect(self.onCheckStep2ButtonClicked)
@@ -163,6 +206,8 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
   #------------------------------------------------------------------------------
   def disconnect(self):
+    # Mode
+    self.ui.modeSelectionComboBox.currentTextChanged.disconnect()
     # Instructions
     self.ui.showInstructionsButton.clicked.disconnect()
     self.ui.previousInstructionButton.clicked.disconnect()
@@ -178,6 +223,16 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     self.ui.rightViewButton.clicked.disconnect()
     self.ui.bottomViewButton.clicked.disconnect()
     self.ui.freeViewButton.clicked.disconnect()
+    # Recording
+    self.ui.startStopRecordingButton.clicked.disconnect()
+    self.ui.clearRecordingButton.clicked.disconnect()
+    self.ui.saveRecordingButton.clicked.disconnect()
+    # Trim sequence
+    self.ui.trimSequenceGroupBox.toggled.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.valuesChanged.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.minimumPositionChanged.disconnect()
+    self.ui.trimSequenceDoubleRangeSlider.maximumPositionChanged.disconnect()
+    self.ui.trimSequenceButton.clicked.disconnect()
     # Workflow
     self.ui.checkStep1Button.clicked.disconnect()
     self.ui.checkStep2Button.clicked.disconnect()
@@ -198,6 +253,18 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     Calls the updateGUIFromMRML function of all tabs so that they can take care of their own GUI.
     """    
+    # Mode
+    if self.logic.exerciseMode == Parameters.APP_USE_CASE_RECORDING:
+      self.ui.instructionsGroupBox.visible = True
+      self.ui.recordingGroupBox.visible = True
+      self.ui.playbackGroupBox.visible = False
+    elif self.logic.exerciseMode == Parameters.APP_USE_CASE_EVALUATION:
+      self.ui.instructionsGroupBox.visible = True
+      self.ui.recordingGroupBox.visible = False
+      self.ui.playbackGroupBox.visible = True
+    else:
+      logging.error('Invalid exercise mode...')
+      
     # Show/Hide instruction images
     if self.logic.instructionsImagesVisible:
       self.ui.showInstructionsButton.setText('Hide')
@@ -226,6 +293,42 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     elif self.logic.exerciseDifficulty == 'Hard':
       self.ui.hardRadioButton.checked = True
 
+    # Start/Stop recording
+    if self.logic.sequenceBrowserUtils.getRecordingInProgress():
+      self.ui.startStopRecordingButton.setText('Stop')
+      self.ui.clearRecordingButton.enabled = False
+      self.ui.saveRecordingButton.enabled = False
+    else:
+      self.ui.startStopRecordingButton.setText('Start')
+      self.ui.clearRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+      self.ui.saveRecordingButton.enabled = bool(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+
+    # Recording info
+    self.ui.recordingLengthLabel.setText('{0:.3g} s'.format(self.logic.sequenceBrowserUtils.getRecordingLength()))
+    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
+      self.ui.recordingTimerWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+
+    # Playback
+    if bool(self.logic.sequenceBrowserUtils.getSequenceBrowser()):
+      self.ui.SequenceBrowserPlayWidget.enabled = True
+      self.ui.SequenceBrowserPlayWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+      self.ui.SequenceBrowserSeekWidget.enabled = True
+      self.ui.SequenceBrowserSeekWidget.setMRMLSequenceBrowserNode(self.logic.sequenceBrowserUtils.getSequenceBrowser())
+    else:
+      self.ui.SequenceBrowserPlayWidget.enabled = False
+      self.ui.SequenceBrowserSeekWidget.enabled = False
+
+    # Trim sequence
+    rangeSequence = self.logic.sequenceBrowserUtils.getTimeRangeInSequenceBrowser()
+    if rangeSequence:
+      self.ui.trimSequenceDoubleRangeSlider.minimum = rangeSequence[0]
+      self.ui.trimSequenceDoubleRangeSlider.maximum = rangeSequence[1]
+      self.ui.trimSequenceDoubleRangeSlider.minimumValue = rangeSequence[0]
+      self.ui.trimSequenceDoubleRangeSlider.maximumValue = rangeSequence[1]
+    if self.logic.sequenceBrowserUtils.isSequenceBrowserEmpty():
+      self.ui.maxValueTrimSequenceLabel.text = '-'
+      self.ui.minValueTrimSequenceLabel.text = '-'
+
     # Update viewpoint
     self.logic.updateViewpoint()
     self.ui.leftViewButton.checked = False
@@ -238,6 +341,14 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
     if self.logic.currentViewpointMode == 'Right': self.ui.rightViewButton.checked = True
     if self.logic.currentViewpointMode == 'Bottom': self.ui.bottomViewButton.checked = True
     if self.logic.currentViewpointMode == 'Free': self.ui.freeViewButton.checked = True
+
+  #------------------------------------------------------------------------------
+  def onModeSelectionComboBoxTextChanged(self, text):
+    # Update mode
+    self.logic.exerciseMode = text
+
+    # Update GUI
+    self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
   def onDifficultyRadioButtonToggled(self):
@@ -323,6 +434,113 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
   def onFreeViewButtonClicked(self):
     # Update viewpoint
     self.logic.currentViewpointMode = 'Free'
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onStartStopRecordingButtonClicked(self):    
+    # Check recording status
+    recordingInProgress = self.logic.sequenceBrowserUtils.getRecordingInProgress()
+
+    # Update sequence browser recording status
+    if recordingInProgress:
+      # Stop recording
+      self.logic.sequenceBrowserUtils.stopSequenceBrowserRecording()
+    else:
+      # Start recording
+      synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.TrackerToPatient, self.logic.usImageVolumeNode]
+      self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
+      self.logic.sequenceBrowserUtils.startSequenceBrowserRecording()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onClearRecordingButtonClicked(self):
+    # Delete previous recording
+    self.logic.sequenceBrowserUtils.clearSequenceBrowser()
+
+    # Create new recording
+    synchronizedNodes = [self.logic.NeedleToTracker, self.logic.ProbeToTracker, self.logic.TrackerToPatient, self.logic.usImageVolumeNode]
+    self.logic.sequenceBrowserUtils.setSynchronizedNodes(synchronizedNodes)
+    self.logic.sequenceBrowserUtils.createNewSequenceBrowser()
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onSaveRecordingButtonClicked(self):
+
+    # Get recording duration
+    recordingDuration = self.logic.sequenceBrowserUtils.getRecordingLength()
+    
+    # Create new recording
+    slicer.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_LUMBAR, recordingDuration)
+
+    # Get recording folder path
+    selectedParticipantID = slicer.trainUsWidget.logic.recordingManager.getSelectedParticipantID()
+    selectedRecordingID = slicer.trainUsWidget.logic.recordingManager.getSelectedRecordingID()
+    recordingInfoFilePath = slicer.trainUsWidget.logic.recordingManager.getRecordingInfoFilePath(selectedParticipantID, selectedRecordingID)
+    recordingFolderPath = os.path.dirname(recordingInfoFilePath)
+
+    # Generate recording file path
+    filename = 'Recording-' + time.strftime("%Y%m%d-%H%M%S") + os.extsep + "sqbr"
+    filePath = os.path.join(recordingFolderPath, filename)
+
+    # Save sequence browser node
+    self.logic.sequenceBrowserUtils.saveSequenceBrowser(filePath)
+
+    # Save exercise options to JSON file
+    recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    recordingInfo['options'] = {}
+    recordingInfo['options']['difficulty'] = self.logic.exerciseDifficulty
+
+    # Rewrite info JSON file
+    slicer.trainUsWidget.logic.recordingManager.writeRecordingInfoFile(recordingInfoFilePath, recordingInfo)
+
+    # Recording info to save in JSON file
+    print('>>>>>>>>>>>>>>>>RECORDING SAVED<<<<<<<<<<<<<<<<')
+    print('Date:', time.strftime("%Y%m%d"))
+    print('Time:', time.strftime("%H%M%S"))
+    print('Recording length:', recordingDuration)
+    print('User:', 'XXXXXXXXXXX')
+    print('Hardware setup:', 'XXXXXXXXXXX')
+
+    # Update GUI
+    self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceGroupBoxCollapsed(self, toggled):
+    pass
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceDoubleRangeSliderModified(self, minValue, maxValue):
+    # Update UI labels to indicate current min and max values in slider range
+    self.ui.minValueTrimSequenceLabel.text = str("{0:05.2f}".format(minValue)) + ' s'
+    self.ui.maxValueTrimSequenceLabel.text = str("{0:05.2f}".format(maxValue)) + ' s'
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceMinPosDoubleRangeSliderModified(self, minValue):
+    # Update current sample in sequence browser by modifying seek widget slider
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(minValue)
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceMaxPosDoubleRangeSliderModified(self, maxValue):
+    # Update current sample in sequence browser by modifying seek widget slider
+    self.ui.SequenceBrowserSeekWidget.slider().value = self.logic.sequenceBrowserUtils.getSequenceBrowserItemFromTimestamp(maxValue)
+
+  #------------------------------------------------------------------------------
+  def onTrimSequenceButtonClicked(self):
+    # Get slider values
+    minValue = self.ui.trimSequenceDoubleRangeSlider.minimumValue
+    maxValue = self.ui.trimSequenceDoubleRangeSlider.maximumValue
+
+    # Collapse trim sequence group box
+    self.ui.trimSequenceGroupBox.collapsed = True
+
+    # Trim sequence
+    self.logic.sequenceBrowserUtils.trimSequenceBrowserRecording(minValue, maxValue)
 
     # Update GUI
     self.updateGUIFromMRML()
@@ -497,7 +715,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Exercise default settings
     self.exerciseDifficulty = 'Medium'  
     self.exerciseLayout = '3D only'
-    self.exerciseMode = 'Evaluation'
+    self.exerciseMode = 'Recording'
 
     # Instructions
     self.instructionsImagesVisible = False
@@ -849,7 +1067,7 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
           node = None
           logging.error('ERROR: ' + markupsPlaneFileName + ' markups plane not found in path')
     return node
-
+  
   #------------------------------------------------------------------------------
   def updateViewpoint(self):
     """
@@ -882,6 +1100,34 @@ class ExerciseLumbarInsertionLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     progressDialog.show()
     slicer.app.processEvents()
     return progressDialog
+  
+  #------------------------------------------------------------------------------
+  def loadRecordingFile(self, filePath):
+    """
+    Load recording from .sqbr file.
+    """
+    # Delete previous recording
+    self.sequenceBrowserUtils.clearSequenceBrowser()
+
+    # Load sequence browser node
+    self.sequenceBrowserUtils.loadSequenceBrowser(filePath)
+
+    # Reset focal point in 3D view
+    self.layoutUtils.resetFocalPointInThreeDView()
+
+    # Load recording info file
+    recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')
+    if os.path.isfile(recordingInfoFilePath):
+      recordingInfo = slicer.trainUsWidget.logic.recordingManager.readRecordingInfoFile(recordingInfoFilePath)
+    else:
+      logging.error('Recording info file was not found in folder.')
+      return 
+
+    # Apply saved exercise options
+    if 'options' in recordingInfo.keys():
+      # Update difficulty corresponding to recording
+      self.exerciseDifficulty = recordingInfo['options']['difficulty']
+      self.updateDifficulty()
 
   #------------------------------------------------------------------------------
   def checkWorkflowStep(self, stepId):
