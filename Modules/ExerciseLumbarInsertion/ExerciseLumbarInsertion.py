@@ -104,6 +104,9 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
       else:
         logging.error('Recording file was not found in database. Skipping...')
 
+    # Default viewpoint
+    self.logic.currentViewpointMode = 'Front'
+
     # Update GUI
     self.updateGUIFromMRML()
 
@@ -676,6 +679,10 @@ class ExerciseLumbarInsertionWidget(ScriptedLoadableModuleWidget, VTKObservation
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):
+    # Free viewpoint
+    self.logic.currentViewpointMode = 'Free'
+    self.logic.updateViewpoint()
+    
     # Delete exercise data
     self.logic.deleteExerciseData()
     

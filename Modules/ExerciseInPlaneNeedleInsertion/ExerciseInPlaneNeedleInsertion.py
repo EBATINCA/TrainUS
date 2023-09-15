@@ -103,6 +103,9 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
         self.logic.loadRecordingFile(os.path.join(recordingFolderPath, recordingFile))
       else:
         logging.error('Recording file was not found in database. Skipping...')
+
+    # Default viewpoint
+    self.logic.currentViewpointMode = 'Front' # restore default viewpoint when entering module
     
     # Update GUI
     self.updateGUIFromMRML()
@@ -671,7 +674,11 @@ class ExerciseInPlaneNeedleInsertionWidget(ScriptedLoadableModuleWidget, VTKObse
     self.updateGUIFromMRML()
 
   #------------------------------------------------------------------------------
-  def onBackToMenuButtonClicked(self):    
+  def onBackToMenuButtonClicked(self):
+    # Free viewpoint
+    self.logic.currentViewpointMode = 'Free'
+    self.logic.updateViewpoint()
+
     # Delete exercise data
     self.logic.deleteExerciseData()
     
