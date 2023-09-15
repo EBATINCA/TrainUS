@@ -25,6 +25,8 @@ set(MODULE_PYTHON_RESOURCES
   Resources/Home.qss  
   Resources/Icons/${MODULE_NAME}.png
   Resources/Logo/TrainUS_Logo.png
+  Resources/Logo/TrainUS_Ebatinca_Logo.png
+  Resources/Logo/CDTI_Neotec_Logo.png
   Resources/UI/${MODULE_NAME}.ui
   Resources/UI/Configuration.ui
   Resources/UI/Evaluation.ui

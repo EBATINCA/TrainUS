@@ -115,8 +115,13 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # Display TrainUS logo in UI
     moduleDir = os.path.dirname(__file__)
-    logoFilePath = os.path.join(moduleDir, 'Resources', 'Logo', 'TrainUS_Logo.png')
-    self.ui.trainUSLogo.pixmap = qt.QPixmap(logoFilePath)
+    trainUsLogoFilePath = os.path.join(moduleDir, 'Resources', 'Logo', 'TrainUS_Ebatinca_Logo.png')
+    self.ui.trainUSLogo.pixmap = qt.QPixmap(trainUsLogoFilePath)
+
+    # Display acknowledgement logo in UI
+    moduleDir = os.path.dirname(__file__)
+    ackLogoFilePath = os.path.join(moduleDir, 'Resources', 'Logo', 'CDTI_Neotec_Logo.png')
+    self.ui.acknowledgementLogo.pixmap = qt.QPixmap(ackLogoFilePath)
 
     # Create logic class
     self.logic = HomeLogic(self)
