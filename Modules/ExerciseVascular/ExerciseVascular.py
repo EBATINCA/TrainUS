@@ -89,8 +89,7 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """
     Runs when exiting the module.
     """
-    # Delete exercise data
-    self.logic.deleteExerciseData()
+    pass
 
   #------------------------------------------------------------------------------
   def setupUi(self):
@@ -172,6 +171,9 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def onBackToMenuButtonClicked(self):
+    # Delete exercise data
+    self.logic.deleteExerciseData()
+    
     # Go back to Home module
     slicer.util.selectModule('Home')
 
