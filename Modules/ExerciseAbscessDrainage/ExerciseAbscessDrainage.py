@@ -617,11 +617,9 @@ class ExerciseAbscessDrainageLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     # Build transform tree
     self.needle_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.needle_trajectory_model.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
-    self.needleTrajectory_fiducials.SetAndObserveTransformNodeID(self.NeedleTipToNeedle.GetID())
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usProbe_plane_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
-    self.usProbe_plane.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
     self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
     self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
