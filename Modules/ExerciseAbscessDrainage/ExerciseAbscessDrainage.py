@@ -709,8 +709,10 @@ class ExerciseAbscessDrainageLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     try:
       # Display needle model projected in US image
       self.needle_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
-      # Display spine model projected in US image
-      self.spine_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
+      # Display bone model projected in US image
+      self.boneTissue_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
+      # Display filling model projected in US image
+      self.phantomFilling_model.GetModelDisplayNode().SetVisibility2D(self.highlightModelsInImage)
     except:
       pass
 
