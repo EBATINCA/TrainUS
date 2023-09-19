@@ -43,6 +43,7 @@ class TrainingSession(qt.QWidget):
     self.ui.basicExercise1Button.setText('In-plane Needle Insertion')
     self.ui.advancedExercise1Button.setText('Lumbar Insertion')
     self.ui.advancedExercise2Button.setText('Vascular Cannulation')
+    self.ui.advancedExercise3Button.setText('Abscess Drainage')
     
     # Display TrainUS logo in UI
     logoFilePath = os.path.join(self.homeWidget.logic.fileDir, 'Resources', 'Logo', 'TrainUS_Logo.png')
@@ -157,7 +158,13 @@ class TrainingSession(qt.QWidget):
     print('Advanced training - Exercise 3')    
 
     # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording('Advanced Exercise 3')
+    self.trainUsWidget.logic.recordingManager.createNewRecording(Parameters.EXERCISE_ADVANCED_DRAINAGE, 0.0)
+
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ExerciseVascular module
+    slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_ADVANCED_DRAINAGE])
   
   #------------------------------------------------------------------------------
   def onFinishTrainingButtonClicked(self):
