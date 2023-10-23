@@ -40,7 +40,8 @@ class TrainingSession(qt.QWidget):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     # Customize widgets
-    self.ui.basicExercise1Button.setText('In-plane Needle Insertion')
+    self.ui.basicExercise1Button.setText('In-Plane Needle Insertion')
+    self.ui.basicExercise2Button.setText('Out-of-Plane Needle Insertion')
     self.ui.advancedExercise1Button.setText('Lumbar Insertion')
     self.ui.advancedExercise2Button.setText('Vascular Cannulation')
     self.ui.advancedExercise3Button.setText('Abscess Drainage')
@@ -113,8 +114,11 @@ class TrainingSession(qt.QWidget):
   def onBasicExercise2ButtonClicked(self):
     print('Basic training - Exercise 2')    
 
-    # Create new recording
-    self.trainUsWidget.logic.recordingManager.createNewRecording('Basic Exercise 2')
+    # Shows slicer interface
+    self.homeWidget.hideHome()
+
+    # Change to ExerciseInPlaneNeedleInsertion module
+    slicer.util.selectModule(Parameters.EXERCISE_TO_MODULENAME_DICTIONARY[Parameters.EXERCISE_BASIC_OUTPLANE_INSERTION])
   
   #------------------------------------------------------------------------------
   def onBasicExercise3ButtonClicked(self):

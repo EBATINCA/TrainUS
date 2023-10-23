@@ -75,7 +75,7 @@ class TrainUSParameters(VTKObservationMixin):
   EXERCISE_ADVANCED_DRAINAGE = 'Abscess drainage'
   EXERCISE_TO_MODULENAME_DICTIONARY = {
     EXERCISE_BASIC_INPLANE_INSERTION: 'ExerciseInPlaneNeedleInsertion',
-    EXERCISE_BASIC_OUTPLANE_INSERTION: '',
+    EXERCISE_BASIC_OUTPLANE_INSERTION: 'ExerciseOutPlaneNeedleInsertion',
     EXERCISE_ADVANCED_LUMBAR: 'ExerciseLumbarInsertion',
     EXERCISE_ADVANCED_VASCULAR: 'ExerciseVascular',
     EXERCISE_ADVANCED_DRAINAGE: 'ExerciseAbscessDrainage'
