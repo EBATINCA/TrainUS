@@ -1132,11 +1132,6 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     except:
       logging.error('No target point is defined...')
       return
-    try:
-      self.targetLineNode.GetName()
-    except:
-      logging.error('No target line is defined...')
-      return
 
     # Iterate along items
     self.sequenceBrowserUtils.selectFirstItemInSequenceBrowser() # reset
