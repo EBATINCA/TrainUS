@@ -731,7 +731,6 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
 
     # Target nodes
     self.targetFileName = ''
-    self.targetLineNode = None
     self.targetPointNode = None
 
     # Metric data
@@ -740,7 +739,6 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     self.needleTipToUsPlaneDistanceMm = []
     self.needleTipToTargetDistanceMm = []
     self.needleToUsPlaneAngleDeg = []
-    self.needleToTargetLineInPlaneAngleDeg = []
 
     # PerkTutor node
     self.perkEvaluatorNode = None
@@ -863,6 +861,9 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     slicer.mrmlScene.RemoveNode(self.FrontCameraToProbeModel)
     slicer.mrmlScene.RemoveNode(self.RightCameraToProbeModel)
     slicer.mrmlScene.RemoveNode(self.BottomCameraToProbeModel)
+
+    # Delete target
+    slicer.mrmlScene.RemoveNode(self.targetPointNode)
 
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
@@ -1000,9 +1001,9 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     self.targetPointNode.GetDisplayNode().SetPropertiesLabelVisibility(False)
     self.targetPointNode.GetDisplayNode().SetPointLabelsVisibility(False)
     self.targetPointNode.GetDisplayNode().SetUseGlyphScale(False) # Activates absolute size mode
-    self.targetPointNode.GetDisplayNode().SetGlyphSize(5) # 5 mm
+    self.targetPointNode.GetDisplayNode().SetGlyphSize(4) # 4 mm
     self.targetPointNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green point
-    self.targetPointNode.GetDisplayNode().SetOpacity(0.2)
+    self.targetPointNode.GetDisplayNode().SetOpacity(0.6)
 
   #------------------------------------------------------------------------------
   def getOrCreateTransform(self, transformName):
@@ -1124,7 +1125,6 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     self.needleTipToUsPlaneDistanceMm = []
     self.needleTipToTargetDistanceMm = []
     self.needleToUsPlaneAngleDeg = []
-    self.needleToTargetLineInPlaneAngleDeg = []
 
     # Check if targets are defined in the scene
     try:

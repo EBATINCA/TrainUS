@@ -866,6 +866,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     slicer.mrmlScene.RemoveNode(self.RightCameraToProbeModel)
     slicer.mrmlScene.RemoveNode(self.BottomCameraToProbeModel)
 
+    # Delete targets
+    slicer.mrmlScene.RemoveNode(self.targetPointNode)
+    slicer.mrmlScene.RemoveNode(self.targetLineNode)
+
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
     # Set parameters according to difficulty
@@ -1018,7 +1022,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetPointNode.GetDisplayNode().SetUseGlyphScale(False) # Activates absolute size mode
     self.targetPointNode.GetDisplayNode().SetGlyphSize(5) # 5 mm
     self.targetPointNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green point
-    self.targetPointNode.GetDisplayNode().SetOpacity(0.2)
+    self.targetPointNode.GetDisplayNode().SetOpacity(0.6)
 
     # Set line node parameters
     self.targetLineNode.SetLocked(True)
@@ -1028,7 +1032,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.targetLineNode.GetDisplayNode().SetCurveLineSizeMode(True)
     self.targetLineNode.GetDisplayNode().SetLineDiameter(0.5)
     self.targetLineNode.GetDisplayNode().SetSelectedColor(0,1,0) # Green line
-    self.targetLineNode.GetDisplayNode().SetOpacity(0.2)    
+    self.targetLineNode.GetDisplayNode().SetOpacity(0.6)    
 
   #------------------------------------------------------------------------------
   def getOrCreateTransform(self, transformName):
