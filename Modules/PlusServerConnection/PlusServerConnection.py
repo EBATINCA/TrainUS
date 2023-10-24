@@ -528,10 +528,10 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
       time.sleep(5)
 
     # Get ultrasound IGTL connector from server port
+    ultrasoundConnectorFound = False
     if self.isUltrasoundDeviceSelectionValid():
       usPlusServerPort = int(Parameters.instance.getParameterString(Parameters.ULTRASOUND_PLUS_SERVER_PORT))
       connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
-      ultrasoundConnectorFound = False
       for connectorNode in connectorNodes:
         serverPort = connectorNode.GetServerPort()
         if serverPort == usPlusServerPort:
@@ -543,10 +543,10 @@ class PlusServerConnectionLogic(ScriptedLoadableModuleLogic, VTKObservationMixin
         return
 
     # Get tracker IGTL connector from server port
+    trackerConnectorFound = False
     if self.isTrackerDeviceSelectionValid():
       trackerPlusServerPort = int(Parameters.instance.getParameterString(Parameters.TRACKER_PLUS_SERVER_PORT))
       connectorNodes = slicer.mrmlScene.GetNodesByClass('vtkMRMLIGTLConnectorNode')
-      trackerConnectorFound = False
       for connectorNode in connectorNodes:
         serverPort = connectorNode.GetServerPort()
         if serverPort == trackerPlusServerPort:
