@@ -142,7 +142,17 @@ class LayoutUtils:
     slicer.app.layoutManager().setLayout(layoutID)
 
     # Update current layout
-    self.currentLayout = slicer.app.layoutManager().layout    
+    self.currentLayout = slicer.app.layoutManager().layout
+
+    # Force UI update
+    slicer.app.processEvents()
+
+    # Ensure cube and labels are hidden in 3D views and focal point is reset
+    self.hideCubeAndLabelsInThreeDViews()
+    self.resetFocalPointInThreeDViews()
+
+    # Fit all slice views
+    self.fitAllSliceViews()
 
   #------------------------------------------------------------------------------
   def restoreLastLayout(self):
@@ -443,25 +453,40 @@ class LayoutUtils:
       sliceLogic.SetSliceOffset(sliceOffset + 1)
 
   #------------------------------------------------------------------------------
-  def get3DViewNode(self):
-    threeDViewNode = slicer.app.layoutManager().threeDWidget(0).mrmlViewNode()
+  def fitAllSliceViews(self):
+    sliceViewNames = slicer.app.layoutManager().sliceViewNames()
+    for sliceViewName in sliceViewNames:
+      # Get slice widget
+      sliceWidget = slicer.app.layoutManager().sliceWidget(sliceViewName)
+      # Get slice logic
+      sliceLogic = sliceWidget.sliceLogic()
+      # Fit slice
+      sliceLogic.FitSliceToAll()
+
+  #------------------------------------------------------------------------------
+  def getMain3DViewNode(self):
+    threeDViewNodesInScene = slicer.util.getNodesByClass("vtkMRMLViewNode")
+    threeDViewNode = threeDViewNodesInScene[0]
     return threeDViewNode
 
   #------------------------------------------------------------------------------
-  def resetFocalPointInThreeDView(self):
-    threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
-    threeDView.resetFocalPoint()
+  def resetFocalPointInThreeDViews(self):
+    threeDViewCount = slicer.app.layoutManager().threeDViewCount
+    for threeDViewId in range(threeDViewCount):
+      threeDView = slicer.app.layoutManager().threeDWidget(threeDViewId).threeDView()
+      threeDView.resetFocalPoint()
 
   #------------------------------------------------------------------------------
-  def hideCubeAndLabelsInThreeDView(self):
-    threeDViewNode = self.get3DViewNode()
-    threeDViewNode.SetBoxVisible(False)
-    threeDViewNode.SetAxisLabelsVisible(False)
+  def hideCubeAndLabelsInThreeDViews(self):
+    threeDViewNodesInScene = slicer.util.getNodesByClass("vtkMRMLViewNode")
+    for threeDViewNode in threeDViewNodesInScene:
+      threeDViewNode.SetBoxVisible(False)
+      threeDViewNode.SetAxisLabelsVisible(False)
 
   #------------------------------------------------------------------------------
   def activateViewpoint(self, cameraTransform):
     # Get 3D view node
-    threeDViewNode = self.get3DViewNode()
+    threeDViewNode = self.getMain3DViewNode()
 
     # Disable bulleye mode if active
     bullseyeMode = self.viewpointLogic.getViewpointForViewNode(threeDViewNode).getCurrentMode()

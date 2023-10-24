@@ -832,10 +832,10 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.layoutUtils.showUltrasoundInSliceView(self.usImageVolumeNode, 'Red')
 
     # Remove 3D cube and 3D axis label from 3D view
-    self.layoutUtils.hideCubeAndLabelsInThreeDView()
+    self.layoutUtils.hideCubeAndLabelsInThreeDViews()
 
     # Reset focal point in 3D view
-    self.layoutUtils.resetFocalPointInThreeDView()
+    self.layoutUtils.resetFocalPointInThreeDViews()
 
     # Avoid needle model to be seen in yellow slice view during instructions display
     self.needle_model.GetModelDisplayNode().SetViewNodeIDs(('vtkMRMLSliceNodeRed', 'vtkMRMLViewNode1'))
@@ -874,7 +874,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
   def updateDifficulty(self):
     # Set parameters according to difficulty
     if self.exerciseDifficulty == 'Easy':
-      self.exerciseLayout = '2D + 3D'
+      self.exerciseLayout = '2D + 3D + 3D'
       self.highlightModelsInImage = True
     elif self.exerciseDifficulty == 'Medium':
       self.exerciseLayout = '2D + 3D'
@@ -1406,7 +1406,7 @@ class ExerciseInPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObserv
     self.addObserverToMasterSequenceNode()
 
     # Reset focal point in 3D view
-    self.layoutUtils.resetFocalPointInThreeDView()
+    self.layoutUtils.resetFocalPointInThreeDViews()
 
     # Load recording info file
     recordingInfoFilePath = os.path.join(os.path.dirname(filePath), 'Recording_Info.json')

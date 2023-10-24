@@ -326,7 +326,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
   def updateDifficulty(self):
     # Set parameters according to difficulty
     if self.exerciseDifficulty == 'Easy':
-      self.exerciseLayout = '2D + 3D'
+      self.exerciseLayout = '2D + 3D + 3D'
       self.highlightModelsInImage = True
     elif self.exerciseDifficulty == 'Medium':
       self.exerciseLayout = '2D + 3D'
