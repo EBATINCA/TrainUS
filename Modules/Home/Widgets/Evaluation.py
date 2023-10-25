@@ -100,8 +100,8 @@ class Evaluation(qt.QWidget):
 
     # Participants tab
     self.ui.participantSearchText.textChanged.connect(self.onParticipantSearchTextChanged)
-    self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)    
-    self.ui.participantsTable.itemDoubleClicked.connect(self.onParticipantsTableItemDoubleClicked) 
+    self.ui.participantsTable.itemSelectionChanged.connect(self.onParticipantsTableItemSelected)
+    self.ui.participantsTable.itemDoubleClicked.connect(self.onParticipantsTableItemDoubleClicked)
     self.ui.checkRecordingsButton.clicked.connect(self.onCheckRecordingsButtonClicked)
     self.ui.newParticipantButton.clicked.connect(self.onNewParticipantButtonClicked)
     self.ui.editParticipantButton.clicked.connect(self.onEditParticipantButtonClicked)
@@ -112,6 +112,7 @@ class Evaluation(qt.QWidget):
     self.ui.editParticipantCancelButton.clicked.connect(self.onEditParticipantCancelButtonClicked)
     # Recordings tab
     self.ui.recordingsTable.itemSelectionChanged.connect(self.onRecordingsTableItemSelected)
+    self.ui.recordingsTable.itemDoubleClicked.connect(self.onRecordingsTableItemDoubleClicked)
     self.ui.recordingDetailsButton.clicked.connect(self.onRecordingDetailsButtonClicked)
     self.ui.evaluateRecordingButton.clicked.connect(self.onEvaluateRecordingButtonClicked)
     self.ui.deleteRecordingButton.clicked.connect(self.onDeleteRecordingButtonClicked)
@@ -124,8 +125,8 @@ class Evaluation(qt.QWidget):
 
     # Participants tab
     self.ui.participantSearchText.textChanged.disconnect()
-    self.ui.participantsTable.itemSelectionChanged.disconnect()  
-    self.ui.participantsTable.itemDoubleClicked.disconnect()  
+    self.ui.participantsTable.itemSelectionChanged.disconnect()
+    self.ui.participantsTable.itemDoubleClicked.disconnect()
     self.ui.checkRecordingsButton.clicked.disconnect()
     self.ui.newParticipantButton.clicked.disconnect()
     self.ui.editParticipantButton.clicked.disconnect()
@@ -136,6 +137,7 @@ class Evaluation(qt.QWidget):
     self.ui.editParticipantCancelButton.clicked.disconnect()
     # Recordings tab
     self.ui.recordingsTable.itemSelectionChanged.disconnect()
+    self.ui.recordingsTable.itemDoubleClicked.disconnect()
     self.ui.recordingDetailsButton.clicked.disconnect()
     self.ui.evaluateRecordingButton.clicked.disconnect()
     self.ui.deleteRecordingButton.clicked.disconnect()
@@ -394,6 +396,10 @@ class Evaluation(qt.QWidget):
 
     # Update GUI
     self.updateGUIFromMRML()
+
+  #------------------------------------------------------------------------------
+  def onRecordingsTableItemDoubleClicked(self):
+    self.onEvaluateRecordingButtonClicked()
 
   #------------------------------------------------------------------------------
   def onRecordingDetailsButtonClicked(self):
