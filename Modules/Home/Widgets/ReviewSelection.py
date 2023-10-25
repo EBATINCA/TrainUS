@@ -103,6 +103,9 @@ class ReviewSelection(qt.QWidget):
     # Update UI page
     self.homeWidget.logic.setMode(modeID = 4)
 
+    # Select first tab in training session tab widget
+    self.homeWidget.ui.TrainingSessionPanel.ui.trainingTabWidget.currentIndex = 0
+
   #------------------------------------------------------------------------------
   #
   # Logic functions
