@@ -289,6 +289,9 @@ class HomeWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.updateParticipantsTable()
     self.updateRecordingsTable()
 
+    # Select first tab in evaluation panel
+    self.ui.EvaluationPanel.ui.tabWidget.currentIndex = 0
+
   #------------------------------------------------------------------------------
   def onConfigurationButtonClicked(self):
     # Update mode
