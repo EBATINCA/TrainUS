@@ -16,7 +16,7 @@ import TrainUSLib.TrainUSParameters as Parameters
 #
 #------------------------------------------------------------------------------
 class ExerciseVascular(ScriptedLoadableModule):
-  
+
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "ExerciseVascular"
@@ -33,7 +33,7 @@ class ExerciseVascular(ScriptedLoadableModule):
 #
 #------------------------------------------------------------------------------
 class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
-  
+
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
     VTKObservationMixin.__init__(self)
@@ -93,7 +93,7 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def setupUi(self):
-    
+
     # Load widget from .ui file (created by Qt Designer).
     uiWidget = slicer.util.loadUI(self.resourcePath('UI/ExerciseVascular.ui'))
     self.layout.addWidget(uiWidget)
@@ -173,7 +173,7 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def onBackToMenuButtonClicked(self):
     # Delete exercise data
     self.logic.deleteExerciseData()
-    
+
     # Go back to Home module
     slicer.util.selectModule('Home')
 
@@ -188,7 +188,7 @@ class ExerciseVascularWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 #                                                                                             #
 #---------------------------------------------------------------------------------------------#
 class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
-  
+
   def __init__(self, widgetInstance, parent=None):
     ScriptedLoadableModuleLogic.__init__(self, parent)
     VTKObservationMixin.__init__(self)
@@ -209,19 +209,19 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.setupKeyboardShortcuts()
 
     # Register layouts
-    self.customLayout_Dual2D3D_ID = 997
-    self.customLayout_2Donly_ID = 998
-    self.customLayout_Dual3D3D_ID = 999
-    self.customLayout_FourUp3D_ID = 1000
+    self.customLayout_Dual2D3D_ID = 9997  #TODO: In other modules the LayoutUtils class is used for this
+    self.customLayout_2Donly_ID = 9998
+    self.customLayout_Dual3D3D_ID = 9999
+    self.customLayout_FourUp3D_ID = 10000
 
     # Exercise settings
-    self.exerciseDifficulty = 'Medium'  
+    self.exerciseDifficulty = 'Medium'
     self.exerciseLayout = '3D only'
 
     # Instructions
     self.instructions = None
     self.intructionsVisible = False
-    self.lastLayout = None 
+    self.lastLayout = None
     self.lastBackgroundVolumeID = None
 
     # Data path
@@ -248,7 +248,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         print('ERROR: Instructions files could not be loaded...')
 
     # Load models
-    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)    
+    self.usProbe_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'UsProbe_Telemed_L12', [1.0,0.93,0.91], visibility_bool = True, opacityValue = 1.0)
     self.stylus_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'StylusModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
     self.needle_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'NeedleModel', [0.21,0.90,0.10], visibility_bool = True, opacityValue = 1.0)
     self.phantom_model = self.loadModelFromFile(self.dataFolderPath + '/Models/', 'PhantomVascularTissue', [1.0,0.86,0.68], visibility_bool = True, opacityValue = 0.3)
@@ -284,14 +284,14 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.NeedleTipToNeedle.SetAndObserveTransformNodeID(self.NeedleToTracker.GetID())
     self.usProbe_model.SetAndObserveTransformNodeID(self.ProbeModelToProbe.GetID())
     self.usImageVolumeNode.SetAndObserveTransformNodeID(self.ImageToProbe.GetID())
-    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
-    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())    
+    self.ProbeModelToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())
+    self.ImageToProbe.SetAndObserveTransformNodeID(self.ProbeToTracker.GetID())
     self.StylusToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
-    self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())  
+    self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())
 
-    # Fit US image to view and display in 3D view     
+    # Fit US image to view and display in 3D view
     self.redSliceLogic.FitSliceToAll()
     self.redSliceLogic.GetSliceNode().SetSliceVisible(1)
 
@@ -305,7 +305,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
 
   #------------------------------------------------------------------------------
   def deleteExerciseData(self):
-    # Delete instructions    
+    # Delete instructions
     slicer.mrmlScene.RemoveNode(self.instructions)
 
     # Delete models
@@ -321,7 +321,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     slicer.mrmlScene.RemoveNode(self.ProbeModelToProbe)
     slicer.mrmlScene.RemoveNode(self.ImageToProbe)
     slicer.mrmlScene.RemoveNode(self.PatientToRAS)
-    
+
   #------------------------------------------------------------------------------
   def updateDifficulty(self):
     # Set parameters according to difficulty
@@ -372,7 +372,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
         self.redSliceLogic.GetSliceNode().SetOrientationToAxial()
         self.redSliceLogic.SetSliceOffset(0)
         self.redSliceLogic.GetSliceNode().SetSliceVisible(False)
-        self.redSliceLogic.FitSliceToAll()        
+        self.redSliceLogic.FitSliceToAll()
 
       # Deactivate model slice visibility
       try:
@@ -613,7 +613,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     for name in layoutManager.sliceViewNames():
       sliceWidget = layoutManager.sliceWidget(name)
       self.showViewerPinButton(sliceWidget, show = True)
-    
+
 
 #------------------------------------------------------------------------------
 #
