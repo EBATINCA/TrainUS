@@ -774,9 +774,15 @@ class ExerciseOutPlaneNeedleInsertionLogic(ScriptedLoadableModuleLogic, VTKObser
     #self.NeedleToTracker = self.loadTransformFromFile(self.dataFolderPath, 'NeedleToTracker') # ONLY FOR DEVELOPMENT
     #self.ProbeToTracker = self.loadTransformFromFile(self.dataFolderPath, 'ProbeToTracker') # ONLY FOR DEVELOPMENT
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
-    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
-    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
+
+    if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
+      self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/OptiTrack/', 'NeedleTipToNeedle')
+      self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/OptiTrack/', 'ProbeModelToProbe')
+      self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/OptiTrack/', 'ImageToProbe')
+    else:
+      self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/TrakSTAR/', 'NeedleTipToNeedle')
+      self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/TrakSTAR/', 'ProbeModelToProbe')
+      self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/TrakSTAR/', 'ImageToProbe')
 
     # Load camera transforms
     self.LeftCameraToProbeModel = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToProbeModel')

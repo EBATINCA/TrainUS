@@ -591,10 +591,18 @@ class ExerciseAbscessDrainageLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
-    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
-    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
-    self.PatientToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRas')
+
+    transformsFolderPath = self.dataFolderPath + '/Transforms/'
+    if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
+      transformsFolderPath += 'OptiTrack/'
+    else:
+      transformsFolderPath += 'TrakSTAR/'
+
+    self.NeedleTipToNeedle = self.loadTransformFromFile(transformsFolderPath, 'NeedleTipToNeedle')
+    self.ProbeModelToProbe = self.loadTransformFromFile(transformsFolderPath, 'ProbeModelToProbe')
+    self.ImageToProbe = self.loadTransformFromFile(transformsFolderPath, 'ImageToProbe')
+    self.PatientToRas = self.loadTransformFromFile(transformsFolderPath, 'PatientToRas')
+    #TODO: Phantom transform?
 
     # Load camera transforms
     self.LeftCameraToRas = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'LeftCameraToRas')
