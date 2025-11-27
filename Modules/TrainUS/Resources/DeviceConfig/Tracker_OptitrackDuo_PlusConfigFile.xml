@@ -3,7 +3,7 @@
   <DataCollection StartupDelaySec="1.0">
     <DeviceSet
       Name="PlusServer: OptiTrack (Project file only)"
-      Description="Tools: (1) Probe, (2) Needle, (3) Patient (upper right markers)."
+      Description="Tools: (1) Probe, (2) Needle, (3) Patient (upper right markers), (4) Stylus."
     />
     <Device
       Id="TrackerDevice"
@@ -16,12 +16,14 @@
         <DataSource Type="Tool" Id="Needle" />
         <DataSource Type="Tool" Id="Probe" />
         <DataSource Type="Tool" Id="Patient" />
+        <DataSource Type="Tool" Id="Stylus" />
       </DataSources>
       <OutputChannels>
         <OutputChannel Id="TrackerStream">
         <DataSource Type="Tool" Id="Needle" />
         <DataSource Type="Tool" Id="Probe" />
         <DataSource Type="Tool" Id="Patient" />
+        <DataSource Type="Tool" Id="Stylus" />
         </OutputChannel>
       </OutputChannels>
     </Device>
@@ -38,9 +40,12 @@
         <Message Type="TRANSFORM" />
       </MessageTypes>
       <TransformNames>
-        <Transform Name="ProbeToPatient" />
-        <Transform Name="NeedleToTracker" />
+        <Transform Name="StylusToTracker" />
         <Transform Name="ProbeToTracker" />
+        <Transform Name="NeedleToTracker" />
+        <Transform Name="TrackerToStylus" />
+        <Transform Name="TrackerToProbe" />
+        <Transform Name="PatientToTracker" />
         <Transform Name="TrackerToPatient" />
       </TransformNames>
     </DefaultClientInfo>

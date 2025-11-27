@@ -264,6 +264,7 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
     self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
     self.PatientToRAS = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRAS')
+    self.PhantomModelToPhantom = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PhantomModelToPhantom')
 
     # Get ultrasound image
     try:
@@ -290,6 +291,8 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())
+    self.vessels_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
+    self.phantom_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
 
     # Fit US image to view and display in 3D view
     self.redSliceLogic.FitSliceToAll()
