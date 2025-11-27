@@ -7,180 +7,57 @@
     <x>0</x>
     <y>0</y>
     <width>541</width>
-    <height>877</height>
+    <height>1262</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout_10">
-   <item row="6" column="0">
-    <widget class="QGroupBox" name="recordingGroupBox">
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="modeSelectionGroupBox">
      <property name="title">
-      <string>Recording</string>
+      <string>Mode</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_8">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="startStopRecordingButton">
-        <property name="text">
-         <string>Start</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="saveRecordingButton">
-        <property name="text">
-         <string>Save</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="clearRecordingButton">
-        <property name="text">
-         <string>Clear</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="recordingTimerWidget"/>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Recording length:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QLabel" name="recordingLengthLabel">
-        <property name="text">
-         <string>0.0 s</string>
-        </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QComboBox" name="modeSelectionComboBox">
+        <item>
+         <property name="text">
+          <string>Recording</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Evaluation</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="11" column="0">
-    <widget class="QPushButton" name="backToMenuButton">
+   <item row="0" column="0">
+    <widget class="QLabel" name="title">
      <property name="font">
       <font>
-       <pointsize>11</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>BACK TO MENU</string>
+      <string>Lumbar Insertion</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QGroupBox" name="playbackGroupBox">
-     <property name="title">
-      <string>Playback</string>
+   <item row="1" column="0">
+    <widget class="QLabel" name="spacer_1">
+     <property name="font">
+      <font>
+       <pointsize>13</pointsize>
+      </font>
      </property>
-     <layout class="QGridLayout" name="gridLayout_9">
-      <item row="0" column="0">
-       <widget class="qMRMLSequenceBrowserPlayWidget" name="SequenceBrowserPlayWidget"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="SequenceBrowserSeekWidget"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="ctkCollapsibleGroupBox" name="trimSequenceGroupBox">
-        <property name="title">
-         <string>Trim Sequence</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_11">
-         <item row="0" column="2">
-          <widget class="QLabel" name="maxValueTrimSequenceLabel">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="minValueTrimSequenceLabel">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="3">
-          <widget class="QPushButton" name="trimSequenceButton">
-           <property name="text">
-            <string>Trim Sequence</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QGroupBox" name="viewControllerGroupBox">
-     <property name="title">
-      <string>View Controller</string>
+     <property name="text">
+      <string/>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_6">
-      <item>
-       <widget class="QPushButton" name="leftViewButton">
-        <property name="text">
-         <string>Left</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="frontViewButton">
-        <property name="text">
-         <string>Front</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="rightViewButton">
-        <property name="text">
-         <string>Right</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="bottomViewButton">
-        <property name="text">
-         <string>Bottom</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="freeViewButton">
-        <property name="text">
-         <string>Free</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
    <item row="8" column="0">
@@ -188,7 +65,7 @@
      <property name="title">
       <string>Workflow</string>
      </property>
-     <property name="collapsed">
+     <property name="collapsed" stdset="0">
       <bool>true</bool>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -204,7 +81,7 @@
         <property name="title">
          <string>Step 1: Localize L5</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout">
@@ -248,7 +125,7 @@
         <property name="title">
          <string>Step 2: Localize L4</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
@@ -292,7 +169,7 @@
         <property name="title">
          <string>Step 3: Localize L3</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
@@ -336,7 +213,7 @@
         <property name="title">
          <string>Step 4: Localize L2</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
@@ -380,7 +257,7 @@
         <property name="title">
          <string>Step 5: Localize L1</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
@@ -419,7 +296,7 @@
         <property name="title">
          <string>Step 6: Localize the L3-L4 interspinous space</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_6">
@@ -458,7 +335,7 @@
         <property name="title">
          <string>Step 7: Define needle insertion point</string>
         </property>
-        <property name="collapsed">
+        <property name="collapsed" stdset="0">
          <bool>true</bool>
         </property>
         <layout class="QGridLayout" name="gridLayout_7">
@@ -531,24 +408,60 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="modeSelectionGroupBox">
+   <item row="5" column="0">
+    <widget class="QGroupBox" name="viewControllerGroupBox">
      <property name="title">
-      <string>Mode</string>
+      <string>View Controller</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
-       <widget class="QComboBox" name="modeSelectionComboBox">
-        <item>
-         <property name="text">
-          <string>Recording</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Evaluation</string>
-         </property>
-        </item>
+       <widget class="QPushButton" name="leftViewButton">
+        <property name="text">
+         <string>Left</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="frontViewButton">
+        <property name="text">
+         <string>Front</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="rightViewButton">
+        <property name="text">
+         <string>Right</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bottomViewButton">
+        <property name="text">
+         <string>Bottom</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="freeViewButton">
+        <property name="text">
+         <string>Free</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>
@@ -600,15 +513,112 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="spacer_1">
+   <item row="6" column="0">
+    <widget class="QGroupBox" name="recordingGroupBox">
+     <property name="title">
+      <string>Recording</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_8">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="startStopRecordingButton">
+        <property name="text">
+         <string>Start</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="saveRecordingButton">
+        <property name="text">
+         <string>Save</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="clearRecordingButton">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="qMRMLSequenceBrowserSeekWidget" name="recordingTimerWidget" native="true"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Recording length:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="recordingLengthLabel">
+        <property name="text">
+         <string>0.0 s</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QGroupBox" name="playbackGroupBox">
+     <property name="title">
+      <string>Playback</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_9">
+      <item row="0" column="0">
+       <widget class="qMRMLSequenceBrowserPlayWidget" name="SequenceBrowserPlayWidget" native="true"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="qMRMLSequenceBrowserSeekWidget" name="SequenceBrowserSeekWidget" native="true"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="ctkCollapsibleGroupBox" name="trimSequenceGroupBox">
+        <property name="title">
+         <string>Trim Sequence</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_11">
+         <item row="0" column="2">
+          <widget class="QLabel" name="maxValueTrimSequenceLabel">
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider" native="true"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="minValueTrimSequenceLabel">
+           <property name="text">
+            <string>-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="3">
+          <widget class="QPushButton" name="trimSequenceButton">
+           <property name="text">
+            <string>Trim Sequence</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QPushButton" name="backToMenuButton">
      <property name="font">
       <font>
-       <pointsize>13</pointsize>
+       <pointsize>11</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string/>
+      <string>BACK TO MENU</string>
      </property>
     </widget>
    </item>
@@ -648,29 +658,15 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="title">
-     <property name="font">
-      <font>
-       <pointsize>15</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Lumbar Insertion</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <spacer name="verticalSpacer">
+   <item row="11" column="0">
+    <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>336</height>
+       <height>40</height>
       </size>
      </property>
     </spacer>
@@ -699,11 +695,13 @@
    <class>qMRMLSequenceBrowserPlayWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSequenceBrowserPlayWidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLSequenceBrowserSeekWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSequenceBrowserSeekWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -79,6 +79,7 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
+                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -125,6 +126,7 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
+                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -171,6 +173,7 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
+                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -217,6 +220,7 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
+                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -322,6 +326,7 @@
         </property>
         <property name="font">
          <font>
+          <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
@@ -356,6 +361,7 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -369,6 +375,7 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
+             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -401,6 +408,7 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
+             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -420,6 +428,7 @@
            <property name="font">
             <font>
              <pointsize>11</pointsize>
+             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -433,6 +442,7 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
+             <weight>50</weight>
              <italic>false</italic>
              <bold>false</bold>
             </font>
@@ -453,6 +463,7 @@
           <spacer name="horizontalSpacer">
            <property name="font">
             <font>
+             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -493,6 +504,7 @@
            <property name="font">
             <font>
              <pointsize>20</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -560,6 +572,7 @@
            <property name="font">
             <font>
              <pointsize>20</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -629,6 +642,7 @@
            <property name="font">
             <font>
              <pointsize>25</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -649,24 +663,12 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
-         <item row="1" column="3">
-          <spacer name="horizontalSpacer_7">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
          <item row="1" column="4">
           <widget class="QPushButton" name="configurationButton">
            <property name="font">
             <font>
              <pointsize>10</pointsize>
+             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -683,6 +685,32 @@
             <bool>true</bool>
            </property>
           </widget>
+         </item>
+         <item row="1" column="3">
+          <spacer name="horizontalSpacer_7">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="2" column="4">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -772,6 +800,7 @@
     <widget class="QFrame" name="trainingSessionPage">
      <property name="font">
       <font>
+       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
