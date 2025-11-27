@@ -259,13 +259,21 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.NeedleToTracker = self.getOrCreateTransform('NeedleToTracker')
     self.ProbeToTracker = self.getOrCreateTransform('ProbeToTracker')
     self.TrackerToPatient = self.getOrCreateTransform('TrackerToPatient')
-    self.StylusTipToStylus = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'StylusTipToStylus')
-    self.NeedleTipToNeedle = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'NeedleTipToNeedle')
-    self.ProbeModelToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ProbeModelToProbe')
-    self.ImageToProbe = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'ImageToProbe')
-    self.PatientToRAS = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PatientToRAS')
-    self.PhantomModelToPhantom = self.loadTransformFromFile(self.dataFolderPath + '/Transforms/', 'PhantomModelToPhantom')
 
+    transformsFolderPath = self.dataFolderPath + '/Transforms/'
+    
+    if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
+      transformsFolderPath += 'OptiTrack/'
+      self.PhantomModelToPhantom = self.loadTransformFromFile(transformsFolderPath, 'PhantomModelToPhantom')
+    else:
+      transformsFolderPath += 'TrakSTAR/'
+
+    self.StylusTipToStylus = self.loadTransformFromFile(transformsFolderPath, 'StylusTipToStylus')
+    self.NeedleTipToNeedle = self.loadTransformFromFile(transformsFolderPath, 'NeedleTipToNeedle')
+    self.ProbeModelToProbe = self.loadTransformFromFile(transformsFolderPath, 'ProbeModelToProbe')
+    self.ImageToProbe = self.loadTransformFromFile(transformsFolderPath, 'ImageToProbe')
+    self.PatientToRAS = self.loadTransformFromFile(transformsFolderPath, 'PatientToRAS')
+    
     # Get ultrasound image
     try:
       self.usImageVolumeNode = slicer.util.getNode('Image_Reference')
@@ -291,8 +299,10 @@ class ExerciseVascularLogic(ScriptedLoadableModuleLogic, VTKObservationMixin):
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRAS.GetID())
-    self.vessels_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
-    self.phantom_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
+
+    if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
+      self.vessels_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
+      self.phantom_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
 
     # Fit US image to view and display in 3D view
     self.redSliceLogic.FitSliceToAll()
