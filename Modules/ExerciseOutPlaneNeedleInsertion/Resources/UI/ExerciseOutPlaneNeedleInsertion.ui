@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ToolTrackingStatus</class>
+ <class>ExerciseOutPlaneNeedleInsertion</class>
  <widget class="qMRMLWidget" name="ExerciseOutPlaneNeedleInsertion">
   <property name="geometry">
    <rect>
@@ -181,7 +181,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="2" column="0">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="recordingTimerWidget"/>
+       <widget class="qMRMLSequenceBrowserSeekWidget" name="recordingTimerWidget" native="true"/>
       </item>
       <item row="2" column="2">
        <widget class="QLabel" name="recordingLengthLabel">
@@ -247,14 +247,14 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0" colspan="2">
-       <widget class="qMRMLSequenceBrowserSeekWidget" name="SequenceBrowserSeekWidget">
+       <widget class="qMRMLSequenceBrowserSeekWidget" name="SequenceBrowserSeekWidget" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="0" column="0" colspan="2">
-       <widget class="qMRMLSequenceBrowserPlayWidget" name="SequenceBrowserPlayWidget">
+       <widget class="qMRMLSequenceBrowserPlayWidget" name="SequenceBrowserPlayWidget" native="true">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -271,7 +271,7 @@
         <property name="checked">
          <bool>true</bool>
         </property>
-        <property name="collapsedHeight">
+        <property name="collapsedHeight" stdset="0">
          <number>0</number>
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
@@ -290,12 +290,9 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider">
-           <property name="singleStep">
+          <widget class="ctkDoubleRangeSlider" name="trimSequenceDoubleRangeSlider" native="true">
+           <property name="singleStep" stdset="0">
             <double>0.100000000000000</double>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
            </property>
           </widget>
          </item>
@@ -467,19 +464,6 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>336</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <widget class="QPushButton" name="backToMenuButton">
      <property name="font">
       <font>
@@ -493,9 +477,28 @@
      </property>
     </widget>
    </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>336</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>ctkCollapsibleGroupBox</class>
    <extends>QGroupBox</extends>
@@ -508,20 +511,16 @@
    <header>ctkDoubleRangeSlider.h</header>
   </customwidget>
   <customwidget>
-   <class>qMRMLWidget</class>
-   <extends>QWidget</extends>
-   <header>qMRMLWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>qMRMLSequenceBrowserPlayWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSequenceBrowserPlayWidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>qMRMLSequenceBrowserSeekWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSequenceBrowserSeekWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
