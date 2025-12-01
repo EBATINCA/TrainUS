@@ -162,7 +162,7 @@ set(${extension_name}_SOURCE_DIR "${CMAKE_BINARY_DIR}/${extension_name}")
 FetchContent_Populate(${extension_name}
   SOURCE_DIR     ${${extension_name}_SOURCE_DIR}
   GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/openigtlink/SlicerOpenIGTLink.git
-  GIT_TAG        3bbf9d109e713f6da73ba742dc9b6967d74a4b65  # branch: master
+  GIT_TAG        b0454329e21a9a1f8869a91d95a513ecd22f927c  # branch: master
   GIT_PROGRESS   1
   QUIET
   )
@@ -196,7 +196,7 @@ set(SlicerIGSIO_USE_GPU OFF CACHE BOOL "Build with GPU support" FORCE)
 set(vtkAddon_DIR "${CMAKE_BINARY_DIR}/IGSIO-build/vtkAddon-bin")
 mark_as_superbuild(vtkAddon_DIR:PATH)
 set(vtkAddon_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/bin)
-set(vtkAddon_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/lib/TrainUS-5.0)
+set(vtkAddon_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Slicer-build/lib/TrainUS-5.1)
 
 # PerkTutor
 set(extension_name "PerkTutor")
