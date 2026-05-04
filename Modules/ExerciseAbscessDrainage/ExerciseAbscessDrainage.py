@@ -595,6 +595,7 @@ class ExerciseAbscessDrainageLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     transformsFolderPath = self.dataFolderPath + '/Transforms/'
     if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
       transformsFolderPath += 'OptiTrack/'
+      self.PhantomModelToPhantom = self.loadTransformFromFile(transformsFolderPath, 'PhantomModelToPhantom')
     else:
       transformsFolderPath += 'TrakSTAR/'
 
@@ -634,6 +635,11 @@ class ExerciseAbscessDrainageLogic(ScriptedLoadableModuleLogic, VTKObservationMi
     self.NeedleToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.ProbeToTracker.SetAndObserveTransformNodeID(self.TrackerToPatient.GetID())
     self.TrackerToPatient.SetAndObserveTransformNodeID(self.PatientToRas.GetID())
+
+    if Parameters.instance.getParameterString(Parameters.SELECTED_TRACKER) == 'Optitrack Duo (OTS)':
+      self.softTissue_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
+      self.boneTissue_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
+      self.phantomFilling_model.SetAndObserveTransformNodeID(self.PhantomModelToPhantom.GetID())
 
     # Volume reslice driver (SlicerIGT extension)
     try:
